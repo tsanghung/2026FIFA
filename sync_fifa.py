@@ -378,7 +378,10 @@ def predict_dixon_coles_model(lambda_home, lambda_away, rho=-0.12):
         
     return prob_home, prob_draw, prob_away, best_score
 
-def predict_match(home_elo, away_elo, home_pi_h, away_pi_a, home_att, away_def, away_att, home_def, home_rank=50, away_rank=50):
+def predict_match(home_elo, away_elo, home_pi_h, away_pi_a, home_att, away_def, away_att, home_def, 
+                  home_rank=50, away_rank=50,
+                  home_xg_diff=0.0, home_injuries=0, home_sentiment=0.0,
+                  away_xg_diff=0.0, away_injuries=0, away_sentiment=0.0):
     """
     Ensemble Predictive Brain: Combines Model A (Elo Poisson), Model B (Pi Normal CDF),
     Model C (Berrar Poisson), and Model D (Dixon-Coles Joint Model with Hybrid Lambda)
@@ -387,7 +390,12 @@ def predict_match(home_elo, away_elo, home_pi_h, away_pi_a, home_att, away_def, 
     # 1. Elo Model (Model A)
     elo_diff = home_elo - away_elo
     rank_diff = away_rank - home_rank
-    effective_elo = elo_diff + (rank_diff * 4.0)
+    
+    # 外部情報動態修正 Elo (xG差權重40, 輿論15, 傷兵-12)
+    home_correction = (home_xg_diff * 40.0) + (home_sentiment * 15.0) - (home_injuries * 12.0)
+    away_correction = (away_xg_diff * 40.0) + (away_sentiment * 15.0) - (away_injuries * 12.0)
+    
+    effective_elo = elo_diff + (rank_diff * 4.0) + home_correction - away_correction
     
     lambda_elo_home = 1.25 * (10 ** (effective_elo / 1000.0))
     lambda_elo_away = 1.25 * (10 ** (-effective_elo / 1000.0))
@@ -530,9 +538,9 @@ def reset_and_recalculate_all_elo_and_predictions():
         status = match['status']
         
         # Check if they are valid national teams (not placeholders like "Winner Group A")
-        cursor.execute('SELECT elo_rating, fifa_rank, pi_rating_home, pi_rating_away, berrar_att, berrar_def FROM teams WHERE name = ?', (home,))
+        cursor.execute('SELECT elo_rating, fifa_rank, pi_rating_home, pi_rating_away, berrar_att, berrar_def, fbref_xg_diff, injury_count, sentiment_score FROM teams WHERE name = ?', (home,))
         row_home = cursor.fetchone()
-        cursor.execute('SELECT elo_rating, fifa_rank, pi_rating_home, pi_rating_away, berrar_att, berrar_def FROM teams WHERE name = ?', (away,))
+        cursor.execute('SELECT elo_rating, fifa_rank, pi_rating_home, pi_rating_away, berrar_att, berrar_def, fbref_xg_diff, injury_count, sentiment_score FROM teams WHERE name = ?', (away,))
         row_away = cursor.fetchone()
         
         home_elo = row_home[0] if row_home else 1400.0
@@ -541,6 +549,9 @@ def reset_and_recalculate_all_elo_and_predictions():
         home_pi_a = row_home[3] if row_home else 0.0
         home_att = row_home[4] if row_home else 1.0
         home_def = row_home[5] if row_home else 1.0
+        home_xg_diff = row_home[6] if (row_home and len(row_home) > 6) else 0.0
+        home_injuries = row_home[7] if (row_home and len(row_home) > 7) else 0
+        home_sentiment = row_home[8] if (row_home and len(row_home) > 8) else 0.0
         
         away_elo = row_away[0] if row_away else 1400.0
         away_rank = row_away[1] if row_away else 50
@@ -548,6 +559,9 @@ def reset_and_recalculate_all_elo_and_predictions():
         away_pi_a = row_away[3] if row_away else 0.0
         away_att = row_away[4] if row_away else 1.0
         away_def = row_away[5] if row_away else 1.0
+        away_xg_diff = row_away[6] if (row_away and len(row_away) > 6) else 0.0
+        away_injuries = row_away[7] if (row_away and len(row_away) > 7) else 0
+        away_sentiment = row_away[8] if (row_away and len(row_away) > 8) else 0.0
         
         # Write pre-match Elo into matches
         cursor.execute('''
@@ -557,7 +571,9 @@ def reset_and_recalculate_all_elo_and_predictions():
         ''', (home_elo, away_elo, match_num))
         
         # Calculate prediction with ensemble predictive brain
-        pred = predict_match(home_elo, away_elo, home_pi_h, away_pi_a, home_att, away_def, away_att, home_def, home_rank, away_rank)
+        pred = predict_match(home_elo, away_elo, home_pi_h, away_pi_a, home_att, away_def, away_att, home_def, home_rank, away_rank,
+                             home_xg_diff, home_injuries, home_sentiment,
+                             away_xg_diff, away_injuries, away_sentiment)
         
         # Calculate EV and Kelly if odds exist in current record
         odds_h = match['odds_home']
@@ -785,6 +801,14 @@ def parse_and_sync():
     
     log(f"成功爬取並寫入 {inserted_count} 場基礎賽事數據到資料庫。")
     
+    # 執行第二階段多源情報 (FBref/SofaScore/Reddit/Opta) 自動抓取與情感分析
+    try:
+        log("正在同步第二階段多源情報 (FBref/SofaScore/Reddit/Opta)...")
+        import subprocess
+        subprocess.run(["python", "external_intelligence.py"], check=True)
+    except Exception as e:
+        log(f"同步外部情報失敗: {e}，將使用現有的資料庫快取數據。")
+
     # Run the comprehensive dynamic recalculation engine (Elo rating history and predictions)
     reset_and_recalculate_all_elo_and_predictions()
 

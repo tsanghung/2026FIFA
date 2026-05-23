@@ -384,14 +384,18 @@ with tab_sched:
     
     conn = get_db_connection()
     query = '''
-        SELECT match_num, group_or_stage, date, time, home_team, away_team, 
-               pred_home_win_prob, pred_draw_prob, pred_away_win_prob, pred_score,
-               odds_home, odds_draw, odds_away, status, score,
-               odds_home_bet365, odds_home_williamhill, odds_home_draftkings,
-               odds_draw_bet365, odds_draw_williamhill, odds_draw_draftkings,
-               odds_away_bet365, odds_away_williamhill, odds_away_draftkings
-        FROM matches
-        ORDER BY match_num ASC
+        SELECT m.match_num, m.group_or_stage, m.date, m.time, m.home_team, m.away_team, 
+               m.pred_home_win_prob, m.pred_draw_prob, m.pred_away_win_prob, m.pred_score,
+               m.odds_home, m.odds_draw, m.odds_away, m.status, m.score,
+               m.odds_home_bet365, m.odds_home_williamhill, m.odds_home_draftkings,
+               m.odds_draw_bet365, m.odds_draw_williamhill, m.odds_draw_draftkings,
+               m.odds_away_bet365, m.odds_away_williamhill, m.odds_away_draftkings,
+               t_h.injury_count as home_injuries, t_h.sentiment_score as home_sentiment,
+               t_a.injury_count as away_injuries, t_a.sentiment_score as away_sentiment
+        FROM matches m
+        LEFT JOIN teams t_h ON m.home_team = t_h.name
+        LEFT JOIN teams t_a ON m.away_team = t_a.name
+        ORDER BY m.match_num ASC
     '''
     df_sched = pd.read_sql_query(query, conn)
     conn.close()
@@ -442,12 +446,20 @@ with tab_sched:
         status_str = "已完賽" if r['status'] == "Completed" else "未開賽"
         score_str = r['score'] if r['score'] else "VS"
         
+        # 提取外部情報變量
+        h_inj = int(r['home_injuries']) if 'home_injuries' in r and pd.notnull(r['home_injuries']) else 0
+        h_sent = float(r['home_sentiment']) if 'home_sentiment' in r and pd.notnull(r['home_sentiment']) else 0.0
+        a_inj = int(r['away_injuries']) if 'away_injuries' in r and pd.notnull(r['away_injuries']) else 0
+        a_sent = float(r['away_sentiment']) if 'away_sentiment' in r and pd.notnull(r['away_sentiment']) else 0.0
+
         rows_html.append({
             "場次": f"#{match_num}",
             "賽事階段": r['group_or_stage'],
             "時間 (台灣時間)": f"{tw_date} {tw_time}",
             "客場": a_name,
+            "客隊情報 🏥💬": f"{a_inj} 🏥 / {a_sent:+.2f} 💬",
             "主場": h_name,
+            "主隊情報 🏥💬": f"{h_inj} 🏥 / {h_sent:+.2f} 💬",
             "狀態": status_str,
             "比分": score_str,
             "小賽勝率(主/和/客)": prob_str,
@@ -470,7 +482,9 @@ with tab_monte:
     cursor.execute('''
         SELECT m.match_num, m.home_team, m.away_team, 
                t_h.elo_rating, t_h.fifa_rank, t_h.pi_rating_home, t_h.berrar_att, t_h.berrar_def,
-               t_a.elo_rating, t_a.fifa_rank, t_a.pi_rating_away, t_a.berrar_att, t_a.berrar_def
+               t_h.fbref_xg_diff, t_h.injury_count, t_h.sentiment_score,
+               t_a.elo_rating, t_a.fifa_rank, t_a.pi_rating_away, t_a.berrar_att, t_a.berrar_def,
+               t_a.fbref_xg_diff, t_a.injury_count, t_a.sentiment_score
         FROM matches m
         LEFT JOIN teams t_h ON m.home_team = t_h.name
         LEFT JOIN teams t_a ON m.away_team = t_a.name
@@ -491,25 +505,36 @@ with tab_monte:
         selected_match_str = st.selectbox("請選擇欲模擬的場次：", list(match_options.keys()))
         
         selected_match = match_options[selected_match_str]
-        (match_num, home, away, h_elo, h_rank, home_pi_h, home_att, home_def,
-         a_elo, a_rank, away_pi_a, away_att, away_def) = selected_match
+        (match_num, home, away, 
+         h_elo, h_rank, home_pi_h, home_att, home_def, h_xg_diff, h_injuries, h_sentiment,
+         a_elo, a_rank, away_pi_a, away_att, away_def, a_xg_diff, a_injuries, a_sentiment) = selected_match
          
         h_elo = h_elo if h_elo else 1400.0
         h_rank = h_rank if h_rank else 50
         home_pi_h = home_pi_h if home_pi_h else 0.0
         home_att = home_att if home_att else 1.0
         home_def = home_def if home_def else 1.0
+        h_xg_diff = h_xg_diff if h_xg_diff else 0.0
+        h_injuries = h_injuries if h_injuries else 0
+        h_sentiment = h_sentiment if h_sentiment else 0.0
         
         a_elo = a_elo if a_elo else 1400.0
         a_rank = a_rank if a_rank else 50
         away_pi_a = away_pi_a if away_pi_a else 0.0
         away_att = away_att if away_att else 1.0
         away_def = away_def if away_def else 1.0
+        a_xg_diff = a_xg_diff if a_xg_diff else 0.0
+        a_injuries = a_injuries if a_injuries else 0
+        a_sentiment = a_sentiment if a_sentiment else 0.0
         
-        # Calculate Hybrid Lambdas
+        # Calculate Hybrid Lambdas with external intelligence corrections
         elo_diff = h_elo - a_elo
         rank_diff = a_rank - h_rank
-        effective_elo_diff = elo_diff + (rank_diff * 4.0)
+        
+        h_correction = (h_xg_diff * 40.0) + (h_sentiment * 15.0) - (h_injuries * 12.0)
+        a_correction = (a_xg_diff * 40.0) + (a_sentiment * 15.0) - (a_injuries * 12.0)
+        
+        effective_elo_diff = elo_diff + (rank_diff * 4.0) + h_correction - a_correction
         lambda_elo_home = 1.25 * (10 ** (effective_elo_diff / 1000.0))
         lambda_elo_away = 1.25 * (10 ** (-effective_elo_diff / 1000.0))
         
@@ -523,6 +548,8 @@ with tab_monte:
         
         # Show parameters with translations
         st.markdown(f"**【戰力參數】** **{get_team_display_name(home)}** (主) Elo: {h_elo:.1f} (Rank #{h_rank}) | **{get_team_display_name(away)}** (客) Elo: {a_elo:.1f} (Rank #{a_rank})")
+        st.markdown(f"**【主隊情報】** xG差: `{h_xg_diff:+.2f}` | 傷兵: `{h_injuries} 🏥` | 輿情指數: `{h_sentiment:+.2f} 💬` (情報修正: `{h_correction:+.1f}` Elo)")
+        st.markdown(f"**【客隊情報】** xG差: `{a_xg_diff:+.2f}` | 傷兵: `{a_injuries} 🏥` | 輿情指數: `{a_sentiment:+.2f} 💬` (情報修正: `{a_correction:+.1f}` Elo)")
         st.markdown(f"**【進球期望】** **{get_team_display_name(home)}** xG: `{home_lambda:.3f}` | **{get_team_display_name(away)}** xG: `{away_lambda:.3f}`")
         
         if st.button("🚀 啟動 100,000 次蒙地卡羅模擬"):
