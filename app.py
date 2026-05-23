@@ -3,6 +3,8 @@ import sqlite3
 import math
 import random
 import time
+import re
+from datetime import datetime, timedelta
 import pandas as pd
 import streamlit as st
 import plotly.express as px
@@ -72,6 +74,52 @@ def get_team_display_name(eng_name):
             return f"{v} ({eng_name_clean})"
             
     return eng_name_clean
+
+def convert_to_taiwan_time(date_str, time_str):
+    if not date_str:
+        return "", ""
+    if not time_str:
+        return date_str, ""
+        
+    # 清洗 unicode 減號 / hyphen
+    time_clean = time_str.replace('\u2212', '-').replace('−', '-').strip()
+    
+    # 提取時間與 UTC 偏移 (格式如 1:00 p.m. UTC-6 或 12:00 p.m. UTC-4)
+    pattern = r'(\d+):(\d+)\s*(a\.m\.|p\.m\.|am|pm)?\s*(?:UTC([+-]\d+))?'
+    match = re.search(pattern, time_clean, re.IGNORECASE)
+    if not match:
+        return date_str, time_clean
+        
+    hour = int(match.group(1))
+    minute = int(match.group(2))
+    ampm = match.group(3)
+    tz_offset = match.group(4)
+    
+    # 處理 am/pm 轉換為 24 小時制
+    if ampm:
+        ampm = ampm.lower().replace('.', '')
+        if ampm == 'pm' and hour < 12:
+            hour += 12
+        elif ampm == 'am' and hour == 12:
+            hour = 0
+            
+    # 解析日期並結合時間
+    try:
+        dt = datetime.strptime(date_str, '%Y-%m-%d')
+    except Exception:
+        return date_str, time_clean
+        
+    dt = dt.replace(hour=hour, minute=minute)
+    
+    # 預設偏移量 (如果沒有 UTC 標註則不進行時區調整，只輸出 HH:mm)
+    if tz_offset:
+        offset = int(tz_offset)
+        # 台灣是 UTC+8，時間差為 8 - offset
+        td_offset = timedelta(hours=8 - offset)
+        dt_taiwan = dt + td_offset
+        return dt_taiwan.strftime('%Y-%m-%d'), dt_taiwan.strftime('%H:%M')
+    else:
+        return date_str, f"{hour:02d}:{minute:02d}"
 
 # Custom Glassmorphism Sleek Dark CSS
 st.markdown("""
@@ -336,7 +384,7 @@ with tab_sched:
     
     conn = get_db_connection()
     query = '''
-        SELECT match_num, group_or_stage, date, home_team, away_team, 
+        SELECT match_num, group_or_stage, date, time, home_team, away_team, 
                pred_home_win_prob, pred_draw_prob, pred_away_win_prob, pred_score,
                odds_home, odds_draw, odds_away, status, score,
                odds_home_bet365, odds_home_williamhill, odds_home_draftkings,
@@ -372,6 +420,9 @@ with tab_sched:
         elif r['pred_away_win_prob'] > r['pred_home_win_prob']:
             a_name = f"{a_name} 👑"
         
+        # 轉換日期與時間為台灣時間 (UTC+8)
+        tw_date, tw_time = convert_to_taiwan_time(r['date'], r['time'])
+        
         # Win probabilities
         prob_str = f"{r['pred_home_win_prob']*100:.1f}% / {r['pred_draw_prob']*100:.1f}% / {r['pred_away_win_prob']*100:.1f}%"
         
@@ -394,7 +445,7 @@ with tab_sched:
         rows_html.append({
             "場次": f"#{match_num}",
             "賽事階段": r['group_or_stage'],
-            "日期": r['date'],
+            "時間 (台灣時間)": f"{tw_date} {tw_time}",
             "客場": a_name,
             "主場": h_name,
             "狀態": status_str,
