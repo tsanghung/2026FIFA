@@ -4,6 +4,8 @@ import math
 import random
 import time
 import re
+import html
+import textwrap
 from datetime import datetime, timedelta
 import pandas as pd
 import streamlit as st
@@ -121,53 +123,274 @@ def convert_to_taiwan_time(date_str, time_str):
     else:
         return date_str, f"{hour:02d}:{minute:02d}"
 
-# Custom Glassmorphism Sleek Dark CSS
+# Custom Futuristic HUD / Mission Control Theme
 st.markdown("""
 <style>
-    /* Sleek Dark Mode General styling */
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Rajdhani:wght@500;600;700&display=swap');
+
+    :root {
+        --bg-main: #050914;
+        --bg-panel: rgba(8, 19, 38, 0.92);
+        --bg-panel-soft: rgba(10, 26, 51, 0.72);
+        --border-cyan: rgba(56, 189, 248, 0.34);
+        --text-main: #e8f3ff;
+        --text-muted: #8fb6d9;
+        --cyan: #38bdf8;
+        --green: #24f6a7;
+        --magenta: #ff3d71;
+        --amber: #f8c14a;
+    }
+
     .stApp {
-        background-color: #0d0f13;
-        color: #e2e8f0;
+        background:
+            linear-gradient(180deg, rgba(6, 12, 26, 0.98), rgba(3, 7, 15, 0.98)),
+            repeating-linear-gradient(0deg, rgba(56, 189, 248, 0.03) 0, rgba(56, 189, 248, 0.03) 1px, transparent 1px, transparent 32px),
+            repeating-linear-gradient(90deg, rgba(56, 189, 248, 0.025) 0, rgba(56, 189, 248, 0.025) 1px, transparent 1px, transparent 32px);
+        color: var(--text-main);
+        font-family: "Rajdhani", "Segoe UI", system-ui, sans-serif;
     }
-    
-    /* Title text styling */
+
     h1, h2, h3 {
-        font-family: 'Outfit', 'Inter', sans-serif;
-        font-weight: 700;
-        background: linear-gradient(135deg, #38bdf8 0%, #a855f7 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        font-family: "Orbitron", "Rajdhani", "Segoe UI", sans-serif;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        color: var(--text-main);
+        text-transform: uppercase;
     }
-    
-    /* Classy Card Container */
+
+    p, label, span, div {
+        letter-spacing: 0;
+    }
+
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, rgba(6, 14, 28, 0.98), rgba(3, 8, 18, 0.98));
+        border-right: 1px solid rgba(56, 189, 248, 0.18);
+    }
+
+    [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+        color: var(--cyan);
+    }
+
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        border-bottom: 1px solid rgba(56, 189, 248, 0.18);
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        height: 42px;
+        border-radius: 6px 6px 0 0;
+        color: var(--text-muted);
+        border: 1px solid rgba(56, 189, 248, 0.18);
+        background: rgba(8, 19, 38, 0.62);
+        font-family: "Rajdhani", "Segoe UI", system-ui, sans-serif;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+    }
+
+    .stTabs [aria-selected="true"] {
+        color: var(--green) !important;
+        border-color: rgba(36, 246, 167, 0.52);
+        box-shadow: inset 0 -2px 0 var(--green), 0 0 18px rgba(36, 246, 167, 0.12);
+    }
+
     .glass-card {
-        background: rgba(30, 41, 59, 0.45);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 20px;
-        backdrop-filter: blur(12px);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        background: linear-gradient(180deg, rgba(11, 27, 51, 0.92), rgba(6, 16, 32, 0.96));
+        border: 1px solid var(--border-cyan);
+        border-radius: 8px;
+        padding: 18px;
+        margin-bottom: 16px;
+        box-shadow: inset 0 0 32px rgba(14, 165, 233, 0.06), 0 18px 44px rgba(0, 0, 0, 0.26);
     }
-    
+
     .metric-value {
+        font-family: "Orbitron", "Rajdhani", sans-serif;
         font-size: 2rem;
-        font-weight: 700;
-        color: #38bdf8;
+        font-weight: 800;
+        color: var(--green);
+        text-shadow: 0 0 18px rgba(36, 246, 167, 0.28);
     }
-    
-    /* Highlight Winner Source Badge */
+
     .platform-badge {
         font-size: 0.75rem;
-        font-weight: 600;
-        padding: 2px 6px;
+        font-weight: 700;
+        padding: 3px 7px;
         border-radius: 4px;
         color: #ffffff;
+        letter-spacing: 0.04em;
     }
-    
-    .badge-365 { background-color: #10b981; }
-    .badge-wh { background-color: #3b82f6; }
-    .badge-dk { background-color: #ec4899; }
+
+    .badge-365 { background-color: #0f9f72; }
+    .badge-wh { background-color: #2375d8; }
+    .badge-dk { background-color: #d82e73; }
+
+    .mission-header {
+        border: 1px solid rgba(56, 189, 248, 0.32);
+        border-radius: 8px;
+        padding: 18px 20px;
+        margin: 10px 0 18px 0;
+        background: linear-gradient(135deg, rgba(8, 20, 42, 0.95), rgba(4, 11, 24, 0.98));
+        box-shadow: inset 0 0 44px rgba(56, 189, 248, 0.08), 0 20px 70px rgba(0, 0, 0, 0.28);
+    }
+
+    .mission-kicker {
+        color: var(--green);
+        font-family: "Orbitron", "Rajdhani", sans-serif;
+        font-size: 0.78rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+
+    .mission-title {
+        font-family: "Orbitron", "Rajdhani", sans-serif;
+        font-size: clamp(1.7rem, 4vw, 3.2rem);
+        line-height: 1.05;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        color: var(--text-main);
+        margin-top: 6px;
+    }
+
+    .mission-subtitle {
+        color: var(--text-muted);
+        max-width: 860px;
+        font-size: 1.05rem;
+        margin-top: 8px;
+    }
+
+    .hud-grid {
+        display: grid;
+        grid-template-columns: 280px minmax(360px, 1fr) 320px;
+        gap: 14px;
+        align-items: stretch;
+    }
+
+    .hud-card {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-cyan);
+        border-radius: 8px;
+        padding: 16px;
+        min-height: 118px;
+        box-shadow: inset 0 0 28px rgba(56, 189, 248, 0.06);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hud-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 3px;
+        height: 100%;
+        background: linear-gradient(180deg, var(--green), var(--cyan), var(--magenta));
+        opacity: 0.82;
+    }
+
+    .hud-label {
+        color: #82caff;
+        font-size: 0.78rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    .hud-value {
+        font-family: "Orbitron", "Rajdhani", sans-serif;
+        color: var(--text-main);
+        font-size: 1.7rem;
+        font-weight: 800;
+        line-height: 1.06;
+        margin-top: 8px;
+    }
+
+    .hud-positive {
+        color: var(--green);
+        text-shadow: 0 0 18px rgba(36, 246, 167, 0.32);
+    }
+
+    .radar-panel {
+        min-height: 362px;
+        background:
+            repeating-linear-gradient(0deg, rgba(56, 189, 248, 0.06) 0, rgba(56, 189, 248, 0.06) 1px, transparent 1px, transparent 28px),
+            repeating-linear-gradient(90deg, rgba(56, 189, 248, 0.05) 0, rgba(56, 189, 248, 0.05) 1px, transparent 1px, transparent 28px),
+            radial-gradient(circle at 50% 46%, rgba(17, 73, 116, 0.72), rgba(6, 16, 32, 0.96) 68%);
+    }
+
+    .radar-field {
+        position: relative;
+        min-height: 270px;
+    }
+
+    .radar-ring {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(45, 212, 191, 0.42);
+        border-radius: 50%;
+        box-shadow: 0 0 38px rgba(45, 212, 191, 0.10);
+    }
+
+    .radar-ring.one { width: 250px; height: 250px; }
+    .radar-ring.two { width: 170px; height: 170px; }
+    .radar-ring.three { width: 92px; height: 92px; }
+
+    .radar-sweep {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 142px;
+        height: 2px;
+        background: linear-gradient(90deg, rgba(36, 246, 167, 0.95), transparent);
+        transform-origin: left center;
+        animation: radarSweep 5.5s linear infinite;
+        box-shadow: 0 0 18px rgba(36, 246, 167, 0.62);
+    }
+
+    .radar-dot {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 14px var(--green);
+        animation: pulseDot 2.4s ease-in-out infinite;
+    }
+
+    .radar-dot.magenta {
+        background: var(--magenta);
+        box-shadow: 0 0 14px var(--magenta);
+        animation-delay: 0.7s;
+    }
+
+    .prob-strip {
+        display: grid;
+        grid-template-columns: var(--home-prob, 1fr) var(--draw-prob, 1fr) var(--away-prob, 1fr);
+        height: 24px;
+        border-radius: 5px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .prob-home { background: var(--green); }
+    .prob-draw { background: var(--cyan); }
+    .prob-away { background: var(--magenta); }
+
+    @keyframes radarSweep {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    @keyframes pulseDot {
+        0%, 100% { transform: scale(0.9); opacity: 0.72; }
+        50% { transform: scale(1.35); opacity: 1; }
+    }
+
+    @media (max-width: 1100px) {
+        .hud-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -226,9 +449,85 @@ def get_odds_badge_html(best, b, w, d):
     if best == d: return '<span class="platform-badge badge-dk">DKings</span>'
     return '<span class="platform-badge" style="background-color: #64748b;">Mixed</span>'
 
+def fmt_pct(value):
+    if value is None or pd.isna(value):
+        return "-"
+    return f"{float(value) * 100:.1f}%"
+
+def fmt_signed_pct(value):
+    if value is None or pd.isna(value):
+        return "-"
+    return f"{float(value):+.2%}"
+
+def get_latest_log_line():
+    log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sync.log')
+    if not os.path.exists(log_path):
+        return "No sync log"
+    try:
+        with open(log_path, 'r', encoding='utf-8') as f:
+            lines = [line.strip() for line in f.readlines() if line.strip()]
+        return lines[-1] if lines else "No sync log"
+    except Exception:
+        return "Sync log unavailable"
+
+def build_value_bet_rows(df_source, suffix, fraction, mode_name):
+    rows = []
+    if df_source.empty:
+        return rows
+
+    def get_source_str(best_odds, b, w, d):
+        if not best_odds:
+            return "Unknown"
+        srcs = []
+        if best_odds == b:
+            srcs.append("Bet365")
+        if best_odds == w:
+            srcs.append("William Hill")
+        if best_odds == d:
+            srcs.append("DraftKings")
+        return " / ".join(srcs) if srcs else "Mixed"
+
+    for _, row in df_source.iterrows():
+        match_num = int(row['match_num'])
+        h_name = get_team_display_name(row['home_team'])
+        a_name = get_team_display_name(row['away_team'])
+        matchup = f"{h_name} vs {a_name}"
+
+        candidates = [
+            ("Home Win", row.get(f'pred_home_win_prob'), row.get(f'odds_home{suffix}'), row.get(f'ev_home{suffix}'), row.get(f'kelly_home{suffix}'),
+             row.get('odds_home_bet365'), row.get('odds_home_williamhill'), row.get('odds_home_draftkings')),
+            ("Draw", row.get(f'pred_draw_prob'), row.get(f'odds_draw{suffix}'), row.get(f'ev_draw{suffix}'), row.get(f'kelly_draw{suffix}'),
+             row.get('odds_draw_bet365'), row.get('odds_draw_williamhill'), row.get('odds_draw_draftkings')),
+            ("Away Win", row.get(f'pred_away_win_prob'), row.get(f'odds_away{suffix}'), row.get(f'ev_away{suffix}'), row.get(f'kelly_away{suffix}'),
+             row.get('odds_away_bet365'), row.get('odds_away_williamhill'), row.get('odds_away_draftkings')),
+        ]
+        for pick, prob, odds, ev, kelly, b, w, d in candidates:
+            if ev is not None and not pd.isna(ev) and ev > 0:
+                source = get_source_str(odds, b, w, d) if suffix == "" else mode_name.split(" ", 1)[-1]
+                rows.append({
+                    "match_num": match_num,
+                    "matchup": matchup,
+                    "pick": pick,
+                    "prob": float(prob) if prob is not None and not pd.isna(prob) else 0.0,
+                    "odds": float(odds) if odds is not None and not pd.isna(odds) else 0.0,
+                    "ev": float(ev),
+                    "kelly": float(kelly) * fraction if kelly is not None and not pd.isna(kelly) else 0.0,
+                    "source": source,
+                    "home": h_name,
+                    "away": a_name,
+                })
+    return rows
+
 # Header
-st.title("🏆 2026 FIFA 世界盃量化分析與集成預測決策中樞")
-st.write("由 **小賽 (🤖 Antigravity)** 精雕細琢，整合了 Elo、Pi-Rating、Berrar Rating 與 Dixon-Coles 平局修正之極致博弈大腦。")
+st.markdown("""
+<div class="mission-header">
+    <div class="mission-kicker">FIFA 2026 Quantitative Mission Control</div>
+    <div class="mission-title">World Cup Decision HUD</div>
+    <div class="mission-subtitle">
+        Elo / Pi-Rating / Berrar / Dixon-Coles ensemble intelligence with market odds, EV+, Kelly risk telemetry and Taiwan-time schedule control.
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 # 2. Sidebar Configuration Control panel
 st.sidebar.header("⚙️ 量化決策控制台")
@@ -277,12 +576,173 @@ else:
     st.sidebar.caption("尚無同步日誌")
 
 # Tabs
-tab_val, tab_sched, tab_monte, tab_teams = st.tabs([
-    "🔥 EV+ 價值投注決策中樞", 
-    "📅 完整賽程預測與賠率對比", 
-    "🎲 蒙地卡羅即時沙盤模擬", 
-    "📊 參賽隊伍戰力動態評級"
+tab_overview, tab_val, tab_sched, tab_monte, tab_teams = st.tabs([
+    "MISSION CONTROL",
+    "EV+ VALUE",
+    "MATCH SCHEDULE",
+    "MONTE CARLO",
+    "TEAM RATING"
 ])
+
+# ================= TAB 0: Mission Control Overview =================
+with tab_overview:
+    conn = get_db_connection()
+    try:
+        counts = pd.read_sql_query('''
+            SELECT
+                COUNT(*) AS total_matches,
+                SUM(CASE WHEN status = 'Scheduled' THEN 1 ELSE 0 END) AS scheduled_matches,
+                SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) AS completed_matches
+            FROM matches
+        ''', conn).iloc[0]
+
+        team_count = pd.read_sql_query('SELECT COUNT(*) AS team_count FROM teams', conn).iloc[0]['team_count']
+
+        next_match_df = pd.read_sql_query('''
+            SELECT match_num, group_or_stage, date, time, home_team, away_team,
+                   pred_home_win_prob, pred_draw_prob, pred_away_win_prob,
+                   odds_home, odds_draw, odds_away
+            FROM matches
+            WHERE status = 'Scheduled'
+            ORDER BY date ASC, match_num ASC
+            LIMIT 1
+        ''', conn)
+
+        top_query = f'''
+            SELECT match_num, group_or_stage, home_team, away_team,
+                   pred_home_win_prob, odds_home{col_suffix}, ev_home{col_suffix}, kelly_home{col_suffix},
+                   pred_draw_prob, odds_draw{col_suffix}, ev_draw{col_suffix}, kelly_draw{col_suffix},
+                   pred_away_win_prob, odds_away{col_suffix}, ev_away{col_suffix}, kelly_away{col_suffix},
+                   odds_home_bet365, odds_home_williamhill, odds_home_draftkings,
+                   odds_draw_bet365, odds_draw_williamhill, odds_draw_draftkings,
+                   odds_away_bet365, odds_away_williamhill, odds_away_draftkings
+            FROM matches
+            WHERE ev_home{col_suffix} > 0 OR ev_draw{col_suffix} > 0 OR ev_away{col_suffix} > 0
+        '''
+        overview_val_df = pd.read_sql_query(top_query, conn)
+    except Exception as e:
+        st.error(f"Mission Control 資料讀取失敗：{e}")
+        counts = pd.Series({"total_matches": 0, "scheduled_matches": 0, "completed_matches": 0})
+        team_count = 0
+        next_match_df = pd.DataFrame()
+        overview_val_df = pd.DataFrame()
+    finally:
+        conn.close()
+
+    value_rows = build_value_bet_rows(overview_val_df, col_suffix, kelly_fraction, betting_mode)
+    top_pick = max(value_rows, key=lambda item: item["ev"], default=None)
+    top_kelly = max(value_rows, key=lambda item: item["kelly"], default=None)
+
+    if next_match_df.empty:
+        next_match = None
+        next_home = "TBD"
+        next_away = "TBD"
+        next_stage = "No scheduled match"
+        next_time = "-"
+        home_prob = draw_prob = away_prob = 1
+    else:
+        next_match = next_match_df.iloc[0]
+        next_home = get_team_display_name(next_match['home_team'])
+        next_away = get_team_display_name(next_match['away_team'])
+        next_stage = next_match['group_or_stage']
+        tw_date, tw_time = convert_to_taiwan_time(next_match['date'], next_match['time'])
+        next_time = f"{tw_date} {tw_time}".strip()
+        home_prob = max(float(next_match['pred_home_win_prob'] or 0), 0.01)
+        draw_prob = max(float(next_match['pred_draw_prob'] or 0), 0.01)
+        away_prob = max(float(next_match['pred_away_win_prob'] or 0), 0.01)
+
+    top_pick_title = top_pick["pick"] if top_pick else "No EV+ Signal"
+    top_pick_match = top_pick["matchup"] if top_pick else "Market is quiet"
+    top_pick_ev = fmt_signed_pct(top_pick["ev"]) if top_pick else "-"
+    top_pick_source = top_pick["source"] if top_pick else "-"
+    top_kelly_value = f"{top_kelly['kelly']:.2%}" if top_kelly else "-"
+    top_kelly_match = top_kelly["matchup"] if top_kelly else "No stake signal"
+    latest_log = get_latest_log_line()
+    feed_state = "API / LIVE" if os.environ.get('THE_ODDS_API_KEY', '').strip() else "SIMULATED FEED"
+
+    queue_rows = sorted(value_rows, key=lambda item: item["ev"], reverse=True)[:4]
+    queue_html = ""
+    if queue_rows:
+        for item in queue_rows:
+            queue_html += f"""
+            <div style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid rgba(56,189,248,.14);padding:8px 0;">
+                <span>{html.escape(item['matchup'])}<br><span style="color:#8fb6d9;font-size:.82rem;">{html.escape(item['pick'])} · {html.escape(item['source'])}</span></span>
+                <b class="hud-positive">{fmt_signed_pct(item['ev'])}</b>
+            </div>
+            """
+    else:
+        queue_html = '<div style="color:#8fb6d9;">No positive EV signal in current mode.</div>'
+
+    st.html(textwrap.dedent(f"""
+    <div class="hud-grid">
+        <div>
+            <div class="hud-card">
+                <div class="hud-label">Best Opportunity</div>
+                <div class="hud-value">{html.escape(top_pick_title)}</div>
+                <div class="hud-positive" style="font-family:Orbitron,Rajdhani,sans-serif;font-size:1.8rem;margin-top:8px;">{top_pick_ev}</div>
+                <div style="color:#8fb6d9;margin-top:8px;">{html.escape(top_pick_match)}</div>
+                <div style="color:#82caff;font-size:.85rem;margin-top:8px;">Source: {html.escape(top_pick_source)}</div>
+            </div>
+            <div class="hud-card">
+                <div class="hud-label">Risk Mode</div>
+                <div class="hud-value">{html.escape(kelly_name)}</div>
+                <div style="color:#8fb6d9;margin-top:8px;">Top stake signal: {top_kelly_value}</div>
+                <div style="color:#82caff;font-size:.85rem;margin-top:6px;">{html.escape(top_kelly_match)}</div>
+            </div>
+            <div class="hud-card">
+                <div class="hud-label">Market Feed</div>
+                <div class="hud-value">{feed_state}</div>
+                <div style="color:#8fb6d9;margin-top:8px;">{html.escape(betting_mode)}</div>
+            </div>
+        </div>
+
+        <div class="hud-card radar-panel">
+            <div class="hud-label">Dynamic Match Scan</div>
+            <div class="hud-value">{html.escape(next_stage)}</div>
+            <div class="radar-field">
+                <div class="radar-ring one"></div>
+                <div class="radar-ring two"></div>
+                <div class="radar-ring three"></div>
+                <div class="radar-sweep"></div>
+                <div class="radar-dot" style="left:63%;top:25%;"></div>
+                <div class="radar-dot magenta" style="left:31%;top:64%;"></div>
+                <div style="position:absolute;right:8px;top:8px;text-align:right;">
+                    <div class="hud-value" style="font-size:3rem;">{int(counts['total_matches'] or 0)}</div>
+                    <div class="hud-label">Matches Tracked</div>
+                </div>
+                <div style="position:absolute;left:8px;bottom:8px;right:8px;">
+                    <div style="color:#8fb6d9;margin-bottom:8px;">Next: {html.escape(next_home)} vs {html.escape(next_away)} · {html.escape(next_time)}</div>
+                    <div class="prob-strip" style="--home-prob:{home_prob}fr;--draw-prob:{draw_prob}fr;--away-prob:{away_prob}fr;">
+                        <div class="prob-home"></div><div class="prob-draw"></div><div class="prob-away"></div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;color:#8fb6d9;font-size:.86rem;margin-top:6px;">
+                        <span>Home {fmt_pct(home_prob)}</span><span>Draw {fmt_pct(draw_prob)}</span><span>Away {fmt_pct(away_prob)}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="hud-card">
+                <div class="hud-label">EV+ Queue</div>
+                {queue_html}
+            </div>
+            <div class="hud-card">
+                <div class="hud-label">System State</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;">
+                    <div><div class="hud-value">{int(team_count or 0)}</div><div style="color:#8fb6d9;">Teams</div></div>
+                    <div><div class="hud-value">{len(value_rows)}</div><div style="color:#8fb6d9;">EV+ Picks</div></div>
+                    <div><div class="hud-value">{int(counts['scheduled_matches'] or 0)}</div><div style="color:#8fb6d9;">Scheduled</div></div>
+                    <div><div class="hud-value">{int(counts['completed_matches'] or 0)}</div><div style="color:#8fb6d9;">Completed</div></div>
+                </div>
+            </div>
+            <div class="hud-card">
+                <div class="hud-label">Last Sync Signal</div>
+                <div style="color:#8fb6d9;margin-top:8px;font-size:.92rem;">{html.escape(latest_log)}</div>
+            </div>
+        </div>
+    </div>
+    """))
 
 # ================= TAB 1: EV+ Value Bets =================
 with tab_val:
