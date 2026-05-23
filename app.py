@@ -263,8 +263,8 @@ with tab_val:
                 src = get_source_str(o_h, row['odds_home_bet365'], row['odds_home_williamhill'], row['odds_home_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
                 val_rows.append({
                     "場次": f"#{match_num}",
-                    "主場": h_name,
                     "客場": a_name,
+                    "主場": h_name,
                     "推薦選項": "主勝 (Home Win)",
                     "小賽預測勝率": f"{row['pred_home_win_prob']*100:.1f}%",
                     "最佳賠率": f"{o_h:.2f}",
@@ -280,8 +280,8 @@ with tab_val:
                 src = get_source_str(o_d, row['odds_draw_bet365'], row['odds_draw_williamhill'], row['odds_draw_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
                 val_rows.append({
                     "場次": f"#{match_num}",
-                    "主場": h_name,
                     "客場": a_name,
+                    "主場": h_name,
                     "推薦選項": "和局 (Draw)",
                     "小賽預測勝率": f"{row['pred_draw_prob']*100:.1f}%",
                     "最佳賠率": f"{o_d:.2f}",
@@ -297,8 +297,8 @@ with tab_val:
                 src = get_source_str(o_a, row['odds_away_bet365'], row['odds_away_williamhill'], row['odds_away_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
                 val_rows.append({
                     "場次": f"#{match_num}",
-                    "主場": h_name,
                     "客場": a_name,
+                    "主場": h_name,
                     "推薦選項": "客勝 (Away Win)",
                     "小賽預測勝率": f"{row['pred_away_win_prob']*100:.1f}%",
                     "最佳賠率": f"{o_a:.2f}",
@@ -389,8 +389,8 @@ with tab_sched:
             "場次": f"#{match_num}",
             "賽事階段": r['group_or_stage'],
             "日期": r['date'],
-            "主場": h_name,
             "客場": a_name,
+            "主場": h_name,
             "狀態": status_str,
             "比分": score_str,
             "小賽勝率(主/和/客)": prob_str,
