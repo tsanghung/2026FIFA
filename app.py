@@ -366,6 +366,12 @@ with tab_sched:
         h_name = get_team_display_name(r['home_team'])
         a_name = get_team_display_name(r['away_team'])
         
+        # 標註預測勝率較高的一方 (在國家名稱後面加個 👑 符號標示醒目)
+        if r['pred_home_win_prob'] > r['pred_away_win_prob']:
+            h_name = f"{h_name} 👑"
+        elif r['pred_away_win_prob'] > r['pred_home_win_prob']:
+            a_name = f"{a_name} 👑"
+        
         # Win probabilities
         prob_str = f"{r['pred_home_win_prob']*100:.1f}% / {r['pred_draw_prob']*100:.1f}% / {r['pred_away_win_prob']*100:.1f}%"
         
