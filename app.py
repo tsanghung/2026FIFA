@@ -176,6 +176,32 @@ DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fifa_2026.db
 def get_db_connection():
     return sqlite3.connect(DB_PATH)
 
+def check_and_update_db_schema():
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(teams)")
+        cols = [row[1] for row in cursor.fetchall()]
+        new_fields = [
+            ("fbref_xg_diff", "REAL NOT NULL DEFAULT 0.0"),
+            ("injury_count", "INTEGER NOT NULL DEFAULT 0"),
+            ("sentiment_score", "REAL NOT NULL DEFAULT 0.0"),
+            ("opta_win_prob", "REAL NOT NULL DEFAULT 0.0")
+        ]
+        updated = False
+        for col_name, col_def in new_fields:
+            if col_name not in cols:
+                cursor.execute(f"ALTER TABLE teams ADD COLUMN {col_name} {col_def}")
+                updated = True
+        if updated:
+            conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+# 每次啟動 Web 時自動自我修復資料庫欄位
+check_and_update_db_schema()
+
 def poisson_pmf(k, lamb):
     if lamb <= 0:
         return 1.0 if k == 0 else 0.0
