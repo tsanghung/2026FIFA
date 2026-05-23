@@ -243,7 +243,9 @@ with tab_val:
         val_rows = []
         for index, row in df_val.iterrows():
             match_num = int(row['match_num'])
-            matchup = f"{get_team_display_name(row['home_team'])} vs {get_team_display_name(row['away_team'])}"
+            h_name = get_team_display_name(row['home_team'])
+            a_name = get_team_display_name(row['away_team'])
+            matchup_disp = f"{h_name} vs {a_name}"
             
             # Sub-function to lookup source
             def get_source_str(best_odds, b, w, d):
@@ -261,7 +263,8 @@ with tab_val:
                 src = get_source_str(o_h, row['odds_home_bet365'], row['odds_home_williamhill'], row['odds_home_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
                 val_rows.append({
                     "場次": f"#{match_num}",
-                    "對戰組合": matchup,
+                    "主場": h_name,
+                    "客場": a_name,
                     "推薦選項": "主勝 (Home Win)",
                     "小賽預測勝率": f"{row['pred_home_win_prob']*100:.1f}%",
                     "最佳賠率": f"{o_h:.2f}",
@@ -277,7 +280,8 @@ with tab_val:
                 src = get_source_str(o_d, row['odds_draw_bet365'], row['odds_draw_williamhill'], row['odds_draw_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
                 val_rows.append({
                     "場次": f"#{match_num}",
-                    "對戰組合": matchup,
+                    "主場": h_name,
+                    "客場": a_name,
                     "推薦選項": "和局 (Draw)",
                     "小賽預測勝率": f"{row['pred_draw_prob']*100:.1f}%",
                     "最佳賠率": f"{o_d:.2f}",
@@ -293,7 +297,8 @@ with tab_val:
                 src = get_source_str(o_a, row['odds_away_bet365'], row['odds_away_williamhill'], row['odds_away_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
                 val_rows.append({
                     "場次": f"#{match_num}",
-                    "對戰組合": matchup,
+                    "主場": h_name,
+                    "客場": a_name,
                     "推薦選項": "客勝 (Away Win)",
                     "小賽預測勝率": f"{row['pred_away_win_prob']*100:.1f}%",
                     "最佳賠率": f"{o_a:.2f}",
@@ -312,11 +317,13 @@ with tab_val:
             with col_m2:
                 # Find maximum EV
                 max_ev_row = df_display.sort_values(by="期望值 (EV)", ascending=False).iloc[0]
-                st.markdown('<div class="glass-card">🔥 最大期望回報 (EV)<div class="metric-value">{}</div><div style="font-size:0.85rem">{} ({})</div></div>'.format(max_ev_row['期望值 (EV)'], max_ev_row['對戰組合'], max_ev_row['推薦選項']), unsafe_allow_html=True)
+                matchup_max = f"{max_ev_row['主場']} vs {max_ev_row['客場']}"
+                st.markdown('<div class="glass-card">🔥 最大期望回報 (EV)<div class="metric-value">{}</div><div style="font-size:0.85rem">{} ({})</div></div>'.format(max_ev_row['期望值 (EV)'], matchup_max, max_ev_row['推薦選項']), unsafe_allow_html=True)
             with col_m3:
                 # Max stake
                 max_stake_row = df_display.sort_values(by="建議下注比例", ascending=False).iloc[0]
-                st.markdown('<div class="glass-card">🛡️ 風控最重建議投注比<div class="metric-value">{}</div><div style="font-size:0.85rem">{} ({})</div></div>'.format(max_stake_row['建議下注比例'], max_stake_row['對戰組合'], max_stake_row['推薦選項']), unsafe_allow_html=True)
+                matchup_max_stake = f"{max_stake_row['主場']} vs {max_stake_row['客場']}"
+                st.markdown('<div class="glass-card">🛡️ 風控最重建議投注比<div class="metric-value">{}</div><div style="font-size:0.85rem">{} ({})</div></div>'.format(max_stake_row['建議下注比例'], matchup_max_stake, max_stake_row['推薦選項']), unsafe_allow_html=True)
                 
             st.dataframe(df_display, use_container_width=True, hide_index=True)
         else:
@@ -356,7 +363,8 @@ with tab_sched:
     rows_html = []
     for idx, r in display_df.iterrows():
         match_num = int(r['match_num'])
-        matchup = f"**{get_team_display_name(r['home_team'])}** vs **{get_team_display_name(r['away_team'])}**"
+        h_name = get_team_display_name(r['home_team'])
+        a_name = get_team_display_name(r['away_team'])
         
         # Win probabilities
         prob_str = f"{r['pred_home_win_prob']*100:.1f}% / {r['pred_draw_prob']*100:.1f}% / {r['pred_away_win_prob']*100:.1f}%"
@@ -381,7 +389,8 @@ with tab_sched:
             "場次": f"#{match_num}",
             "賽事階段": r['group_or_stage'],
             "日期": r['date'],
-            "對戰組合": matchup,
+            "主場": h_name,
+            "客場": a_name,
             "狀態": status_str,
             "比分": score_str,
             "小賽勝率(主/和/客)": prob_str,
