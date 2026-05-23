@@ -16,6 +16,63 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Team translation dictionary using Traditional Chinese (Taiwanese idioms)
+TEAM_TRANSLATIONS = {
+    # Group A
+    'Mexico': '墨西哥', 'South Korea': '南韓', 'South Africa': '南非', 'Czechia': '捷克', 'Czech Republic': '捷克',
+    # Group B
+    'Canada': '加拿大', 'Switzerland': '瑞士', 'Qatar': '卡達', 'Bosnia-Herzegovina': '波赫', 'Bosnia and Herzegovina': '波赫',
+    # Group C
+    'Brazil': '巴西', 'Morocco': '摩洛哥', 'Scotland': '蘇格蘭', 'Haiti': '海地',
+    # Group D
+    'USA': '美國', 'United States': '美國', 'Paraguay': '巴拉圭', 'Australia': '澳洲', 'Türkiye': '土耳其', 'Turkey': '土耳其',
+    # Group E
+    'Germany': '德國', 'Ecuador': '厄瓜多', 'Ivory Coast': '象牙海岸', "Côte d'Ivoire": '象牙海岸', 'Curaçao': '庫拉索',
+    # Group F
+    'Netherlands': '荷蘭', 'Japan': '日本', 'Tunisia': '突尼西亞', 'Sweden': '瑞典',
+    # Group G
+    'Belgium': '比利時', 'Iran': '伊朗', 'IR Iran': '伊朗', 'Egypt': '埃及', 'New Zealand': '紐西蘭',
+    # Group H
+    'Spain': '西班牙', 'Uruguay': '烏拉圭', 'Saudi Arabia': '沙烏地阿拉伯', 'Cape Verde': '維德角', 'Cabo Verde': '維德角',
+    # Group I
+    'France': '法國', 'Senegal': '塞內加爾', 'Norway': '挪威', 'Iraq': '伊拉克',
+    # Group J
+    'Argentina': '阿根廷', 'Algeria': '阿爾及利亞', 'Austria': '奧地利', 'Jordan': '約旦',
+    # Group K
+    'Portugal': '葡萄牙', 'Colombia': '哥倫比亞', 'Uzbekistan': '烏茲別克', 'DR Congo': '剛果民主共和國', 'Congo DR': '剛果民主共和國',
+    # Group L
+    'England': '英格蘭', 'Croatia': '克羅埃西亞', 'Ghana': '迦納', 'Panama': '巴拿馬'
+}
+
+def get_team_display_name(eng_name):
+    if not eng_name:
+        return ""
+    eng_name_clean = eng_name.strip()
+    zh_name = TEAM_TRANSLATIONS.get(eng_name_clean, eng_name_clean)
+    if zh_name != eng_name_clean:
+        return f"{zh_name} ({eng_name_clean})"
+    
+    # Translate common placeholder names for knockouts
+    placeholder_map = {
+        'Winner Group A': 'A組第一', 'Runner-up Group A': 'A組第二',
+        'Winner Group B': 'B組第一', 'Runner-up Group B': 'B組第二',
+        'Winner Group C': 'C組第一', 'Runner-up Group C': 'C組第二',
+        'Winner Group D': 'D組第一', 'Runner-up Group D': 'D組第二',
+        'Winner Group E': 'E組第一', 'Runner-up Group E': 'E組第二',
+        'Winner Group F': 'F組第一', 'Runner-up Group F': 'F組第二',
+        'Winner Group G': 'G組第一', 'Runner-up Group G': 'G組第二',
+        'Winner Group H': 'H組第一', 'Runner-up Group H': 'H組第二',
+        'Winner Group I': 'I組第一', 'Runner-up Group I': 'I組第二',
+        'Winner Group J': 'J組第一', 'Runner-up Group J': 'J組第二',
+        'Winner Group K': 'K組第一', 'Runner-up Group K': 'K組第二',
+        'Winner Group L': 'L組第一', 'Runner-up Group L': 'L組第二'
+    }
+    for k, v in placeholder_map.items():
+        if k in eng_name_clean:
+            return f"{v} ({eng_name_clean})"
+            
+    return eng_name_clean
+
 # Custom Glassmorphism Sleek Dark CSS
 st.markdown("""
 <style>
@@ -186,7 +243,7 @@ with tab_val:
         val_rows = []
         for index, row in df_val.iterrows():
             match_num = int(row['match_num'])
-            matchup = f"{row['home_team']} vs {row['away_team']}"
+            matchup = f"{get_team_display_name(row['home_team'])} vs {get_team_display_name(row['away_team'])}"
             
             # Sub-function to lookup source
             def get_source_str(best_odds, b, w, d):
@@ -299,7 +356,7 @@ with tab_sched:
     rows_html = []
     for idx, r in display_df.iterrows():
         match_num = int(r['match_num'])
-        matchup = f"**{r['home_team']}** vs **{r['away_team']}**"
+        matchup = f"**{get_team_display_name(r['home_team'])}** vs **{get_team_display_name(r['away_team'])}**"
         
         # Win probabilities
         prob_str = f"{r['pred_home_win_prob']*100:.1f}% / {r['pred_draw_prob']*100:.1f}% / {r['pred_away_win_prob']*100:.1f}%"
@@ -360,7 +417,11 @@ with tab_monte:
     if not matches_list:
         st.info("目前沒有未開賽的賽程可供模擬。")
     else:
-        match_options = {f"#{m[0]} {m[1]} vs {m[2]}": m for m in matches_list}
+        # Construct option display with translations
+        match_options = {
+            f"#{m[0]} {get_team_display_name(m[1])} vs {get_team_display_name(m[2])}": m 
+            for m in matches_list
+        }
         selected_match_str = st.selectbox("請選擇欲模擬的場次：", list(match_options.keys()))
         
         selected_match = match_options[selected_match_str]
@@ -394,9 +455,9 @@ with tab_monte:
         home_lambda = 0.5 * lambda_elo_home + 0.5 * lambda_berrar_home
         away_lambda = 0.5 * lambda_elo_away + 0.5 * lambda_berrar_away
         
-        # Show parameters
-        st.markdown(f"**【戰力參數】** **{home}** (主) Elo: {h_elo:.1f} (Rank #{h_rank}) | **{away}** (客) Elo: {a_elo:.1f} (Rank #{a_rank})")
-        st.markdown(f"**【進球期望】** **{home}** xG: `{home_lambda:.3f}` | **{away}** xG: `{away_lambda:.3f}`")
+        # Show parameters with translations
+        st.markdown(f"**【戰力參數】** **{get_team_display_name(home)}** (主) Elo: {h_elo:.1f} (Rank #{h_rank}) | **{get_team_display_name(away)}** (客) Elo: {a_elo:.1f} (Rank #{a_rank})")
+        st.markdown(f"**【進球期望】** **{get_team_display_name(home)}** xG: `{home_lambda:.3f}` | **{get_team_display_name(away)}** xG: `{away_lambda:.3f}`")
         
         if st.button("🚀 啟動 100,000 次蒙地卡羅模擬"):
             progress_bar = st.progress(0)
@@ -459,9 +520,9 @@ with tab_monte:
                 st.markdown(f"""
                 <div class="glass-card">
                     <h4>👑 獨贏勝率 (Moneyline)</h4>
-                    <p><b>主勝 ({home})</b>: <span style='color:#38bdf8;font-weight:700'>{p_home*100:.2f}%</span> (SE: ±{se_home*100:.3f}%)</p>
+                    <p><b>主勝 ({get_team_display_name(home)})</b>: <span style='color:#38bdf8;font-weight:700'>{p_home*100:.2f}%</span> (SE: ±{se_home*100:.3f}%)</p>
                     <p><b>雙方和局 (Draw)</b>: {p_draw*100:.2f}%</p>
-                    <p><b>客勝 ({away})</b>: {p_away*100:.2f}%</p>
+                    <p><b>客勝 ({get_team_display_name(away)})</b>: {p_away*100:.2f}%</p>
                 </div>
                 """, unsafe_allow_html=True)
                 
@@ -535,6 +596,9 @@ with tab_teams:
     if selected_confed != "全部":
         display_teams = display_teams[display_teams['所屬足協'] == selected_confed]
         
+    # Apply team translations to the display column
+    display_teams['隊伍名稱'] = display_teams['隊伍名稱'].apply(get_team_display_name)
+    
     st.dataframe(
         display_teams.style.format({
             "Elo等級分": "{:.1f}",
