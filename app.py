@@ -64,7 +64,7 @@ st.markdown("""
     .badge-wh { background-color: #3b82f6; }
     .badge-dk { background-color: #ec4899; }
 </style>
-""", unsafe_allow_name=True, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fifa_2026.db')
 
