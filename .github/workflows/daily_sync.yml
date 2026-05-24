@@ -41,7 +41,7 @@ jobs:
           if [ -n "$(git status --porcelain)" ]; then
             git add fifa_2026.db sync.log
             git commit -m "chore: daily data and odds sync [skip ci]"
-            git push origin feature/streamlit-dashboard
+            git push origin HEAD:${{ github.ref }}
           else
             echo "No database or log changes to commit."
           fi
