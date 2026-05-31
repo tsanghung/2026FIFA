@@ -7,10 +7,12 @@ import re
 import html
 import textwrap
 from datetime import datetime, timedelta
+import numpy as np
 import pandas as pd
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
+from sklearn.preprocessing import StandardScaler
 
 # 1. Page Config & Premium Sleek Dark Theme
 st.set_page_config(
@@ -576,12 +578,13 @@ else:
     st.sidebar.caption("尚無同步日誌")
 
 # Tabs
-tab_overview, tab_val, tab_sched, tab_monte, tab_teams = st.tabs([
+tab_overview, tab_val, tab_sched, tab_monte, tab_teams, tab_ai = st.tabs([
     "MISSION CONTROL",
     "EV+ VALUE",
     "MATCH SCHEDULE",
     "MONTE CARLO",
-    "TEAM RATING"
+    "TEAM RATING",
+    "AI DEEP LEARNING"
 ])
 
 # ================= TAB 0: Mission Control Overview =================
@@ -1210,3 +1213,267 @@ with tab_teams:
     )
     
     st.plotly_chart(fig_scatter, use_container_width=True)
+
+# ================= TAB 5: AI Deep Learning Predictions =================
+with tab_ai:
+    st.header("AI Deep Learning 智能預測引擎")
+    st.write("基於 PyTorch 多層神經網路，融合 Elo/Pi-Rating/Berrar/集成預測/市場賠率/外部情報等 41 維特徵，"
+             "透過 Monte Carlo Dropout 量化不確定性，輸出每場賽事的完整分析報告。")
+
+    st.sidebar.subheader("AI 模型訓練控制")
+    n_epochs_ai = st.sidebar.slider("訓練輪數 (Epochs)", 50, 500, 200, step=50)
+    k_folds_ai = st.sidebar.slider("交叉驗證折數", 2, 5, 3)
+    mc_samples_ai = st.sidebar.slider("MC Dropout 採樣次數", 50, 200, 100, step=50)
+
+    if st.sidebar.button("訓練 / 重新訓練模型", type="primary"):
+        from dl_predictor import train_model
+
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        all_epochs_data = []
+
+        def progress_cb(fold, epoch, total, train_loss, val_loss, acc):
+            pct = (epoch + 1) / total
+            status_text.text(
+                f"Fold {fold+1}/{k_folds_ai} | Epoch {epoch+1}/{total} | "
+                f"Loss: {val_loss:.4f} | Acc: {acc:.2%}"
+            )
+            progress_bar.progress(pct)
+            all_epochs_data.append({
+                'fold': fold, 'epoch': epoch, 'train_loss': train_loss,
+                'val_loss': val_loss, 'accuracy': acc
+            })
+
+        model, scaler, hist = train_model(
+            n_epochs=n_epochs_ai, k_folds=k_folds_ai, progress_callback=progress_cb
+        )
+
+        progress_bar.progress(1.0)
+
+        if model is None:
+            st.error(f"訓練失敗：{hist.get('error', '未知錯誤')}")
+        else:
+            st.success("模型訓練完成！")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("訓練樣本數", hist['n_training_samples'])
+            with col2:
+                st.metric("最佳驗證損失", f"{hist['best_val_loss']:.4f}")
+            with col3:
+                final_acc = hist['accuracy'][-1] if hist['accuracy'] else 0
+                st.metric("最終準確率", f"{final_acc:.2%}")
+
+            import pandas as pd
+            hist_df = pd.DataFrame(all_epochs_data)
+            if not hist_df.empty:
+                fig_loss = go.Figure()
+                fig_loss.add_trace(go.Scatter(
+                    x=hist_df['epoch'], y=hist_df['train_loss'],
+                    mode='lines', name='Training Loss',
+                    line=dict(color='#38bdf8')
+                ))
+                fig_loss.add_trace(go.Scatter(
+                    x=hist_df['epoch'], y=hist_df['val_loss'],
+                    mode='lines', name='Validation Loss',
+                    line=dict(color='#ff3d71')
+                ))
+                fig_loss.update_layout(
+                    title="訓練損失曲線",
+                    xaxis_title="Epoch",
+                    yaxis_title="Loss",
+                    template="plotly_dark",
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    plot_bgcolor="rgba(0,0,0,0)",
+                )
+                st.plotly_chart(fig_loss, use_container_width=True)
+
+    st.markdown("---")
+    st.subheader("賽事預測結果")
+
+    if st.button("執行 AI 預測所有賽事", type="primary"):
+        model_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dl_model.pth')
+        if not os.path.exists(model_file):
+            st.warning("模型尚未訓練，請先點擊側邊欄的「訓練模型」按鈕。")
+        else:
+            from dl_predictor import predict_all_matches, get_feature_importance, WorldCupPredictor, MODEL_PATH, SCALER_PATH
+            import torch as torch_import
+
+            with st.spinner("正在執行 Monte Carlo 採樣預測..."):
+                results, err = predict_all_matches(n_mc_samples=mc_samples_ai)
+
+            if err:
+                st.error(f"預測失敗：{err}")
+            else:
+                scheduled = [r for r in results if r['status'] == 'Scheduled']
+                completed = [r for r in results if r['status'] == 'Completed']
+
+                col_s1, col_s2, col_s3, col_s4 = st.columns(4)
+                with col_s1:
+                    st.metric("總賽事數", len(results))
+                with col_s2:
+                    st.metric("未開賽", len(scheduled))
+                with col_s3:
+                    high_conf = sum(1 for r in scheduled if r['confidence_level'] == 'HIGH')
+                    st.metric("高信心預測", high_conf)
+                with col_s4:
+                    if completed:
+                        correct = sum(1 for r in completed
+                                     if r['home_goals_actual'] is not None
+                                     and r['away_goals_actual'] is not None
+                                     and ((r['home_goals_actual'] > r['away_goals_actual'] and r['predicted_label'] == 0) or
+                                          (r['home_goals_actual'] == r['away_goals_actual'] and r['predicted_label'] == 1) or
+                                          (r['home_goals_actual'] < r['away_goals_actual'] and r['predicted_label'] == 2)))
+                        st.metric("完賽準確率", f"{correct/len(completed):.0%}")
+                    else:
+                        st.metric("完賽準確率", "N/A")
+
+                st.markdown("---")
+
+                filter_col1, filter_col2 = st.columns(2)
+                with filter_col1:
+                    status_filter = st.selectbox("篩選狀態", ["全部", "未開賽", "已完賽"])
+                with filter_col2:
+                    conf_filter = st.selectbox("篩選信心度", ["全部", "HIGH", "MEDIUM", "LOW"])
+
+                filtered = results.copy()
+                if status_filter == "未開賽":
+                    filtered = [r for r in filtered if r['status'] == 'Scheduled']
+                elif status_filter == "已完賽":
+                    filtered = [r for r in filtered if r['status'] == 'Completed']
+                if conf_filter != "全部":
+                    filtered = [r for r in filtered if r['confidence_level'] == conf_filter]
+
+                for r in filtered:
+                    h_name = get_team_display_name(r['home_team'])
+                    a_name = get_team_display_name(r['away_team'])
+                    matchup = f"{h_name} vs {a_name}"
+                    conf_icon = {"HIGH": "", "MEDIUM": "", "LOW": ""}.get(r['confidence_level'], "")
+
+                    with st.expander(
+                        f"#{r['match_num']} {matchup} -- {r['predicted_outcome']} "
+                        f"{conf_icon} {r['confidence']:.0%} (預測比分: {r['pred_score']})",
+                        expanded=False
+                    ):
+                        probs = [r['home_win_prob'], r['draw_prob'], r['away_win_prob']]
+                        stds = [r['home_win_std'], r['draw_std'], r['away_win_std']]
+                        labels = [f"主勝 ({h_name})", "和局 (Draw)", f"客勝 ({a_name})"]
+                        colors = ['#24f6a7', '#38bdf8', '#ff3d71']
+
+                        fig_prob = go.Figure()
+                        for i in range(3):
+                            fig_prob.add_trace(go.Bar(
+                                name=labels[i],
+                                x=[labels[i]],
+                                y=[probs[i] * 100],
+                                error_y=dict(type='data', array=[stds[i] * 100], visible=True),
+                                marker_color=colors[i],
+                            ))
+                        fig_prob.update_layout(
+                            title="預測勝率分佈 (含 MC Dropout 標準差)",
+                            yaxis_title="機率 (%)",
+                            template="plotly_dark",
+                            paper_bgcolor="rgba(0,0,0,0)",
+                            plot_bgcolor="rgba(0,0,0,0)",
+                            height=250,
+                            margin=dict(l=20, r=20, t=40, b=20),
+                            showlegend=False,
+                        )
+                        st.plotly_chart(fig_prob, use_container_width=True)
+
+                        c1, c2, c3, c4, c5 = st.columns(5)
+                        with c1:
+                            st.metric("主勝率", f"{probs[0]:.1%}", delta=f"+/-{stds[0]:.1%}")
+                        with c2:
+                            st.metric("和局率", f"{probs[1]:.1%}", delta=f"+/-{stds[1]:.1%}")
+                        with c3:
+                            st.metric("客勝率", f"{probs[2]:.1%}", delta=f"+/-{stds[2]:.1%}")
+                        with c4:
+                            st.metric("信心度", f"{r['confidence']:.0%}")
+                        with c5:
+                            st.metric("信心等級", r['confidence_level'])
+
+                        if r['status'] == 'Completed' and r['home_goals_actual'] is not None:
+                            actual_score = f"{r['home_goals_actual']}-{r['away_goals_actual']}"
+                            actual_label = (
+                                "主勝" if r['home_goals_actual'] > r['away_goals_actual']
+                                else "客勝" if r['home_goals_actual'] < r['away_goals_actual']
+                                else "和局"
+                            )
+                            pred_correct = (
+                                (r['home_goals_actual'] > r['away_goals_actual'] and r['predicted_label'] == 0) or
+                                (r['home_goals_actual'] == r['away_goals_actual'] and r['predicted_label'] == 1) or
+                                (r['home_goals_actual'] < r['away_goals_actual'] and r['predicted_label'] == 2)
+                            )
+                            st.info(f"實際比分: {actual_score} ({actual_label}) | "
+                                    f"AI 預測: {'正確' if pred_correct else '錯誤'} | "
+                                    f"AI 預測比分: {r['pred_score']}")
+
+                        st.markdown("**關鍵影響因素 (Top 10)**")
+                        try:
+                            from dl_predictor import load_all_match_features
+                            X_all, match_info_all = load_all_match_features()
+                            match_idx = None
+                            for idx, info in enumerate(match_info_all):
+                                if info['match_num'] == r['match_num']:
+                                    match_idx = idx
+                                    break
+                            if match_idx is not None:
+                                checkpoint = torch_import.load(MODEL_PATH, weights_only=False)
+                                model_fi = WorldCupPredictor(input_dim=checkpoint['input_dim'])
+                                model_fi.load_state_dict(checkpoint['model_state_dict'])
+                                model_fi.eval()
+                                scaler_data = np.load(SCALER_PATH)
+                                scaler_fi = StandardScaler()
+                                scaler_fi.mean_ = scaler_data['mean']
+                                scaler_fi.scale_ = scaler_data['scale']
+                                scaler_fi.var_ = scaler_data['var']
+                                scaler_fi.n_features_in_ = int(scaler_data['n_features_in'])
+                                scaler_fi.n_samples_seen_ = int(scaler_data['n_samples_seen'])
+                                feat_vec = X_all[match_idx].reshape(1, -1)
+                                feat_scaled = scaler_fi.transform(feat_vec)
+                                feat_imp = get_feature_importance(feat_scaled[0], model_fi)
+                                imp_names = [f[0] for f in feat_imp]
+                                imp_values = [f[1] for f in feat_imp]
+                                fig_imp = go.Figure(go.Bar(
+                                    x=imp_values,
+                                    y=imp_names,
+                                    orientation='h',
+                                    marker=dict(
+                                        color='rgba(248, 193, 74, 0.7)',
+                                        line=dict(color='rgba(248, 193, 74, 1.0)', width=1)
+                                    )
+                                ))
+                                fig_imp.update_layout(
+                                    title="特徵重要性 (Gradient-based)",
+                                    xaxis_title="重要性分數",
+                                    template="plotly_dark",
+                                    paper_bgcolor="rgba(0,0,0,0)",
+                                    plot_bgcolor="rgba(0,0,0,0)",
+                                    height=300,
+                                    margin=dict(l=20, r=20, t=40, b=20),
+                                    yaxis={'categoryorder': 'total ascending'},
+                                )
+                                st.plotly_chart(fig_imp, use_container_width=True)
+                        except Exception as e:
+                            st.caption(f"特徵重要性計算中: {e}")
+
+                        st.markdown("**AI 分析摘要**")
+                        diff_home_away = r['home_win_prob'] - r['away_win_prob']
+                        if abs(diff_home_away) < 0.1:
+                            analysis = (
+                                f"本場比賽雙方實力相當接近，AI 模型預測結果具有{'較高' if r['confidence_level'] == 'HIGH' else '一定'}的不確定性。"
+                                f"預測比分為 {r['pred_score']}，建議關注和局可能性。"
+                            )
+                        elif diff_home_away > 0:
+                            analysis = (
+                                f"AI 模型認為 {h_name} 在本場比賽中佔據優勢，主勝機率達 {r['home_win_prob']:.1%}。"
+                                f"預測比分為 {r['pred_score']}。"
+                                f"{'信心充足，建議重点关注。' if r['confidence_level'] == 'HIGH' else '但仍需留意不確定性因素。'}"
+                            )
+                        else:
+                            analysis = (
+                                f"AI 模型認為 {a_name} 在本場比賽中更具優勢，客勝機率達 {r['away_win_prob']:.1%}。"
+                                f"預測比分為 {r['pred_score']}。"
+                                f"{'信心充足，建議重点关注。' if r['confidence_level'] == 'HIGH' else '但仍需留意不確定性因素。'}"
+                            )
+                        st.info(analysis)
