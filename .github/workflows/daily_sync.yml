@@ -29,6 +29,8 @@ jobs:
           pip install requests beautifulsoup4
 
       - name: ⚡ Run Quantitative Sync & Prediction Engine
+        env:
+          THE_ODDS_API_KEY: ${{ secrets.THE_ODDS_API_KEY }}
         run: |
           python sync_fifa.py
 
