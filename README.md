@@ -148,6 +148,26 @@ graph TD
 
 ---
 
+## 🏆 4.6 總冠軍預測（每日滾動）(Daily Title-Race Predictor)
+
+新增 `champion_predictor.py`，以**賭盤為主**融合三大支柱，輸出每隊**奪冠機率**，每日滾動更新：
+
+| 支柱 | 來源 | 說明 |
+| :--- | :--- | :--- |
+| **市場（主）** | The Odds API `soccer_fifa_world_cup_winner` | 交叉比對 **Bet365 / Pinnacle / Betfair / DraftKings** 等領先莊家的 outright 賠率，**去水（de-vig）後取共識**；無 API key 時退回內建 2026-06 快照。 |
+| **權威** | **Opta 超級電腦** (Stats Perform) | 公開的奪冠機率（西 16.1% / 法 13.0% / 英 11.2% / 阿 10.4% …）。 |
+| **AI 模型** | 本系統全賽事蒙地卡羅 | 以 Elo/Pi/Berrar 集成引擎跑**小組賽 + 完整淘汰賽 bracket**（含最佳 8 個小組第三的分配）數萬次，算出每隊奪冠與各輪晉級機率。**開賽後依實際成績更新評級，模型權重隨完賽比例自動上升**。 |
+
+*   **動態權重**：賽前 市場/權威/模型 = 55/25/20；隨完賽比例線性過渡到 40/10/50（結果越多、AI 模型越主導）。
+*   **EWMA 平滑**：`blended_ewma = 0.4·今日 + 0.6·昨日`，降低單日雜訊。
+*   **每日快照**：寫入 `champion_predictions` 資料表（每日每隊一列），保存歷史以繪製**奪冠機率走勢圖**。此表在每日 `force_recreate` 重建時**不會被清除**，故走勢可長期累積。
+*   **首頁分頁**：Streamlit 新增 **「TITLE RACE」** 分頁 — 前三熱門卡片、Top 20 排行（融合/賭盤/Opta/AI 各欄 + 日變動箭頭）、Top 6 走勢圖，並提供「重新計算」按鈕。
+*   **自動化**：已串入 `sync_fifa.py` 每日同步流程尾端（best-effort），GHA 每日自動更新並提交。
+
+> 執行：`python champion_predictor.py`（可用 `CHAMPION_SIMS` 環境變數調整模擬次數，預設 10000）。
+
+---
+
 ## 🌐 4.5 線上首頁部署 (Streamlit Cloud Deployment)
 
 本系統的視覺化首頁是 `app.py`（Streamlit 儀表板），已部署上線：
