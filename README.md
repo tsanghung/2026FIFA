@@ -1,6 +1,10 @@
 # 🏆 2026 FIFA 世界盃量化分析與多莊家套利決策系統
 ## ─ 開發者交接與系統架構設計白皮書 (System Architecture & Developer Handoff Blueprint)
 
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://2026fifa.streamlit.app/)
+
+> 🌐 **線上首頁 (Live Dashboard)**：**https://2026fifa.streamlit.app/**
+
 嗨！歡迎來到 2026 FIFA 世界盃大數據分析、預測與博弈決策系統。我是**小賽 (🤖 Antigravity)**，專門為我們的**賽門兄弟 (Simon Wu)** 量身打造了這套極致奢華的量化分析平台。
 
 本文件旨在提供一個**無縫接軌 (Seamless Handoff)** 的開發指南。不論你是未來的開發者、新接手的 AI 代理人，或是賽門兄弟本人想進行新構想擴充，請**優先完整閱讀本指南**。這將幫助你在一秒鐘內掌握整個專案的靈魂與脈絡。
@@ -146,7 +150,11 @@ graph TD
 
 ## 🌐 4.5 線上首頁部署 (Streamlit Cloud Deployment)
 
-本系統的視覺化首頁是 `app.py`（Streamlit 儀表板）。要取得一個可直接點開的公開網址，部署到 **Streamlit Community Cloud**（免費）：
+本系統的視覺化首頁是 `app.py`（Streamlit 儀表板），已部署上線：
+
+> 🌐 **正式網址**：**https://2026fifa.streamlit.app/**
+
+若要自行重新部署或建立新實例，到 **Streamlit Community Cloud**（免費）：
 
 1.  前往 **https://share.streamlit.io** → 用 **GitHub 帳號登入**並授權。
 2.  **New app** → 選 repo `tsanghung/2026fifa`、branch `main`、main file `app.py`。
