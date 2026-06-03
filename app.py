@@ -578,8 +578,9 @@ else:
     st.sidebar.caption("尚無同步日誌")
 
 # Tabs
-tab_overview, tab_val, tab_sched, tab_monte, tab_teams, tab_ai = st.tabs([
+tab_overview, tab_title, tab_val, tab_sched, tab_monte, tab_teams, tab_ai = st.tabs([
     "MISSION CONTROL",
+    "TITLE RACE",
     "EV+ VALUE",
     "MATCH SCHEDULE",
     "MONTE CARLO",
@@ -1487,3 +1488,113 @@ with tab_ai:
                                 f"{'信心充足，建議重点关注。' if r['confidence_level'] == 'HIGH' else '但仍需留意不確定性因素。'}"
                             )
                         st.info(analysis)
+
+
+# ================= TAB: Title Race (總冠軍預測) =================
+with tab_title:
+    st.header("🏆 總冠軍預測 (Title Race)")
+    st.write(
+        "以**賭盤為主**、融合**權威超級電腦 (Opta)** 與**本系統 AI 全賽事蒙地卡羅模型**，"
+        "預測每隊奪冠機率。每日滾動更新並以 EWMA 平滑，下方可追蹤奪冠機率的歷史走勢。"
+    )
+
+    cp_conn = get_db_connection()
+    has_table = cp_conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='champion_predictions'"
+    ).fetchone()
+
+    col_a, col_b = st.columns([1, 3])
+    with col_a:
+        if st.button("🔄 重新計算奪冠機率", type="primary"):
+            try:
+                import champion_predictor as _cp
+                with st.spinner("執行 10,000 次完整賽事蒙地卡羅並融合市場/權威..."):
+                    _cp.run_champion_prediction(n_sims=10000)
+                st.success("已更新今日奪冠機率快照！")
+                st.rerun()
+            except Exception as e:
+                st.error(f"計算失敗：{e}")
+
+    if not has_table:
+        st.info("尚無奪冠機率資料。請點擊「重新計算奪冠機率」產生第一份快照。")
+    else:
+        latest_date = cp_conn.execute(
+            "SELECT MAX(snapshot_date) FROM champion_predictions"
+        ).fetchone()[0]
+        df = pd.read_sql_query(
+            "SELECT * FROM champion_predictions WHERE snapshot_date = ? ORDER BY rank",
+            cp_conn, params=(latest_date,)
+        )
+        with col_b:
+            st.caption(f"最新快照日期：{latest_date} ｜ 融合來源：賭盤(交叉比對) · Opta 超級電腦 · 本系統 AI 模型")
+
+        if not df.empty:
+            # ---- Top-3 favourite cards ----
+            top3 = df.head(3)
+            cards = st.columns(3)
+            medals = ["🥇", "🥈", "🥉"]
+            for i, (_, row) in enumerate(top3.iterrows()):
+                with cards[i]:
+                    name = get_team_display_name(row['team'])
+                    delta = row['delta'] or 0.0
+                    st.metric(
+                        f"{medals[i]} {name}",
+                        f"{row['blended_ewma']*100:.1f}%",
+                        f"{delta*100:+.2f}% vs 前一日",
+                    )
+
+            # ---- Full ranking table ----
+            st.subheader("奪冠機率排行 (Top 20)")
+            show = df.head(20).copy()
+
+            def _arrow(d):
+                d = d or 0.0
+                if d > 0.0005:
+                    return f"▲ {d*100:+.2f}%"
+                if d < -0.0005:
+                    return f"▼ {d*100:+.2f}%"
+                return "—"
+
+            table = pd.DataFrame({
+                "#": show['rank'],
+                "隊伍": show['team'].apply(get_team_display_name),
+                "融合奪冠率": (show['blended_ewma'] * 100).map("{:.1f}%".format),
+                "賭盤": (show['market_prob'].fillna(0) * 100).map("{:.1f}%".format),
+                "Opta": (show['opta_prob'].fillna(0) * 100).map("{:.1f}%".format),
+                "AI 模型": (show['model_prob'].fillna(0) * 100).map("{:.1f}%".format),
+                "日變動": show['delta'].apply(_arrow),
+            })
+            st.dataframe(table, use_container_width=True, hide_index=True)
+
+            # ---- Trend chart over time ----
+            hist = pd.read_sql_query(
+                "SELECT snapshot_date, team, blended_ewma FROM champion_predictions "
+                "ORDER BY snapshot_date", cp_conn
+            )
+            n_days = hist['snapshot_date'].nunique()
+            if n_days >= 2:
+                st.subheader("奪冠機率走勢 (Top 6)")
+                top_teams = df.head(6)['team'].tolist()
+                fig = go.Figure()
+                for t in top_teams:
+                    sub = hist[hist['team'] == t]
+                    fig.add_trace(go.Scatter(
+                        x=sub['snapshot_date'], y=sub['blended_ewma'] * 100,
+                        mode='lines+markers', name=get_team_display_name(t),
+                    ))
+                fig.update_layout(
+                    template="plotly_dark",
+                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                    xaxis_title="日期", yaxis_title="奪冠機率 (%)",
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02),
+                    margin=dict(t=40),
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.caption("📈 累積 2 天以上的每日快照後，這裡會顯示奪冠機率走勢圖。")
+
+            st.caption(
+                "方法論：賭盤為主（The Odds API 交叉比對 Bet365/Pinnacle/Betfair/DraftKings，去水後取共識；"
+                "無 API 時用內建 2026-06 快照）。權威為 Opta 超級電腦。AI 模型為本系統 Elo/Pi/Berrar 集成驅動的"
+                "全賽事蒙地卡羅；開賽後依實際成績更新評級，模型權重隨完賽比例自動上升。每日以 EWMA(α=0.4) 平滑。"
+            )

@@ -143,7 +143,16 @@ def normalize_team_name(name):
         'IR Iran': 'Iran',
         "Côte d'Ivoire": 'Ivory Coast',
         'Cabo Verde': 'Cape Verde',
-        'Bosnia and Herzegovina': 'Bosnia-Herzegovina'
+        'Bosnia and Herzegovina': 'Bosnia-Herzegovina',
+        # Common Wikipedia/feed variants that previously failed to join the teams
+        # table (e.g. Match 23 'Turkey' vs 'United States' fell back to 1400 Elo).
+        'Turkey': 'Türkiye',
+        'Turkiye': 'Türkiye',
+        'United States': 'USA',
+        'United States of America': 'USA',
+        'Korea Republic': 'South Korea',
+        'Republic of Korea': 'South Korea',
+        'Korea, South': 'South Korea',
     }
     return mapping.get(name, name)
 
@@ -901,6 +910,15 @@ if __name__ == '__main__':
         log("即時賠率與博弈分析值更新成功！")
     except Exception as e:
         log(f"自動執行賠率爬蟲時發生錯誤: {e}")
-        
+
+    # Roll the daily champion (title-race) prediction: market + Opta + AI Monte Carlo.
+    try:
+        log("正在計算每日總冠軍預測（賭盤 + Opta + AI 蒙地卡羅）...")
+        import champion_predictor
+        champion_predictor.run_champion_prediction()
+        log("總冠軍奪冠機率每日快照更新成功！")
+    except Exception as e:
+        log(f"自動執行總冠軍預測時發生錯誤: {e}")
+
     log("同步任務結束。")
 
