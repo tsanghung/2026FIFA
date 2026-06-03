@@ -1,8 +1,12 @@
+# Streamlit Community Cloud deployment manifest (lightweight).
+# PyTorch / SHAP are intentionally excluded here to stay within Cloud's
+# ~1GB resource limit; the AI Deep Learning tab degrades gracefully and
+# prompts the user to install the full set locally instead.
+# For the full local experience (incl. the DL engine): pip install -r requirements-full.txt
 streamlit>=1.30.0
 plotly>=5.18.0
+pandas>=2.0.0
+numpy>=1.24.0
+scikit-learn>=1.3.0
 requests>=2.31.0
 beautifulsoup4>=4.12.0
-pandas>=2.0.0
-torch>=2.0.0
-scikit-learn>=1.3.0
-shap>=0.43.0

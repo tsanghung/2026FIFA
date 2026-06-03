@@ -144,6 +144,25 @@ graph TD
 
 ---
 
+## 🌐 4.5 線上首頁部署 (Streamlit Cloud Deployment)
+
+本系統的視覺化首頁是 `app.py`（Streamlit 儀表板）。要取得一個可直接點開的公開網址，部署到 **Streamlit Community Cloud**（免費）：
+
+1.  前往 **https://share.streamlit.io** → 用 **GitHub 帳號登入**並授權。
+2.  **New app** → 選 repo `tsanghung/2026fifa`、branch `main`、main file `app.py`。
+3.  （可選）在 **Advanced settings** 設定自訂子網域，例如 `2026fifa`。
+4.  **Deploy**。完成後即得到形如 `https://<你的子網域>.streamlit.app` 的公開首頁。
+
+> 部署相關檔案已備妥：
+> *   `requirements.txt`：**雲端輕量版**（已移除 PyTorch / SHAP 以符合 Streamlit Cloud ~1GB 資源上限）。AI 深度學習分頁在雲端會優雅提示「需本機執行」。
+> *   `requirements-full.txt`：**本機完整版**（含 PyTorch 與 SHAP），本機跑 DL 引擎時用 `pip install -r requirements-full.txt`。
+> *   `.streamlit/config.toml`：鎖定暗色霓虹主題。
+> *   `fifa_2026.db` 已隨 repo 提供，雲端開箱即有最新預測；每日 GHA 同步會自動更新。
+
+**本機啟動**：`streamlit run app.py` → http://localhost:8501
+
+---
+
 ## 🔄 5. 自動排程與維護任務 (Daily Maintenance Tasks)
 
 *   **定時任務**：已在 Windows 工作排程器註冊 `FIFA2026_Daily_Update`。

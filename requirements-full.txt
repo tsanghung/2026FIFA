@@ -1,0 +1,5 @@
+# Full local environment, including the PyTorch AI Deep Learning engine.
+# Use this locally:  pip install -r requirements-full.txt
+-r requirements.txt
+torch>=2.0.0
+shap>=0.43.0
