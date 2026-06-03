@@ -917,6 +917,9 @@ if __name__ == '__main__':
         import champion_predictor
         champion_predictor.run_champion_prediction()
         log("總冠軍奪冠機率每日快照更新成功！")
+        # Regenerate the auto trend report from the rolling snapshots.
+        import champion_trend_report
+        champion_trend_report.main()
     except Exception as e:
         log(f"自動執行總冠軍預測時發生錯誤: {e}")
 
