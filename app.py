@@ -1226,7 +1226,12 @@ with tab_ai:
     mc_samples_ai = st.sidebar.slider("MC Dropout 採樣次數", 50, 200, 100, step=50)
 
     if st.sidebar.button("訓練 / 重新訓練模型", type="primary"):
-        from dl_predictor import train_model
+        try:
+            from dl_predictor import train_model
+        except Exception:
+            st.error("⚠️ AI 深度學習引擎需要 PyTorch，雲端部署為符合資源上限未安裝。"
+                     "請於本機執行 `pip install -r requirements-full.txt` 後再使用此分頁。")
+            st.stop()
 
         progress_bar = st.progress(0)
         status_text = st.empty()
@@ -1295,8 +1300,13 @@ with tab_ai:
         if not os.path.exists(model_file):
             st.warning("模型尚未訓練，請先點擊側邊欄的「訓練模型」按鈕。")
         else:
-            from dl_predictor import predict_all_matches, get_feature_importance, WorldCupPredictor, MODEL_PATH, SCALER_PATH
-            import torch as torch_import
+            try:
+                from dl_predictor import predict_all_matches, get_feature_importance, WorldCupPredictor, MODEL_PATH, SCALER_PATH
+                import torch as torch_import
+            except Exception:
+                st.error("⚠️ AI 深度學習引擎需要 PyTorch，雲端部署為符合資源上限未安裝。"
+                         "請於本機執行 `pip install -r requirements-full.txt` 後再使用此分頁。")
+                st.stop()
 
             with st.spinner("正在執行 Monte Carlo 採樣預測..."):
                 results, err = predict_all_matches(n_mc_samples=mc_samples_ai)
