@@ -901,6 +901,8 @@ with tab_sched:
     if filter_stage:
         display_df = display_df[display_df['group_or_stage'].isin(filter_stage)]
         
+    import affiliate_config as _aff
+
     # Render table nicely
     rows_html = []
     for idx, r in display_df.iterrows():
@@ -932,6 +934,11 @@ with tab_sched:
         b_h = get_source_label(r['odds_home'], r['odds_home_bet365'], r['odds_home_williamhill'], r['odds_home_draftkings'])
         b_d = get_source_label(r['odds_draw'], r['odds_draw_bet365'], r['odds_draw_williamhill'], r['odds_draw_draftkings'])
         b_a = get_source_label(r['odds_away'], r['odds_away_bet365'], r['odds_away_williamhill'], r['odds_away_draftkings'])
+
+        # 各場次聯盟連結：連到提供最佳主勝賠率的莊家
+        _bk = _aff.best_book_key(r['odds_home'], r['odds_home_bet365'],
+                                 r['odds_home_williamhill'], r['odds_home_draftkings'])
+        bet_url = _aff.get_affiliate_url(_bk) if r['odds_home'] else None
         
         status_str = "已完賽" if r['status'] == "Completed" else "未開賽"
         score_str = r['score'] if r['score'] else "VS"
@@ -956,10 +963,16 @@ with tab_sched:
             "預測比分": r['pred_score'],
             "最佳主勝賠率": b_h,
             "最佳和局賠率": b_d,
-            "最佳客勝賠率": b_a
+            "最佳客勝賠率": b_a,
+            "🎯 下注": bet_url
         })
-        
-    st.dataframe(pd.DataFrame(rows_html), use_container_width=True, hide_index=True)
+
+    _col_cfg = {}
+    if _aff.AFFILIATE_ENABLED:
+        _col_cfg["🎯 下注"] = st.column_config.LinkColumn("🎯 下注", display_text=_aff.CTA_LABEL)
+    st.dataframe(pd.DataFrame(rows_html), use_container_width=True, hide_index=True,
+                 column_config=_col_cfg)
+    st.caption("⚠️ 投注有風險，請理性博彩，未滿 18 歲請勿參與。「前往下注」為合作夥伴連結。")
 
 # ================= TAB 3: Monte Carlo Simulator =================
 with tab_monte:

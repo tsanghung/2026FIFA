@@ -168,6 +168,16 @@ graph TD
 
 ---
 
+## 💰 4.7 各場次聯盟連結（變現）(Per-match Affiliate Links)
+
+賽程分頁 (`MATCH SCHEDULE`) 每場比賽新增「🎯 前往下注」連結，指向提供**最佳主勝賠率**的莊家。
+
+*   設定檔：`affiliate_config.py` — 把你各莊家的**聯盟追蹤網址**貼進 `AFFILIATE_LINKS`（留空則退回該莊家首頁，連結可用但無分潤）。可用 `AFFILIATE_ENABLED` 一鍵開關。
+*   已附**理性博彩 / 18+ 免責聲明**。
+*   ⚠️ 注意：運彩聯盟需審核且受各地法規限制；Streamlit 免費版主要供非商業用途，正式變現建議自有網域＋自架。Google AdSense **需自有網域**，無法掛在 `*.streamlit.app`。
+
+---
+
 ## 🌐 4.5 線上首頁部署 (Streamlit Cloud Deployment)
 
 本系統的視覺化首頁是 `app.py`（Streamlit 儀表板），已部署上線：
