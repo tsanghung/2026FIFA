@@ -435,6 +435,10 @@ def main():
     write(os.path.join(OUT, 'sitemap.xml'), '\n'.join(sm))
     write(os.path.join(OUT, 'robots.txt'), f"User-agent: *\nAllow: /\nSitemap: {site.SITE_URL}/sitemap.xml\n")
     write(os.path.join(OUT, '.nojekyll'), '')
+    # AdSense ownership file (ca-pub-XXXX -> pub-XXXX).
+    if site.ADSENSE_CLIENT:
+        pub = site.ADSENSE_CLIENT.replace('ca-', '')
+        write(os.path.join(OUT, 'ads.txt'), f"google.com, {pub}, DIRECT, f08c47fec0942fa0\n")
     if site.CUSTOM_DOMAIN:
         write(os.path.join(OUT, 'CNAME'), site.CUSTOM_DOMAIN.strip())
 
