@@ -168,6 +168,20 @@ graph TD
 
 ---
 
+## 🎯 4.8 預測準確度回測與校準 (Backtesting & Calibration)
+
+把預測引擎接上客觀的「量測 + 校準」管線，提升每場勝負預測準確度：
+
+*   **`backtest.py`**：抓 ~5 萬場歷史國際賽（martj42 公開資料），用**與線上完全相同**的評級引擎做時序重放，計算 **RPS / Log-Loss / 命中率 / 和局召回 / 信心校準**。
+*   **`model_config.py`**：集中所有可調參數（Elo K、主場優勢、Dixon-Coles ρ、進球基線、集成權重…）。回測以**最小化 RPS** 座標下降搜尋最佳值，寫入 `calibrated_params.json`，預測時自動載入。
+*   **`team_ratings_seed.json`**：48 強的初始 Elo 改由歷史資料重放推導（取代手填整數，並合併改名球隊如 Czechia/Türkiye 的歷史），跨洲可比。
+*   **Elo 加入淨勝球（MOV）修正**；**動態集成權重**（隨完賽比例由「信任市場/Opta」轉向「信任已更新模型」）；停用全為 0 的 sentiment 噪音特徵。
+*   App 新增 **MODEL ACCURACY** 分頁展示上述指標。
+*   實測：回測命中率約 **60%**、RPS **~0.171**（職業級；隨機約 0.33）。註：和局極少成為單場最可能結果是足球真實特性，強行多押和局會同時拉低 RPS 與命中率。
+*   重新校準：`python backtest.py`（會自動下載歷史資料，約 3.7MB，已列入 `.gitignore`）。
+
+---
+
 ## 💰 4.7 各場次聯盟連結（變現）(Per-match Affiliate Links)
 
 賽程分頁 (`MATCH SCHEDULE`) 每場比賽新增「🎯 前往下注」連結，指向提供**最佳主勝賠率**的莊家。
