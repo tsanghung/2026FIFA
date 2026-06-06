@@ -75,7 +75,7 @@ INITIAL_ELO = {
     'Brazil': 1650, 'Belgium': 1630, 'Portugal': 1620, 'Netherlands': 1610,
     # Strong Tier (1500 - 1600)
     'Uruguay': 1580, 'Colombia': 1570, 'Croatia': 1560, 'Morocco': 1550, 
-    'Germany': 1540, 'USA': 1530, 'Switzerland': 1520, 'Japan': 1515, 
+    'Germany': 1540, 'USA': 1530, 'Mexico': 1535, 'Switzerland': 1520, 'Japan': 1515,
     'South Korea': 1500, 'Ecuador': 1490,
     # Mid Tier (1400 - 1500)
     'Austria': 1480, 'Sweden': 1470, 'Ukraine': 1460, 'Türkiye': 1450, 
