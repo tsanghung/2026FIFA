@@ -578,14 +578,15 @@ else:
     st.sidebar.caption("尚無同步日誌")
 
 # Tabs
-tab_overview, tab_title, tab_val, tab_sched, tab_monte, tab_teams, tab_ai = st.tabs([
+tab_overview, tab_title, tab_val, tab_sched, tab_monte, tab_teams, tab_ai, tab_acc = st.tabs([
     "MISSION CONTROL",
     "TITLE RACE",
     "EV+ VALUE",
     "MATCH SCHEDULE",
     "MONTE CARLO",
     "TEAM RATING",
-    "AI DEEP LEARNING"
+    "AI DEEP LEARNING",
+    "MODEL ACCURACY"
 ])
 
 # ================= TAB 0: Mission Control Overview =================
@@ -1611,3 +1612,51 @@ with tab_title:
                 "無 API 時用內建 2026-06 快照）。權威為 Opta 超級電腦。AI 模型為本系統 Elo/Pi/Berrar 集成驅動的"
                 "全賽事蒙地卡羅；開賽後依實際成績更新評級，模型權重隨完賽比例自動上升。每日以 EWMA(α=0.4) 平滑。"
             )
+
+# ================= TAB 7: Model Accuracy (Historical Backtest) =================
+with tab_acc:
+    st.header("🎯 模型準確度（歷史回測校準）")
+    st.write("用 ~5 萬場歷史國際賽，把現行預測引擎做時序回測，量化勝負預測準確度並校準參數。")
+
+    import json as _json
+    _mpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backtest_metrics.json')
+    if not os.path.exists(_mpath):
+        st.info("尚未產生回測指標。請在本機執行 `python backtest.py` 後再查看。")
+    else:
+        with open(_mpath, 'r', encoding='utf-8') as _f:
+            _m = _json.load(_f)
+        base, cal = _m['baseline'], _m['calibrated']
+        st.caption(f"評估窗：{_m.get('eval_start','?')} 起，共 {cal['n']:,} 場（含 {cal['draw_total']:,} 場和局）。"
+                   "RPS（Ranked Probability Score）為 1X2 機率預測的標準評分，越低越好。")
+
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("RPS（越低越好）", f"{cal['rps']:.4f}", f"{cal['rps']-base['rps']:+.4f}", delta_color="inverse")
+        c2.metric("Log-Loss（越低越好）", f"{cal['log_loss']:.4f}", f"{cal['log_loss']-base['log_loss']:+.4f}", delta_color="inverse")
+        c3.metric("命中率 Accuracy", f"{cal['accuracy']:.1%}", f"{(cal['accuracy']-base['accuracy'])*100:+.1f} pp")
+        c4.metric("Brier", f"{cal['brier']:.4f}", f"{cal['brier']-base['brier']:+.4f}", delta_color="inverse")
+
+        st.markdown(
+            f"- **RPS {cal['rps']:.3f}** 屬職業級水準（足球模型常見 0.19–0.21；隨機約 0.33）。\n"
+            f"- **命中率 {cal['accuracy']:.1%}**：以最高機率作為勝負預測時的正確率。\n"
+            f"- **和局召回 {cal['draw_recall']:.1%}**：和局極少成為單場最可能結果，這是足球的真實特性——"
+            "強行多押和局會同時拉低 RPS 與命中率，故校準後仍維持低和局召回（屬最佳取捨）。"
+        )
+
+        st.subheader("信心校準曲線")
+        st.caption("把每場「最高機率」分箱，比較『模型宣稱的信心』與『實際命中率』。兩者越接近，代表機率越可信。")
+        _cal = cal.get('calibration', {})
+        if _cal:
+            _rows = []
+            for _b, _v in sorted(_cal.items()):
+                _hit, _tot = _v
+                _rows.append({"宣稱信心區間": f"~{float(_b)*100:.0f}%",
+                              "場數": _tot,
+                              "實際命中率": f"{(_hit/_tot if _tot else 0):.0%}"})
+            st.dataframe(pd.DataFrame(_rows), use_container_width=True, hide_index=True)
+
+        with st.expander("已校準的模型參數（calibrated_params.json）"):
+            _cpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'calibrated_params.json')
+            if os.path.exists(_cpath):
+                with open(_cpath, 'r', encoding='utf-8') as _cf:
+                    st.json(_json.load(_cf))
+            st.caption("這些值由 backtest.py 以最小化 RPS 自動搜尋而得，並在每次預測時由 model_config 載入。")
