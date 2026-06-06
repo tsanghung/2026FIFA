@@ -111,7 +111,8 @@ def head(title, desc, canonical, og_extra=""):
 <header class="site-head">
   <a class="brand" href="{site.SITE_URL}/">⚽ {esc(site.SITE_TITLE)}</a>
   <nav><a href="{site.SITE_URL}/#schedule">賽程</a><a href="{site.SITE_URL}/#title">奪冠</a>
-  <a href="{site.SITE_URL}/#ratings">評級</a><a href="{site.SITE_URL}/#accuracy">準確度</a></nav>
+  <a href="{site.SITE_URL}/#ratings">評級</a><a href="{site.SITE_URL}/monte.html">模擬器</a>
+  <a href="{site.SITE_URL}/#accuracy">準確度</a></nav>
 </header>
 <main>'''
 
@@ -226,6 +227,100 @@ r.style.display=r.innerText.toLowerCase().indexOf(q)>-1?'':'none';});}
     return ''.join(parts)
 
 
+def sim_params():
+    """Per-match Poisson lambdas for the client-side Monte Carlo simulator.
+    Replicates app.py's tab_monte hybrid-lambda formula EXACTLY so the static-site
+    JS and the Streamlit app produce the same numbers."""
+    con = sqlite3.connect(DB_PATH)
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+    rows = cur.execute('''
+        SELECT m.match_num, m.home_team, m.away_team,
+               t_h.elo_rating he, t_h.fifa_rank hr, t_h.berrar_att hat, t_h.berrar_def hdf,
+               t_h.fbref_xg_diff hxg, t_h.injury_count hinj, t_h.sentiment_score hsent,
+               t_a.elo_rating ae, t_a.fifa_rank ar, t_a.berrar_att aat, t_a.berrar_def adf,
+               t_a.fbref_xg_diff axg, t_a.injury_count ainj, t_a.sentiment_score asent
+        FROM matches m
+        LEFT JOIN teams t_h ON m.home_team = t_h.name
+        LEFT JOIN teams t_a ON m.away_team = t_a.name
+        WHERE m.status = 'Scheduled' ORDER BY m.match_num ASC''').fetchall()
+    con.close()
+
+    def nz(v, d=0.0):
+        return v if v is not None else d
+
+    out = []
+    for r in rows:
+        he, hr = nz(r['he'], 1400.0), nz(r['hr'], 50)
+        ae, ar = nz(r['ae'], 1400.0), nz(r['ar'], 50)
+        hat, hdf = nz(r['hat'], 1.0), nz(r['hdf'], 1.0)
+        aat, adf = nz(r['aat'], 1.0), nz(r['adf'], 1.0)
+        hc = nz(r['hxg']) * 40.0 + nz(r['hsent']) * 15.0 - nz(r['hinj']) * 12.0
+        ac = nz(r['axg']) * 40.0 + nz(r['asent']) * 15.0 - nz(r['ainj']) * 12.0
+        eff = (he - ae) + (ar - hr) * 4.0 + hc - ac
+        le_h = 1.25 * (10 ** (eff / 1000.0))
+        le_a = 1.25 * (10 ** (-eff / 1000.0))
+        lb_h = 1.25 * hat * adf
+        lb_a = 1.05 * aat * hdf
+        out.append({
+            'n': r['match_num'],
+            'a': get_team_display_name(r['away_team']),
+            'h': get_team_display_name(r['home_team']),
+            'lh': round(0.5 * le_h + 0.5 * lb_h, 4),
+            'la': round(0.5 * le_a + 0.5 * lb_a, 4),
+        })
+    return out
+
+
+def build_monte(sims):
+    canonical = f"{site.SITE_URL}/monte.html"
+    title = "蒙地卡羅對戰模擬器 | 2026 世界盃 AI 預測"
+    desc = "在瀏覽器即時跑 10 萬次蒙地卡羅模擬，估算任一場世界盃對決的獨贏、大小分(2.5)、雙方進球與精確比分機率。"
+    p = [head(title, desc, canonical)]
+    p.append('<section><h1>🎲 蒙地卡羅對戰模擬器</h1>'
+             '<p class="muted">選一場未開賽對決，瀏覽器即時跑 10 萬次隨機抽樣（卜瓦松進球模型），'
+             '估算獨贏、大小分、雙方皆進球與精確比分分佈。</p>')
+    if not sims:
+        p.append('<p>目前沒有未開賽的賽程可供模擬。</p></section>')
+        p.append(foot())
+        return ''.join(p)
+    p.append('<select id="m" class="filter">')
+    for s in sims:
+        p.append(f'<option value="{s["n"]}">#{s["n"]} {esc(s["a"])} vs {esc(s["h"])}</option>')
+    p.append('</select> <button id="run" class="bet">🚀 啟動 100,000 次模擬</button>')
+    p.append('<p id="xg" class="muted"></p>')
+    p.append('<div id="out" class="cards"></div>')
+    p.append('<div id="scores"></div></section>')
+    p.append(ad_unit())
+    p.append('<script>const SIM=' + json.dumps(sims, ensure_ascii=False) + ';</script>')
+    p.append('''<script>
+function pois(l){var L=Math.exp(-l),k=0,p=1;do{k++;p*=Math.random();}while(p>L);return k-1;}
+function run(){
+ var n=+document.getElementById('m').value, s=SIM.find(x=>x.n==n);
+ document.getElementById('xg').innerHTML='進球期望 xG — '+s.a+': <b>'+s.la.toFixed(2)+'</b> ｜ '+s.h+': <b>'+s.lh.toFixed(2)+'</b>';
+ var N=100000,hw=0,dr=0,aw=0,ov=0,bt=0,sc={};
+ for(var i=0;i<N;i++){var hg=pois(s.lh),ag=pois(s.la);
+  if(hg>ag)hw++;else if(hg==ag)dr++;else aw++;
+  if(hg+ag>2.5)ov++; if(hg>0&&ag>0)bt++;
+  var k=hg+'-'+ag; sc[k]=(sc[k]||0)+1;}
+ var pf=x=>(x/N*100).toFixed(2)+'%';
+ var seh=Math.sqrt((hw/N)*(1-hw/N)/N)*100;
+ document.getElementById('out').innerHTML=
+  card('👑 獨贏 Moneyline','主勝 '+s.h+'：<b>'+pf(hw)+'</b> (±'+seh.toFixed(3)+'%)<br>和局：'+pf(dr)+'<br>客勝 '+s.a+'：'+pf(aw))
+ +card('⚽ 大小分 2.5','大球：<b>'+pf(ov)+'</b><br>小球：'+pf(N-ov))
+ +card('🔥 雙方皆進球','是：<b>'+pf(bt)+'</b><br>否：'+pf(N-bt));
+ var top=Object.entries(sc).sort((a,b)=>b[1]-a[1]).slice(0,6);
+ var html='<h2>最可能比分 (客-主)</h2><div class="tablewrap"><table><thead><tr><th>比分</th><th>機率</th><th></th></tr></thead><tbody>';
+ top.forEach(e=>{var pc=e[1]/N*100;html+='<tr><td>'+e[0]+'</td><td>'+pc.toFixed(2)+'%</td><td style="width:50%"><div class="track"><i class="h" style="width:'+Math.min(100,pc*4)+'%"></i></div></td></tr>';});
+ document.getElementById('scores').innerHTML=html+'</tbody></table></div>';
+}
+function card(t,b){return '<div class="card" style="min-width:240px"><span>'+t+'</span><div>'+b+'</div></div>';}
+document.getElementById('run').onclick=run; run();
+</script>''')
+    p.append(foot())
+    return ''.join(p)
+
+
 def build_match(m, matches):
     a = get_team_display_name(m['away_team'])
     h = get_team_display_name(m['home_team'])
@@ -322,6 +417,7 @@ def main():
     write(os.path.join(OUT, 'index.html'), build_index(matches, teams, champs, metrics))
     for m in matches:
         write(os.path.join(OUT, 'match', f"{m['match_num']}.html"), build_match(m, matches))
+    write(os.path.join(OUT, 'monte.html'), build_monte(sim_params()))
     write(os.path.join(OUT, 'assets', 'style.css'), CSS)
 
     # data.json (machine-readable)
@@ -329,7 +425,8 @@ def main():
 
     # SEO: sitemap + robots
     now = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-    urls = [f"{site.SITE_URL}/"] + [f"{site.SITE_URL}/match/{m['match_num']}.html" for m in matches]
+    urls = ([f"{site.SITE_URL}/", f"{site.SITE_URL}/monte.html"]
+            + [f"{site.SITE_URL}/match/{m['match_num']}.html" for m in matches])
     sm = ['<?xml version="1.0" encoding="UTF-8"?>',
           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     for u in urls:
