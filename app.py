@@ -221,7 +221,7 @@ st.markdown("""
         letter-spacing: 0.04em;
     }
 
-    .badge-365 { background-color: #0f9f72; }
+    .badge-pin { background-color: #0f9f72; }
     .badge-wh { background-color: #2375d8; }
     .badge-dk { background-color: #d82e73; }
 
@@ -446,7 +446,7 @@ def get_poisson_random(lamb):
 # Helper to format best odds platform source
 def get_odds_badge_html(best, b, w, d):
     if not best: return ""
-    if best == b: return '<span class="platform-badge badge-365">Bet365</span>'
+    if best == b: return '<span class="platform-badge badge-pin">Pinnacle</span>'
     if best == w: return '<span class="platform-badge badge-wh">WHill</span>'
     if best == d: return '<span class="platform-badge badge-dk">DKings</span>'
     return '<span class="platform-badge" style="background-color: #64748b;">Mixed</span>'
@@ -482,7 +482,7 @@ def build_value_bet_rows(df_source, suffix, fraction, mode_name):
             return "Unknown"
         srcs = []
         if best_odds == b:
-            srcs.append("Bet365")
+            srcs.append("Pinnacle")
         if best_odds == w:
             srcs.append("William Hill")
         if best_odds == d:
@@ -497,11 +497,11 @@ def build_value_bet_rows(df_source, suffix, fraction, mode_name):
 
         candidates = [
             ("Home Win", row.get(f'pred_home_win_prob'), row.get(f'odds_home{suffix}'), row.get(f'ev_home{suffix}'), row.get(f'kelly_home{suffix}'),
-             row.get('odds_home_bet365'), row.get('odds_home_williamhill'), row.get('odds_home_draftkings')),
+             row.get('odds_home_pinnacle'), row.get('odds_home_williamhill'), row.get('odds_home_draftkings')),
             ("Draw", row.get(f'pred_draw_prob'), row.get(f'odds_draw{suffix}'), row.get(f'ev_draw{suffix}'), row.get(f'kelly_draw{suffix}'),
-             row.get('odds_draw_bet365'), row.get('odds_draw_williamhill'), row.get('odds_draw_draftkings')),
+             row.get('odds_draw_pinnacle'), row.get('odds_draw_williamhill'), row.get('odds_draw_draftkings')),
             ("Away Win", row.get(f'pred_away_win_prob'), row.get(f'odds_away{suffix}'), row.get(f'ev_away{suffix}'), row.get(f'kelly_away{suffix}'),
-             row.get('odds_away_bet365'), row.get('odds_away_williamhill'), row.get('odds_away_draftkings')),
+             row.get('odds_away_pinnacle'), row.get('odds_away_williamhill'), row.get('odds_away_draftkings')),
         ]
         for pick, prob, odds, ev, kelly, b, w, d in candidates:
             if ev is not None and not pd.isna(ev) and ev > 0:
@@ -553,14 +553,14 @@ else:
 
 betting_mode = st.sidebar.selectbox(
     "🏦 分析開盤莊家 (Bookmaker Mode)",
-    ["🥇 跨平台最佳套利組合", "🟢 僅限 Bet365", "🔵 僅限 William Hill", "🔴 僅限 DraftKings"],
+    ["🥇 跨平台最佳套利組合", "🟢 僅限 Pinnacle", "🔵 僅限 William Hill", "🔴 僅限 DraftKings"],
     index=0
 )
 
 # Map selections to db columns
 mode_map = {
     "🥇 跨平台最佳套利組合": "",
-    "🟢 僅限 Bet365": "_bet365",
+    "🟢 僅限 Pinnacle": "_pinnacle",
     "🔵 僅限 William Hill": "_williamhill",
     "🔴 僅限 DraftKings": "_draftkings"
 }
@@ -617,9 +617,9 @@ with tab_overview:
                    pred_home_win_prob, odds_home{col_suffix}, ev_home{col_suffix}, kelly_home{col_suffix},
                    pred_draw_prob, odds_draw{col_suffix}, ev_draw{col_suffix}, kelly_draw{col_suffix},
                    pred_away_win_prob, odds_away{col_suffix}, ev_away{col_suffix}, kelly_away{col_suffix},
-                   odds_home_bet365, odds_home_williamhill, odds_home_draftkings,
-                   odds_draw_bet365, odds_draw_williamhill, odds_draw_draftkings,
-                   odds_away_bet365, odds_away_williamhill, odds_away_draftkings
+                   odds_home_pinnacle, odds_home_williamhill, odds_home_draftkings,
+                   odds_draw_pinnacle, odds_draw_williamhill, odds_draw_draftkings,
+                   odds_away_pinnacle, odds_away_williamhill, odds_away_draftkings
             FROM matches
             WHERE ev_home{col_suffix} > 0 OR ev_draw{col_suffix} > 0 OR ev_away{col_suffix} > 0
         '''
@@ -759,9 +759,9 @@ with tab_val:
                pred_home_win_prob, odds_home{col_suffix}, ev_home{col_suffix}, kelly_home{col_suffix},
                pred_draw_prob, odds_draw{col_suffix}, ev_draw{col_suffix}, kelly_draw{col_suffix},
                pred_away_win_prob, odds_away{col_suffix}, ev_away{col_suffix}, kelly_away{col_suffix},
-               odds_home_bet365, odds_home_williamhill, odds_home_draftkings,
-               odds_draw_bet365, odds_draw_williamhill, odds_draw_draftkings,
-               odds_away_bet365, odds_away_williamhill, odds_away_draftkings
+               odds_home_pinnacle, odds_home_williamhill, odds_home_draftkings,
+               odds_draw_pinnacle, odds_draw_williamhill, odds_draw_draftkings,
+               odds_away_pinnacle, odds_away_williamhill, odds_away_draftkings
         FROM matches
         WHERE ev_home{col_suffix} > 0 OR ev_draw{col_suffix} > 0 OR ev_away{col_suffix} > 0
     '''
@@ -789,7 +789,7 @@ with tab_val:
             def get_source_str(best_odds, b, w, d):
                 if not best_odds: return "未知"
                 srcs = []
-                if best_odds == b: srcs.append("Bet365")
+                if best_odds == b: srcs.append("Pinnacle")
                 if best_odds == w: srcs.append("WilliamHill")
                 if best_odds == d: srcs.append("DraftKings")
                 return "/".join(srcs) if srcs else "綜合"
@@ -798,7 +798,7 @@ with tab_val:
             ev_h = row[f'ev_home{col_suffix}']
             if ev_h and ev_h > 0:
                 o_h = row[f'odds_home{col_suffix}']
-                src = get_source_str(o_h, row['odds_home_bet365'], row['odds_home_williamhill'], row['odds_home_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
+                src = get_source_str(o_h, row['odds_home_pinnacle'], row['odds_home_williamhill'], row['odds_home_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
                 val_rows.append({
                     "場次": f"#{match_num}",
                     "客場": a_name,
@@ -815,7 +815,7 @@ with tab_val:
             ev_d = row[f'ev_draw{col_suffix}']
             if ev_d and ev_d > 0:
                 o_d = row[f'odds_draw{col_suffix}']
-                src = get_source_str(o_d, row['odds_draw_bet365'], row['odds_draw_williamhill'], row['odds_draw_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
+                src = get_source_str(o_d, row['odds_draw_pinnacle'], row['odds_draw_williamhill'], row['odds_draw_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
                 val_rows.append({
                     "場次": f"#{match_num}",
                     "客場": a_name,
@@ -832,7 +832,7 @@ with tab_val:
             ev_a = row[f'ev_away{col_suffix}']
             if ev_a and ev_a > 0:
                 o_a = row[f'odds_away{col_suffix}']
-                src = get_source_str(o_a, row['odds_away_bet365'], row['odds_away_williamhill'], row['odds_away_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
+                src = get_source_str(o_a, row['odds_away_pinnacle'], row['odds_away_williamhill'], row['odds_away_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
                 val_rows.append({
                     "場次": f"#{match_num}",
                     "客場": a_name,
@@ -877,9 +877,9 @@ with tab_sched:
         SELECT m.match_num, m.group_or_stage, m.date, m.time, m.home_team, m.away_team, 
                m.pred_home_win_prob, m.pred_draw_prob, m.pred_away_win_prob, m.pred_score,
                m.odds_home, m.odds_draw, m.odds_away, m.status, m.score,
-               m.odds_home_bet365, m.odds_home_williamhill, m.odds_home_draftkings,
-               m.odds_draw_bet365, m.odds_draw_williamhill, m.odds_draw_draftkings,
-               m.odds_away_bet365, m.odds_away_williamhill, m.odds_away_draftkings,
+               m.odds_home_pinnacle, m.odds_home_williamhill, m.odds_home_draftkings,
+               m.odds_draw_pinnacle, m.odds_draw_williamhill, m.odds_draw_draftkings,
+               m.odds_away_pinnacle, m.odds_away_williamhill, m.odds_away_draftkings,
                t_h.injury_count as home_injuries, t_h.sentiment_score as home_sentiment,
                t_a.injury_count as away_injuries, t_a.sentiment_score as away_sentiment
         FROM matches m
@@ -926,17 +926,17 @@ with tab_sched:
         def get_source_label(best, b, w, d):
             if not best: return "-"
             label = f"{best:.2f}"
-            if best == b: label += " (365)"
+            if best == b: label += " (PIN)"
             elif best == w: label += " (WH)"
             elif best == d: label += " (DK)"
             return label
             
-        b_h = get_source_label(r['odds_home'], r['odds_home_bet365'], r['odds_home_williamhill'], r['odds_home_draftkings'])
-        b_d = get_source_label(r['odds_draw'], r['odds_draw_bet365'], r['odds_draw_williamhill'], r['odds_draw_draftkings'])
-        b_a = get_source_label(r['odds_away'], r['odds_away_bet365'], r['odds_away_williamhill'], r['odds_away_draftkings'])
+        b_h = get_source_label(r['odds_home'], r['odds_home_pinnacle'], r['odds_home_williamhill'], r['odds_home_draftkings'])
+        b_d = get_source_label(r['odds_draw'], r['odds_draw_pinnacle'], r['odds_draw_williamhill'], r['odds_draw_draftkings'])
+        b_a = get_source_label(r['odds_away'], r['odds_away_pinnacle'], r['odds_away_williamhill'], r['odds_away_draftkings'])
 
         # 各場次聯盟連結：連到提供最佳主勝賠率的莊家
-        _bk = _aff.best_book_key(r['odds_home'], r['odds_home_bet365'],
+        _bk = _aff.best_book_key(r['odds_home'], r['odds_home_pinnacle'],
                                  r['odds_home_williamhill'], r['odds_home_draftkings'])
         bet_url = _aff.get_affiliate_url(_bk) if r['odds_home'] else None
         
@@ -1607,7 +1607,7 @@ with tab_title:
                 st.caption("📈 累積 2 天以上的每日快照後，這裡會顯示奪冠機率走勢圖。")
 
             st.caption(
-                "方法論：賭盤為主（The Odds API 交叉比對 Bet365/Pinnacle/Betfair/DraftKings，去水後取共識；"
+                "方法論：賭盤為主（The Odds API 交叉比對 Pinnacle/William Hill/DraftKings，去水後取共識；"
                 "無 API 時用內建 2026-06 快照）。權威為 Opta 超級電腦。AI 模型為本系統 Elo/Pi/Berrar 集成驅動的"
                 "全賽事蒙地卡羅；開賽後依實際成績更新評級，模型權重隨完賽比例自動上升。每日以 EWMA(α=0.4) 平滑。"
             )
