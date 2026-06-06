@@ -20,14 +20,14 @@ AFFILIATE_ENABLED = True
 
 # Paste your FULL affiliate tracking URL per bookmaker. Blank => homepage fallback.
 AFFILIATE_LINKS = {
-    'bet365': '',
+    'pinnacle': '',
     'williamhill': '',
     'draftkings': '',
 }
 
 # Public homepage fallbacks (used when no tracking URL is set above).
 BOOKMAKER_HOME = {
-    'bet365': 'https://www.bet365.com/',
+    'pinnacle': 'https://www.pinnacle.com/',
     'williamhill': 'https://www.williamhill.com/',
     'draftkings': 'https://sportsbook.draftkings.com/',
 }
@@ -36,7 +36,7 @@ BOOKMAKER_HOME = {
 CTA_LABEL = '前往下注 ↗'
 
 # Maps the schedule table's best-odds source tags to bookmaker keys.
-SOURCE_TAG_TO_KEY = {'365': 'bet365', 'WH': 'williamhill', 'DK': 'draftkings'}
+SOURCE_TAG_TO_KEY = {'PIN': 'pinnacle', 'WH': 'williamhill', 'DK': 'draftkings'}
 
 
 def get_affiliate_url(bookmaker_key):
@@ -48,14 +48,14 @@ def get_affiliate_url(bookmaker_key):
     return AFFILIATE_LINKS.get(key) or BOOKMAKER_HOME.get(key)
 
 
-def best_book_key(best, bet365, williamhill, draftkings):
+def best_book_key(best, pinnacle, williamhill, draftkings):
     """Identify which bookmaker offered the best odds value."""
     if not best:
         return None
-    if best == bet365:
-        return 'bet365'
+    if best == pinnacle:
+        return 'pinnacle'
     if best == williamhill:
         return 'williamhill'
     if best == draftkings:
         return 'draftkings'
-    return 'bet365'
+    return 'pinnacle'
