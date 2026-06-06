@@ -1,0 +1,22 @@
+
+:root{--bg:#0b1020;--panel:#121a30;--line:#1f2c4d;--txt:#e8edf7;--mut:#8aa0c8;--acc:#21d07a;--h:#3aa0ff;--a:#ff6b6b;--d:#f4c542}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,"Noto Sans TC",Segoe UI,Roboto,sans-serif;line-height:1.6}
+a{color:var(--h);text-decoration:none}main{max-width:1080px;margin:0 auto;padding:16px}
+.site-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:14px 20px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:9}
+.brand{font-weight:800;font-size:18px;color:var(--txt)}.site-head nav a{margin-left:14px;color:var(--mut)}
+.hero h1{font-size:30px;margin:.2em 0}.hero p{color:var(--mut);max-width:760px}
+h2{margin-top:34px;border-left:4px solid var(--acc);padding-left:10px}
+.cards{display:flex;flex-wrap:wrap;gap:10px}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:130px;display:flex;flex-direction:column}
+.card span{color:var(--mut);font-size:13px}.card b{font-size:22px}
+.filter{width:100%;max-width:340px;padding:10px 12px;margin:8px 0 12px;border-radius:10px;border:1px solid var(--line);background:#0d1426;color:var(--txt)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{background:#0d1426;color:var(--mut);position:sticky;top:0}td.muted,.muted{color:var(--mut)}.team a{color:var(--txt)}.vs{color:var(--mut);text-align:center}
+.bet{display:inline-block;background:var(--acc);color:#04240f;font-weight:700;padding:6px 10px;border-radius:8px}.bet.big{padding:12px 18px;font-size:16px}
+.match h1{font-size:26px}.match .vs{color:var(--mut);font-size:18px}
+.probs{margin:18px 0}.prob{display:grid;grid-template-columns:160px 1fr 56px;align-items:center;gap:10px;margin:8px 0}
+.track{background:#0d1426;border-radius:8px;height:16px;overflow:hidden}.track i{display:block;height:100%}
+.track .h{background:var(--h)}.track .a{background:var(--a)}.track .d{background:var(--d)}
+.lead{font-size:17px}.odds{max-width:360px}.crumb{margin:6px 0 14px}
+.ad{margin:20px 0;min-height:1px}.site-foot{max-width:1080px;margin:30px auto;padding:18px;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
+@media(max-width:560px){.prob{grid-template-columns:110px 1fr 48px}.hero h1{font-size:24px}}
