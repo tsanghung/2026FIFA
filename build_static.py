@@ -27,7 +27,6 @@ import sqlite3
 from datetime import datetime, timezone, timedelta
 
 from display_utils import get_team_display_name, convert_to_taiwan_time
-import affiliate_config as aff
 import site_config as site
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -41,15 +40,6 @@ def esc(s):
 
 def pct(x):
     return f"{(x or 0) * 100:.0f}%"
-
-
-def bet_link_for(row):
-    """Affiliate (or homepage) URL to the bookmaker with the best home odds."""
-    if not row['odds_home']:
-        return None
-    bk = aff.best_book_key(row['odds_home'], row['odds_home_pinnacle'],
-                           row['odds_home_williamhill'], row['odds_home_draftkings'])
-    return aff.get_affiliate_url(bk)
 
 
 def load_data():
@@ -135,7 +125,7 @@ def foot():
     yr = datetime.now().year
     return f'''</main>
 <footer class="site-foot">
-  <p>資料每日更新・模型經 ~5 萬場歷史回測校準。預測僅供參考，投注有風險，未滿 18 歲請勿參與。</p>
+  <p>資料每日更新・模型經 ~5 萬場歷史回測校準。本站僅提供研究與數據分析，不提供任何投注服務；賠率僅作價值研究參考。</p>
   <p>進階互動工具（蒙地卡羅模擬器等）：<a href="{site.STREAMLIT_APP_URL}" rel="nofollow">開啟 App</a>
    ｜ © {yr} {esc(site.SITE_TITLE)}</p>
 </footer>
@@ -153,9 +143,6 @@ def match_row_html(m):
     h = get_team_display_name(m['home_team'])
     d, t = convert_to_taiwan_time(m['date'], m['time'])
     url = f"{site.SITE_URL}/match/{m['match_num']}.html"
-    bl = bet_link_for(m)
-    bet = (f'<a class="bet" href="{esc(bl)}" target="_blank" rel="nofollow noopener">{aff.CTA_LABEL}</a>'
-           if bl else '')
     score = esc(m['score']) if m['score'] else 'VS'
     return f'''<tr>
 <td class="muted">#{m['match_num']}</td>
@@ -166,7 +153,6 @@ def match_row_html(m):
 <td>{pct(m['pred_away_win_prob'])}/{pct(m['pred_draw_prob'])}/{pct(m['pred_home_win_prob'])}</td>
 <td><b>{esc(outcome_label(m))}</b></td>
 <td>{esc(m['pred_score'] or '')}</td>
-<td>{bet}</td>
 </tr>'''
 
 
@@ -192,7 +178,7 @@ def build_index(matches, teams, champs, metrics):
     parts.append('<input id="q" class="filter" placeholder="搜尋隊伍 / 階段…" oninput="filt()">')
     parts.append('<div class="tablewrap"><table id="sched"><thead><tr>'
                  '<th>#</th><th>時間(台)</th><th>客</th><th>比分</th><th>主</th>'
-                 '<th>客/和/主</th><th>預測</th><th>比分預測</th><th></th></tr></thead><tbody>')
+                 '<th>客/和/主</th><th>預測</th><th>比分預測</th></tr></thead><tbody>')
     for m in matches:
         parts.append(match_row_html(m))
     parts.append('</tbody></table></div></section>')
@@ -287,7 +273,7 @@ def build_monte(sims):
     p.append('<select id="m" class="filter">')
     for s in sims:
         p.append(f'<option value="{s["n"]}">#{s["n"]} {esc(s["a"])} vs {esc(s["h"])}</option>')
-    p.append('</select> <button id="run" class="bet">🚀 啟動 100,000 次模擬</button>')
+    p.append('</select> <button id="run" class="btn">🚀 啟動 100,000 次模擬</button>')
     p.append('<p id="xg" class="muted"></p>')
     p.append('<div id="out" class="cards"></div>')
     p.append('<div id="scores"></div></section>')
@@ -332,7 +318,6 @@ def build_match(m, matches):
     desc = (f"{a_en} 對 {h_en}（2026 世界盃 {esc(m['group_or_stage'])}）AI 預測：客勝 "
             f"{pct(m['pred_away_win_prob'])}、和局 {pct(m['pred_draw_prob'])}、主勝 "
             f"{pct(m['pred_home_win_prob'])}，預測比分 {esc(m['pred_score'] or '')}。台灣時間 {esc(d)} {esc(t)}。")
-    bl = bet_link_for(m)
 
     # JSON-LD SportsEvent for rich results
     ld = {
@@ -361,14 +346,11 @@ def build_match(m, matches):
 
     p.append(f'<p class="lead">模型預測最可能結果：<b>{esc(pred)}</b>，預測比分 <b>{esc(m["pred_score"] or "—")}</b>。</p>')
 
-    # Odds table
+    # Odds table (research / value reference only — no betting channel)
     if m['odds_home']:
-        p.append('<h2>賠率（最佳）</h2><table class="odds"><thead><tr><th>客勝</th><th>和局</th><th>主勝</th></tr></thead>'
+        p.append('<h2>市場賠率（研究參考）</h2><table class="odds"><thead><tr><th>客勝</th><th>和局</th><th>主勝</th></tr></thead>'
                  f'<tbody><tr><td>{m["odds_away"] or "-"}</td><td>{m["odds_draw"] or "-"}</td>'
                  f'<td>{m["odds_home"] or "-"}</td></tr></tbody></table>')
-    if bl:
-        p.append(f'<p><a class="bet big" href="{esc(bl)}" target="_blank" rel="nofollow noopener">'
-                 f'{aff.CTA_LABEL}（最佳賠率莊家）</a></p>')
     p.append(ad_unit())
 
     if m['score']:
@@ -392,7 +374,7 @@ h2{margin-top:34px;border-left:4px solid var(--acc);padding-left:10px}
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
 table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 th{background:#0d1426;color:var(--mut);position:sticky;top:0}td.muted,.muted{color:var(--mut)}.team a{color:var(--txt)}.vs{color:var(--mut);text-align:center}
-.bet{display:inline-block;background:var(--acc);color:#04240f;font-weight:700;padding:6px 10px;border-radius:8px}.bet.big{padding:12px 18px;font-size:16px}
+.btn{display:inline-block;background:var(--acc);color:#04240f;font-weight:700;padding:10px 16px;border-radius:8px;cursor:pointer;border:0}
 .match h1{font-size:26px}.match .vs{color:var(--mut);font-size:18px}
 .probs{margin:18px 0}.prob{display:grid;grid-template-columns:160px 1fr 56px;align-items:center;gap:10px;margin:8px 0}
 .track{background:#0d1426;border-radius:8px;height:16px;overflow:hidden}.track i{display:block;height:100%}
@@ -435,6 +417,10 @@ def main():
     write(os.path.join(OUT, 'sitemap.xml'), '\n'.join(sm))
     write(os.path.join(OUT, 'robots.txt'), f"User-agent: *\nAllow: /\nSitemap: {site.SITE_URL}/sitemap.xml\n")
     write(os.path.join(OUT, '.nojekyll'), '')
+    # AdSense ownership file (ca-pub-XXXX -> pub-XXXX).
+    if site.ADSENSE_CLIENT:
+        pub = site.ADSENSE_CLIENT.replace('ca-', '')
+        write(os.path.join(OUT, 'ads.txt'), f"google.com, {pub}, DIRECT, f08c47fec0942fa0\n")
     if site.CUSTOM_DOMAIN:
         write(os.path.join(OUT, 'CNAME'), site.CUSTOM_DOMAIN.strip())
 

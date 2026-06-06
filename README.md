@@ -173,7 +173,7 @@ graph TD
 Streamlit 不利於 SEO、且不能掛 AdSense。本專案資料一天更新一次、幾乎唯讀，最適合**靜態站**：免費、自有網域、可被 Google 收錄、可放 AdSense、秒開。
 
 *   **`build_static.py`**：讀 `fifa_2026.db` 產出全靜態 `docs/`：
-    *   `index.html`（奪冠機率、完整賽程+預測+賠率+「前往下注」、Elo 評級、模型準確度）
+    *   `index.html`（奪冠機率、完整賽程+預測+賠率〔研究參考〕、Elo 評級、模型準確度）
     *   `match/<n>.html`：**每場一頁**（SEO 長尾，如「A vs B 預測」），含 `SportsEvent` JSON-LD 結構化資料
     *   `sitemap.xml` / `robots.txt` / `.nojekyll`，以及完整 meta/canonical/OG。
 *   **`site_config.py`**：設定 `SITE_URL`、`ADSENSE_CLIENT`（填入即自動插入 AdSense）、`CUSTOM_DOMAIN`（填入會產生 `CNAME`）。
@@ -206,13 +206,12 @@ Streamlit 不利於 SEO、且不能掛 AdSense。本專案資料一天更新一�
 
 ---
 
-## 💰 4.7 各場次聯盟連結（變現）(Per-match Affiliate Links)
+## 🔬 4.7 定位：研究與數據分析（不提供投注服務）
 
-賽程分頁 (`MATCH SCHEDULE`) 每場比賽新增「🎯 前往下注」連結，指向提供**最佳主勝賠率**的莊家。
+本專案定位為**研究與數據分析**工具：提供 AI 勝負預測、賠率對比與期望值（EV）等**研究資訊**，但**不提供任何投注管道**。
 
-*   設定檔：`affiliate_config.py` — 把你各莊家的**聯盟追蹤網址**貼進 `AFFILIATE_LINKS`（留空則退回該莊家首頁，連結可用但無分潤）。可用 `AFFILIATE_ENABLED` 一鍵開關。
-*   已附**理性博彩 / 18+ 免責聲明**。
-*   ⚠️ 注意：運彩聯盟需審核且受各地法規限制；Streamlit 免費版主要供非商業用途，正式變現建議自有網域＋自架。Google AdSense **需自有網域**，無法掛在 `*.streamlit.app`。
+*   已移除所有「前往下注」聯盟連結（含 App 與靜態站）。
+*   市場賠率與 EV 僅作**價值研究參考**；頁尾明示「本站僅提供研究與數據分析，不提供任何投注服務」。
 
 ---
 
