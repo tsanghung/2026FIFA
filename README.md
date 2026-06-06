@@ -168,6 +168,30 @@ graph TD
 
 ---
 
+## 🌍 4.9 靜態網站 → GitHub / Cloudflare Pages（SEO + 變現首選）
+
+Streamlit 不利於 SEO、且不能掛 AdSense。本專案資料一天更新一次、幾乎唯讀，最適合**靜態站**：免費、自有網域、可被 Google 收錄、可放 AdSense、秒開。
+
+*   **`build_static.py`**：讀 `fifa_2026.db` 產出全靜態 `docs/`：
+    *   `index.html`（奪冠機率、完整賽程+預測+賠率+「前往下注」、Elo 評級、模型準確度）
+    *   `match/<n>.html`：**每場一頁**（SEO 長尾，如「A vs B 預測」），含 `SportsEvent` JSON-LD 結構化資料
+    *   `sitemap.xml` / `robots.txt` / `.nojekyll`，以及完整 meta/canonical/OG。
+*   **`site_config.py`**：設定 `SITE_URL`、`ADSENSE_CLIENT`（填入即自動插入 AdSense）、`CUSTOM_DOMAIN`（填入會產生 `CNAME`）。
+*   每日 GitHub Action 會自動 `python build_static.py` 並提交 `docs/`。
+
+### 啟用 GitHub Pages（最簡單）
+1.  GitHub repo → **Settings → Pages** → Source 選 **Deploy from a branch** → 分支 `main`、資料夾 **`/docs`** → Save。
+2.  幾分鐘後即得 `https://<帳號>.github.io/<repo>/`。把這個網址填回 `site_config.py` 的 `SITE_URL` 再重建一次即可。
+
+### 用 Cloudflare Pages（推薦：更快、無限流量、免費自有網域）
+1.  Cloudflare Pages → Connect repo → Build command 留空、**Output directory 設 `docs`**（或 Build command 填 `python build_static.py`）。
+2.  綁自有網域 → 在 `site_config.py` 設 `CUSTOM_DOMAIN` 與 `SITE_URL` → 重建。
+
+### 變現（AdSense）
+有自有網域後，到 AdSense 取得 `ca-pub-...`，填入 `site_config.py` 的 `ADSENSE_CLIENT`，下次重建即自動在頁面插入廣告。
+
+---
+
 ## 🎯 4.8 預測準確度回測與校準 (Backtesting & Calibration)
 
 把預測引擎接上客觀的「量測 + 校準」管線，提升每場勝負預測準確度：

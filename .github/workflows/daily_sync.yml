@@ -34,15 +34,19 @@ jobs:
         run: |
           python sync_fifa.py
 
+      - name: 🏗️ Build Static Site (SEO/AdSense-ready, for GitHub Pages)
+        run: |
+          python build_static.py
+
       - name: 💾 Git Commit and Push Updates
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          
+
           # Check if there are changes to commit
           if [ -n "$(git status --porcelain)" ]; then
-            git add fifa_2026.db sync.log CHAMPION_TREND.md
-            git commit -m "chore: daily data and odds sync [skip ci]"
+            git add fifa_2026.db sync.log CHAMPION_TREND.md docs
+            git commit -m "chore: daily data, odds sync & static site rebuild [skip ci]"
             git push origin HEAD:${{ github.ref }}
           else
             echo "No database or log changes to commit."
