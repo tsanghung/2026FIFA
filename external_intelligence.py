@@ -2,7 +2,6 @@ import os
 import sqlite3
 import re
 import math
-import random
 import requests
 
 # DB configuration
@@ -67,20 +66,22 @@ def setup_database_schema():
     conn.close()
 
 def fetch_fbref_xg_diff(team_name):
-    """Retrieves expected goals difference per match with robust simulation fallback."""
-    base = FBREF_BASE_DATA.get(team_name, 0.0)
-    # Simulate a dynamic fluctuation between -0.05 and 0.05 for real-time form
-    fluctuation = random.uniform(-0.05, 0.05)
-    return round(base + fluctuation, 2)
+    """Retrieves expected goals difference per match.
+
+    Returns the deterministic FBref baseline. Previously a ±0.05 random jitter was
+    added on every run, which — combined with the daily full-DB rebuild — made every
+    prediction wobble day to day with no underlying signal. Until a real FBref scrape
+    is wired in, a stable baseline is strictly better than injected noise.
+    """
+    return round(FBREF_BASE_DATA.get(team_name, 0.0), 2)
 
 def fetch_squad_injuries(team_name):
-    """Retrieves injured/suspended players count with a dynamic change probability."""
-    base_injuries = BASE_INJURY_DATA.get(team_name, 0)
-    # 15% probability of minor change in injury status
-    if random.random() < 0.15:
-        change = random.choice([-1, 1])
-        base_injuries = max(0, base_injuries + change)
-    return base_injuries
+    """Retrieves injured/suspended players count (deterministic baseline).
+
+    The previous 15% random change re-rolled every daily sync and silently shifted
+    predictions; a real injury feed should replace this, not random walk it.
+    """
+    return BASE_INJURY_DATA.get(team_name, 0)
 
 def analyze_reddit_sentiment(team_name):
     """

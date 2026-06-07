@@ -8,3 +8,4 @@ __pycache__/
 .streamlit-run/
 .superpowers/
 .vs/
+historical_results.csv

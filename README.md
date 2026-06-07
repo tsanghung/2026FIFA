@@ -1,6 +1,10 @@
 # 🏆 2026 FIFA 世界盃量化分析與多莊家套利決策系統
 ## ─ 開發者交接與系統架構設計白皮書 (System Architecture & Developer Handoff Blueprint)
 
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://2026fifa.streamlit.app/)
+
+> 🌐 **線上首頁 (Live Dashboard)**：**https://2026fifa.streamlit.app/**
+
 嗨！歡迎來到 2026 FIFA 世界盃大數據分析、預測與博弈決策系統。我是**小賽 (🤖 Antigravity)**，專門為我們的**賽門兄弟 (Simon Wu)** 量身打造了這套極致奢華的量化分析平台。
 
 本文件旨在提供一個**無縫接軌 (Seamless Handoff)** 的開發指南。不論你是未來的開發者、新接手的 AI 代理人，或是賽門兄弟本人想進行新構想擴充，請**優先完整閱讀本指南**。這將幫助你在一秒鐘內掌握整個專案的靈魂與脈絡。
@@ -144,6 +148,96 @@ graph TD
 
 ---
 
+## 🏆 4.6 總冠軍預測（每日滾動）(Daily Title-Race Predictor)
+
+新增 `champion_predictor.py`，以**賭盤為主**融合三大支柱，輸出每隊**奪冠機率**，每日滾動更新：
+
+| 支柱 | 來源 | 說明 |
+| :--- | :--- | :--- |
+| **市場（主）** | The Odds API `soccer_fifa_world_cup_winner` | 交叉比對 **Bet365 / Pinnacle / Betfair / DraftKings** 等領先莊家的 outright 賠率，**去水（de-vig）後取共識**；無 API key 時退回內建 2026-06 快照。 |
+| **權威** | **Opta 超級電腦** (Stats Perform) | 公開的奪冠機率（西 16.1% / 法 13.0% / 英 11.2% / 阿 10.4% …）。 |
+| **AI 模型** | 本系統全賽事蒙地卡羅 | 以 Elo/Pi/Berrar 集成引擎跑**小組賽 + 完整淘汰賽 bracket**（含最佳 8 個小組第三的分配）數萬次，算出每隊奪冠與各輪晉級機率。**開賽後依實際成績更新評級，模型權重隨完賽比例自動上升**。 |
+
+*   **動態權重**：賽前 市場/權威/模型 = 55/25/20；隨完賽比例線性過渡到 40/10/50（結果越多、AI 模型越主導）。
+*   **EWMA 平滑**：`blended_ewma = 0.4·今日 + 0.6·昨日`，降低單日雜訊。
+*   **每日快照**：寫入 `champion_predictions` 資料表（每日每隊一列），保存歷史以繪製**奪冠機率走勢圖**。此表在每日 `force_recreate` 重建時**不會被清除**，故走勢可長期累積。
+*   **首頁分頁**：Streamlit 新增 **「TITLE RACE」** 分頁 — 前三熱門卡片、Top 20 排行（融合/賭盤/Opta/AI 各欄 + 日變動箭頭）、Top 6 走勢圖，並提供「重新計算」按鈕。
+*   **自動化**：已串入 `sync_fifa.py` 每日同步流程尾端（best-effort），GHA 每日自動更新並提交。
+
+> 執行：`python champion_predictor.py`（可用 `CHAMPION_SIMS` 環境變數調整模擬次數，預設 10000）。
+
+---
+
+## 🌍 4.9 靜態網站 → GitHub / Cloudflare Pages（SEO + 變現首選）
+
+Streamlit 不利於 SEO、且不能掛 AdSense。本專案資料一天更新一次、幾乎唯讀，最適合**靜態站**：免費、自有網域、可被 Google 收錄、可放 AdSense、秒開。
+
+*   **`build_static.py`**：讀 `fifa_2026.db` 產出全靜態 `docs/`：
+    *   `index.html`（奪冠機率、完整賽程+預測+賠率〔研究參考〕、Elo 評級、模型準確度）
+    *   `match/<n>.html`：**每場一頁**（SEO 長尾，如「A vs B 預測」），含 `SportsEvent` JSON-LD 結構化資料
+    *   `sitemap.xml` / `robots.txt` / `.nojekyll`，以及完整 meta/canonical/OG。
+*   **`site_config.py`**：設定 `SITE_URL`、`ADSENSE_CLIENT`（填入即自動插入 AdSense）、`CUSTOM_DOMAIN`（填入會產生 `CNAME`）。
+*   每日 GitHub Action 會自動 `python build_static.py` 並提交 `docs/`。
+
+### 啟用 GitHub Pages（最簡單）
+1.  GitHub repo → **Settings → Pages** → Source 選 **Deploy from a branch** → 分支 `main`、資料夾 **`/docs`** → Save。
+2.  幾分鐘後即得 `https://<帳號>.github.io/<repo>/`。把這個網址填回 `site_config.py` 的 `SITE_URL` 再重建一次即可。
+
+### 用 Cloudflare Pages（推薦：更快、無限流量、免費自有網域）
+1.  Cloudflare Pages → Connect repo → Build command 留空、**Output directory 設 `docs`**（或 Build command 填 `python build_static.py`）。
+2.  綁自有網域 → 在 `site_config.py` 設 `CUSTOM_DOMAIN` 與 `SITE_URL` → 重建。
+
+### 變現（AdSense）
+有自有網域後，到 AdSense 取得 `ca-pub-...`，填入 `site_config.py` 的 `ADSENSE_CLIENT`，下次重建即自動在頁面插入廣告。
+
+---
+
+## 🎯 4.8 預測準確度回測與校準 (Backtesting & Calibration)
+
+把預測引擎接上客觀的「量測 + 校準」管線，提升每場勝負預測準確度：
+
+*   **`backtest.py`**：抓 ~5 萬場歷史國際賽（martj42 公開資料），用**與線上完全相同**的評級引擎做時序重放，計算 **RPS / Log-Loss / 命中率 / 和局召回 / 信心校準**。
+*   **`model_config.py`**：集中所有可調參數（Elo K、主場優勢、Dixon-Coles ρ、進球基線、集成權重…）。回測以**最小化 RPS** 座標下降搜尋最佳值，寫入 `calibrated_params.json`，預測時自動載入。
+*   **`team_ratings_seed.json`**：48 強的初始 Elo 改由歷史資料重放推導（取代手填整數，並合併改名球隊如 Czechia/Türkiye 的歷史），跨洲可比。
+*   **Elo 加入淨勝球（MOV）修正**；**動態集成權重**（隨完賽比例由「信任市場/Opta」轉向「信任已更新模型」）；停用全為 0 的 sentiment 噪音特徵。
+*   App 新增 **MODEL ACCURACY** 分頁展示上述指標。
+*   實測：回測命中率約 **60%**、RPS **~0.171**（職業級；隨機約 0.33）。註：和局極少成為單場最可能結果是足球真實特性，強行多押和局會同時拉低 RPS 與命中率。
+*   重新校準：`python backtest.py`（會自動下載歷史資料，約 3.7MB，已列入 `.gitignore`）。
+
+---
+
+## 🔬 4.7 定位：研究與數據分析（不提供投注服務）
+
+本專案定位為**研究與數據分析**工具：提供 AI 勝負預測、賠率對比與期望值（EV）等**研究資訊**，但**不提供任何投注管道**。
+
+*   已移除所有「前往下注」聯盟連結（含 App 與靜態站）。
+*   市場賠率與 EV 僅作**價值研究參考**；頁尾明示「本站僅提供研究與數據分析，不提供任何投注服務」。
+
+---
+
+## 🌐 4.5 線上首頁部署 (Streamlit Cloud Deployment)
+
+本系統的視覺化首頁是 `app.py`（Streamlit 儀表板），已部署上線：
+
+> 🌐 **正式網址**：**https://2026fifa.streamlit.app/**
+
+若要自行重新部署或建立新實例，到 **Streamlit Community Cloud**（免費）：
+
+1.  前往 **https://share.streamlit.io** → 用 **GitHub 帳號登入**並授權。
+2.  **New app** → 選 repo `tsanghung/2026fifa`、branch `main`、main file `app.py`。
+3.  （可選）在 **Advanced settings** 設定自訂子網域，例如 `2026fifa`。
+4.  **Deploy**。完成後即得到形如 `https://<你的子網域>.streamlit.app` 的公開首頁。
+
+> 部署相關檔案已備妥：
+> *   `requirements.txt`：**雲端輕量版**（已移除 PyTorch / SHAP 以符合 Streamlit Cloud ~1GB 資源上限）。AI 深度學習分頁在雲端會優雅提示「需本機執行」。
+> *   `requirements-full.txt`：**本機完整版**（含 PyTorch 與 SHAP），本機跑 DL 引擎時用 `pip install -r requirements-full.txt`。
+> *   `.streamlit/config.toml`：鎖定暗色霓虹主題。
+> *   `fifa_2026.db` 已隨 repo 提供，雲端開箱即有最新預測；每日 GHA 同步會自動更新。
+
+**本機啟動**：`streamlit run app.py` → http://localhost:8501
+
+---
+
 ## 🔄 5. 自動排程與維護任務 (Daily Maintenance Tasks)
 
 *   **定時任務**：已在 Windows 工作排程器註冊 `FIFA2026_Daily_Update`。
@@ -153,6 +247,25 @@ graph TD
     ```powershell
     python sync_fifa.py
     ```
+
+---
+
+## 🎯 5.5 預測準確率強化紀錄 (Prediction Accuracy Upgrades)
+
+為降低系統性偏差，預測引擎 `predict_match()` 已導入以下三項校準（皆向後相容，舊呼叫端不受影響）：
+
+1.  **🏟️ 中立球場修正 (Neutral-Venue Correction)**：
+    *   世界盃絕大多數賽事於中立場進行，維基的 home/away 僅是賽程排序。系統新增 `get_home_field_advantage()`，**只有主辦國（美/加/墨）在本國城市出賽時**才賦予主場優勢（Elo +70 / 預期球差 +0.30），其餘一律對稱化。
+    *   雙向判定：即使主辦國為「名義客隊」（如墨西哥在墨西哥城對捷克），仍正確將主場優勢歸給主辦國。
+    *   Berrar 模型的攻防基準亦由 1.25/1.05 對稱化為 1.25/1.25，避免在中立場重複灌入主場加成。
+2.  **🧠 Opta 超級電腦獨立信號併入集成 (Opta Ensemble Member)**：
+    *   原本 `opta_win_prob` 僅儲存未用。現透過 `predict_opta_model()` 轉成單場 1X2 先驗，作為第 5 個集成成員（權重 10%，其餘 22/22/18/28）。
+    *   這是集成中唯一**真正獨立**的外部意見（Elo/Pi/Berrar 皆源自同一套內部實力分層）；當對戰雙方未被 Opta 覆蓋時自動退回四模型 25/25/20/30。
+3.  **⚖️ 解共線與去雜訊 (De-collinearity & De-noising)**：
+    *   xG 差基準與 Elo/FIFA 排名高度共線，其修正權重由 40 降至 15，避免實力被重複計入三次。
+    *   `external_intelligence.py` 移除每日重抽的 ±0.05 xG 隨機抖動與傷兵隨機游走，改為確定性基準，杜絕預測在無訊號下逐日漂移。
+
+> 📌 後續校準方向：以歷史世界盃資料對 K 值、Dixon-Coles `rho` 與集成權重做 log-loss 回測；補上淘汰賽 bracket 蒙地卡羅推進；接入真實 FBref xG 與傷病來源。
 
 ---
 

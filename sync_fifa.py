@@ -2,9 +2,36 @@ import os
 import sqlite3
 import re
 import math
+import json
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
+from model_config import CFG
+
+
+def load_seed_elo():
+    """#6 Data-driven Elo seeds (keyed by canonical/normalised team names),
+    produced by backtest.py from ~50k historical internationals. Falls back to
+    the hand-typed INITIAL_ELO when the file is absent."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'team_ratings_seed.json')
+    try:
+        if os.path.exists(path):
+            with open(path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
+
+
+def seeded_initial_elo(raw_team):
+    """Prefer the data-driven seed (looked up by normalised name); else INITIAL_ELO."""
+    norm = normalize_team_name(raw_team)
+    if norm in SEED_ELO:
+        return SEED_ELO[norm]
+    return INITIAL_ELO.get(raw_team, 1400.0)
+
+
+SEED_ELO = load_seed_elo()
 
 # Configuration
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fifa_2026.db')
@@ -48,7 +75,7 @@ INITIAL_ELO = {
     'Brazil': 1650, 'Belgium': 1630, 'Portugal': 1620, 'Netherlands': 1610,
     # Strong Tier (1500 - 1600)
     'Uruguay': 1580, 'Colombia': 1570, 'Croatia': 1560, 'Morocco': 1550, 
-    'Germany': 1540, 'USA': 1530, 'Switzerland': 1520, 'Japan': 1515, 
+    'Germany': 1540, 'USA': 1530, 'Mexico': 1535, 'Switzerland': 1520, 'Japan': 1515,
     'South Korea': 1500, 'Ecuador': 1490,
     # Mid Tier (1400 - 1500)
     'Austria': 1480, 'Sweden': 1470, 'Ukraine': 1460, 'Türkiye': 1450, 
@@ -97,6 +124,37 @@ FIFA_RANKS = {
     'Bosnia and Herzegovina': 70, 'Curaçao': 82, 'Haiti': 84, 'New Zealand': 86
 }
 
+# 2026 host cities -> host nation. A match grants genuine home-field advantage
+# ONLY when one of the two teams is the host nation playing inside its own country.
+# Every other fixture is played on a neutral ground (the vast majority of the WC).
+HOST_CITY_COUNTRY = {
+    # Mexico
+    'Mexico City': 'Mexico', 'Zapopan': 'Mexico', 'Guadalajara': 'Mexico',
+    'Guadalupe': 'Mexico', 'Monterrey': 'Mexico',
+    # Canada
+    'Toronto': 'Canada', 'Vancouver': 'Canada',
+    # USA
+    'Arlington': 'USA', 'Atlanta': 'USA', 'East Rutherford': 'USA',
+    'Foxborough': 'USA', 'Houston': 'USA', 'Inglewood': 'USA',
+    'Kansas City': 'USA', 'Miami Gardens': 'USA', 'Philadelphia': 'USA',
+    'Santa Clara': 'USA', 'Seattle': 'USA',
+}
+HOST_NATIONS = {'USA', 'Canada', 'Mexico'}
+
+def get_home_field_advantage(home_team, away_team, city):
+    """Returns the home-field advantage sign from the nominal home team's view:
+       +1 if the nominal home team is a host playing at home,
+       -1 if the nominal away team is the host playing at home,
+        0 for a neutral venue (no host nation involved, or venue unknown)."""
+    venue_country = HOST_CITY_COUNTRY.get((city or '').strip())
+    if not venue_country:
+        return 0
+    if home_team == venue_country and home_team in HOST_NATIONS:
+        return 1
+    if away_team == venue_country and away_team in HOST_NATIONS:
+        return -1
+    return 0
+
 def log(message):
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     log_line = f"[{timestamp}] {message}"
@@ -112,7 +170,16 @@ def normalize_team_name(name):
         'IR Iran': 'Iran',
         "Côte d'Ivoire": 'Ivory Coast',
         'Cabo Verde': 'Cape Verde',
-        'Bosnia and Herzegovina': 'Bosnia-Herzegovina'
+        'Bosnia and Herzegovina': 'Bosnia-Herzegovina',
+        # Common Wikipedia/feed variants that previously failed to join the teams
+        # table (e.g. Match 23 'Turkey' vs 'United States' fell back to 1400 Elo).
+        'Turkey': 'Türkiye',
+        'Turkiye': 'Türkiye',
+        'United States': 'USA',
+        'United States of America': 'USA',
+        'Korea Republic': 'South Korea',
+        'Republic of Korea': 'South Korea',
+        'Korea, South': 'South Korea',
     }
     return mapping.get(name, name)
 
@@ -214,7 +281,7 @@ def init_db(force_recreate=False):
         for team in teams:
             normalized_name = normalize_team_name(team)
             conf = CONFEDERATIONS.get(team, 'Unknown')
-            elo = INITIAL_ELO.get(team, 1400.0)
+            elo = seeded_initial_elo(team)
             rank = FIFA_RANKS.get(team, 50)
             cursor.execute('''
                 INSERT OR IGNORE INTO teams 
@@ -265,10 +332,11 @@ def calculate_pi_change(home_pi_h, away_pi_a, home_goals, away_goals):
         
     return delta_home_h, delta_away_a
 
-def predict_pi_model(home_pi_h, away_pi_a):
+def predict_pi_model(home_pi_h, away_pi_a, home_adv_goals=0.0):
     c = 1.0 / 39.0
     sigma = 1.3  # Standard deviation of goal difference
-    gd_expected = c * (home_pi_h - away_pi_a)
+    # home_adv_goals shifts the expected goal difference only on genuine host games.
+    gd_expected = c * (home_pi_h - away_pi_a) + home_adv_goals
     
     prob_home = 1.0 - normal_cdf((0.5 - gd_expected) / sigma)
     prob_away = normal_cdf((-0.5 - gd_expected) / sigma)
@@ -284,8 +352,11 @@ def predict_pi_model(home_pi_h, away_pi_a):
 
 def calculate_berrar_change(home_att, away_def, away_att, home_def, home_goals, away_goals):
     K = 0.08  # SGD learning rate
+    # Neutral baseline: home-field advantage is modelled separately (Elo/Pi),
+    # so the rating-update expectation must stay symmetric to avoid biasing
+    # attack/defence ratings on neutral-venue games.
     avg_home = 1.25
-    avg_away = 1.05
+    avg_away = 1.25
     
     lambda_home = avg_home * home_att * away_def
     lambda_away = avg_away * away_att * home_def
@@ -302,8 +373,9 @@ def calculate_berrar_change(home_att, away_def, away_att, home_def, home_goals, 
     return delta_home_att, delta_away_def, delta_away_att, delta_home_def
 
 def predict_berrar_model(home_att, away_def, away_att, home_def):
+    # Symmetric neutral baseline (home advantage handled in the Elo/Pi models).
     avg_home = 1.25
-    avg_away = 1.05
+    avg_away = 1.25
     
     lambda_home = avg_home * home_att * away_def
     lambda_away = avg_away * away_att * home_def
@@ -332,7 +404,9 @@ def predict_berrar_model(home_att, away_def, away_att, home_def):
         
     return prob_home, prob_draw, prob_away, lambda_home, lambda_away
 
-def predict_dixon_coles_model(lambda_home, lambda_away, rho=-0.12):
+def predict_dixon_coles_model(lambda_home, lambda_away, rho=None):
+    if rho is None:
+        rho = CFG.RHO
     prob_home = 0.0
     prob_draw = 0.0
     prob_away = 0.0
@@ -378,27 +452,56 @@ def predict_dixon_coles_model(lambda_home, lambda_away, rho=-0.12):
         
     return prob_home, prob_draw, prob_away, best_score
 
-def predict_match(home_elo, away_elo, home_pi_h, away_pi_a, home_att, away_def, away_att, home_def, 
+def predict_opta_model(home_opta, away_opta):
+    """Derives a single-match 1X2 prior from the Opta supercomputer tournament-win
+    probabilities. This is the only genuinely independent opinion in the ensemble
+    (the Elo/Pi/Berrar models all derive from the same in-house strength tiers),
+    so it is folded in as a separate vote rather than baked into the Elo input.
+
+    Returns None when either side is not covered by Opta (default ~0.001), in which
+    case the caller renormalises the remaining models.
+    """
+    if not home_opta or not away_opta or home_opta < 0.002 or away_opta < 0.002:
+        return None
+    r = home_opta / (home_opta + away_opta)
+    # Draw mass peaks (~0.30) for evenly matched sides and vanishes for blowouts.
+    prob_draw = 0.30 * (1.0 - abs(2.0 * r - 1.0))
+    prob_home = (1.0 - prob_draw) * r
+    prob_away = (1.0 - prob_draw) * (1.0 - r)
+    return prob_home, prob_draw, prob_away
+
+def predict_match(home_elo, away_elo, home_pi_h, away_pi_a, home_att, away_def, away_att, home_def,
                   home_rank=50, away_rank=50,
                   home_xg_diff=0.0, home_injuries=0, home_sentiment=0.0,
-                  away_xg_diff=0.0, away_injuries=0, away_sentiment=0.0):
+                  away_xg_diff=0.0, away_injuries=0, away_sentiment=0.0,
+                  home_adv=0, home_opta=0.0, away_opta=0.0,
+                  completion_ratio=0.0):
     """
     Ensemble Predictive Brain: Combines Model A (Elo Poisson), Model B (Pi Normal CDF),
     Model C (Berrar Poisson), and Model D (Dixon-Coles Joint Model with Hybrid Lambda)
     to output highly calibrated win/draw/loss probabilities.
+
+    All tunable constants come from model_config.CFG so backtest.py can calibrate them.
     """
+    # Home-field advantage is only ever non-zero on genuine host games.
+    HOME_ADV_ELO = CFG.HOME_ADV_ELO
+    HOME_ADV_GOALS = CFG.HOME_ADV_GOALS
+
     # 1. Elo Model (Model A)
     elo_diff = home_elo - away_elo
     rank_diff = away_rank - home_rank
-    
-    # 外部情報動態修正 Elo (xG差權重40, 輿論15, 傷兵-12)
-    home_correction = (home_xg_diff * 40.0) + (home_sentiment * 15.0) - (home_injuries * 12.0)
-    away_correction = (away_xg_diff * 40.0) + (away_sentiment * 15.0) - (away_injuries * 12.0)
-    
-    effective_elo = elo_diff + (rank_diff * 4.0) + home_correction - away_correction
-    
-    lambda_elo_home = 1.25 * (10 ** (effective_elo / 1000.0))
-    lambda_elo_away = 1.25 * (10 ** (-effective_elo / 1000.0))
+
+    # 外部情報動態修正 Elo (#5: sentiment weight defaults to 0 — dead feature).
+    # xG-diff is collinear with Elo/FIFA-rank, so its weight is kept modest.
+    home_correction = (home_xg_diff * CFG.W_XG) + (home_sentiment * CFG.W_SENTIMENT) - (home_injuries * CFG.W_INJURY)
+    away_correction = (away_xg_diff * CFG.W_XG) + (away_sentiment * CFG.W_SENTIMENT) - (away_injuries * CFG.W_INJURY)
+
+    effective_elo = elo_diff + (rank_diff * CFG.RANK_WEIGHT) + home_correction - away_correction + (home_adv * HOME_ADV_ELO)
+
+    # #7 Separate home/away baselines + calibratable spread => modal scores vary
+    # instead of collapsing to 1-1 everywhere.
+    lambda_elo_home = CFG.LAMBDA_BASE_HOME * (10 ** (effective_elo / CFG.LAMBDA_DIVISOR))
+    lambda_elo_away = CFG.LAMBDA_BASE_AWAY * (10 ** (-effective_elo / CFG.LAMBDA_DIVISOR))
     
     p_elo_h, p_elo_d, p_elo_a = 0.0, 0.0, 0.0
     for h in range(8):
@@ -417,22 +520,45 @@ def predict_match(home_elo, away_elo, home_pi_h, away_pi_a, home_att, away_def, 
         p_elo_a /= total_elo
         
     # 2. Pi-Rating Model (Model B)
-    p_pi_h, p_pi_d, p_pi_a = predict_pi_model(home_pi_h, away_pi_a)
-    
+    p_pi_h, p_pi_d, p_pi_a = predict_pi_model(home_pi_h, away_pi_a, home_adv * HOME_ADV_GOALS)
+
     # 3. Berrar Model (Model C)
     p_ber_h, p_ber_d, p_ber_a, lambda_b_home, lambda_b_away = predict_berrar_model(home_att, away_def, away_att, home_def)
-    
+
     # 4. Dixon-Coles Model with Hybrid Lambdas (Model D)
     lambda_mix_home = 0.5 * lambda_elo_home + 0.5 * lambda_b_home
     lambda_mix_away = 0.5 * lambda_elo_away + 0.5 * lambda_b_away
     p_dc_h, p_dc_d, p_dc_a, best_score = predict_dixon_coles_model(lambda_mix_home, lambda_mix_away)
-    
-    # 5. Ensemble Weighted Fusion
-    # Weights: 25% Elo, 25% Pi-Rating, 20% Berrar, 30% Dixon-Coles
-    final_h = 0.25 * p_elo_h + 0.25 * p_pi_h + 0.20 * p_ber_h + 0.30 * p_dc_h
-    final_d = 0.25 * p_elo_d + 0.25 * p_pi_d + 0.20 * p_ber_d + 0.30 * p_dc_d
-    final_a = 0.25 * p_elo_a + 0.25 * p_pi_a + 0.20 * p_ber_a + 0.30 * p_dc_a
-    
+
+    # 5. Opta supercomputer prior (Model E) — independent external opinion
+    p_opta = predict_opta_model(home_opta, away_opta)
+
+    # 6. Ensemble Weighted Fusion
+    if p_opta is not None:
+        p_op_h, p_op_d, p_op_a = p_opta
+        # #4 Dynamic weighting: interpolate early(prior-heavy)->late(model-heavy).
+        if CFG.DYNAMIC_WEIGHTS:
+            r = max(0.0, min(1.0, completion_ratio))
+            w = [e * (1.0 - r) + l * r for e, l in zip(CFG.W_EARLY, CFG.W_LATE)]
+            sw = sum(w) or 1.0
+            w = [x / sw for x in w]
+        else:
+            w = CFG.W_ENSEMBLE_OPTA
+        we, wp, wb, wd, wo = w
+        final_h = we * p_elo_h + wp * p_pi_h + wb * p_ber_h + wd * p_dc_h + wo * p_op_h
+        final_d = we * p_elo_d + wp * p_pi_d + wb * p_ber_d + wd * p_dc_d + wo * p_op_d
+        final_a = we * p_elo_a + wp * p_pi_a + wb * p_ber_a + wd * p_dc_a + wo * p_op_a
+    else:
+        # Opta not available for this fixture: drop the Opta term and renormalise.
+        we, wp, wb, wd = CFG.W_ENSEMBLE_NOOPTA
+        final_h = we * p_elo_h + wp * p_pi_h + wb * p_ber_h + wd * p_dc_h
+        final_d = we * p_elo_d + wp * p_pi_d + wb * p_ber_d + wd * p_dc_d
+        final_a = we * p_elo_a + wp * p_pi_a + wb * p_ber_a + wd * p_dc_a
+
+    # #2 Draw calibration: footballs draws (~25%) were systematically under-pointed
+    # (0/104 fixtures had draw as argmax). Inflate draw mass then renormalise.
+    final_d *= CFG.DRAW_INFLATION
+
     final_sum = final_h + final_d + final_a
     if final_sum > 0:
         final_h /= final_sum
@@ -448,14 +574,30 @@ def predict_match(home_elo, away_elo, home_pi_h, away_pi_a, home_att, away_def, 
         'predicted_score': best_score
     }
 
+def mov_multiplier(goal_diff, elo_diff):
+    """World-Football-Elo margin-of-victory multiplier (#3).
+    Bigger wins move ratings more; a damping term keeps a strong favourite's big
+    win from over-inflating its rating (Hjorth-Goldberg standard)."""
+    gd = abs(goal_diff)
+    if gd <= 1:
+        g = 1.0
+    elif gd == 2:
+        g = 1.5
+    else:
+        g = (11.0 + gd) / 8.0
+    # Damp by how expected the result was (winner perspective).
+    damp = 2.0 / (2.0 + 0.001 * (elo_diff if goal_diff > 0 else -elo_diff))
+    return g * damp
+
+
 def calculate_elo_change(home_elo, away_elo, home_goals, away_goals):
-    # K-factor for World Cup final tournament matches is 60 (highest importance)
-    K = 60
-    
+    # Base K-factor for World Cup matches (calibratable via model_config).
+    K = CFG.ELO_K
+
     # Expected result based on Elo difference
     E_home = 1.0 / (1.0 + 10 ** ((away_elo - home_elo) / 400.0))
     E_away = 1.0 / (1.0 + 10 ** ((home_elo - away_elo) / 400.0))
-    
+
     # Actual score
     if home_goals > away_goals:
         S_home, S_away = 1.0, 0.0
@@ -464,10 +606,13 @@ def calculate_elo_change(home_elo, away_elo, home_goals, away_goals):
     else:
         # Draw
         S_home, S_away = 0.5, 0.5
-        
-    delta_home = K * (S_home - E_home)
-    delta_away = K * (S_away - E_away)
-    
+
+    # #3 Margin-of-victory scaling: a blowout shifts ratings more than a 1-0.
+    g = mov_multiplier(home_goals - away_goals, home_elo - away_elo) if CFG.ELO_MOV_ENABLED else 1.0
+
+    delta_home = K * g * (S_home - E_home)
+    delta_away = K * g * (S_away - E_away)
+
     return delta_home, delta_away
 
 def update_ev_and_kelly(match_data):
@@ -513,11 +658,12 @@ def reset_and_recalculate_all_elo_and_predictions():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    # 1. Reset team ratings in DB to initial states
-    for team, elo in INITIAL_ELO.items():
+    # 1. Reset team ratings in DB to initial states (data-driven seeds when available)
+    for team in INITIAL_ELO:
         normalized_name = normalize_team_name(team)
+        elo = seeded_initial_elo(team)
         cursor.execute('''
-            UPDATE teams 
+            UPDATE teams
             SET elo_rating = ?, pi_rating_home = 0.0, pi_rating_away = 0.0, berrar_att = 1.0, berrar_def = 1.0
             WHERE name = ?
         ''', (elo, normalized_name))
@@ -530,7 +676,12 @@ def reset_and_recalculate_all_elo_and_predictions():
     matches = [dict(zip(colnames, row)) for row in cursor.fetchall()]
     
     log(f"正在重算資料庫中所有 {len(matches)} 場比賽的動態 Elo、Pi-Rating、Berrar 與卜瓦松/Dixon-Coles 集成勝率預測...")
-    
+
+    # #4 Tournament completion ratio drives dynamic ensemble weighting.
+    _real = [m for m in matches if m.get('status') in ('Completed', 'Scheduled')]
+    _done = [m for m in _real if m.get('status') == 'Completed']
+    completion_ratio = (len(_done) / len(_real)) if _real else 0.0
+
     for match in matches:
         match_num = match['match_num']
         home = normalize_team_name(match['home_team'])
@@ -538,9 +689,9 @@ def reset_and_recalculate_all_elo_and_predictions():
         status = match['status']
         
         # Check if they are valid national teams (not placeholders like "Winner Group A")
-        cursor.execute('SELECT elo_rating, fifa_rank, pi_rating_home, pi_rating_away, berrar_att, berrar_def, fbref_xg_diff, injury_count, sentiment_score FROM teams WHERE name = ?', (home,))
+        cursor.execute('SELECT elo_rating, fifa_rank, pi_rating_home, pi_rating_away, berrar_att, berrar_def, fbref_xg_diff, injury_count, sentiment_score, opta_win_prob FROM teams WHERE name = ?', (home,))
         row_home = cursor.fetchone()
-        cursor.execute('SELECT elo_rating, fifa_rank, pi_rating_home, pi_rating_away, berrar_att, berrar_def, fbref_xg_diff, injury_count, sentiment_score FROM teams WHERE name = ?', (away,))
+        cursor.execute('SELECT elo_rating, fifa_rank, pi_rating_home, pi_rating_away, berrar_att, berrar_def, fbref_xg_diff, injury_count, sentiment_score, opta_win_prob FROM teams WHERE name = ?', (away,))
         row_away = cursor.fetchone()
         
         home_elo = row_home[0] if row_home else 1400.0
@@ -552,7 +703,8 @@ def reset_and_recalculate_all_elo_and_predictions():
         home_xg_diff = row_home[6] if (row_home and len(row_home) > 6) else 0.0
         home_injuries = row_home[7] if (row_home and len(row_home) > 7) else 0
         home_sentiment = row_home[8] if (row_home and len(row_home) > 8) else 0.0
-        
+        home_opta = row_home[9] if (row_home and len(row_home) > 9) else 0.0
+
         away_elo = row_away[0] if row_away else 1400.0
         away_rank = row_away[1] if row_away else 50
         away_pi_h = row_away[2] if row_away else 0.0
@@ -562,7 +714,11 @@ def reset_and_recalculate_all_elo_and_predictions():
         away_xg_diff = row_away[6] if (row_away and len(row_away) > 6) else 0.0
         away_injuries = row_away[7] if (row_away and len(row_away) > 7) else 0
         away_sentiment = row_away[8] if (row_away and len(row_away) > 8) else 0.0
-        
+        away_opta = row_away[9] if (row_away and len(row_away) > 9) else 0.0
+
+        # Genuine home-field advantage only on host-nation games at home venues.
+        home_adv = get_home_field_advantage(home, away, match.get('city'))
+
         # Write pre-match Elo into matches
         cursor.execute('''
             UPDATE matches 
@@ -573,7 +729,8 @@ def reset_and_recalculate_all_elo_and_predictions():
         # Calculate prediction with ensemble predictive brain
         pred = predict_match(home_elo, away_elo, home_pi_h, away_pi_a, home_att, away_def, away_att, home_def, home_rank, away_rank,
                              home_xg_diff, home_injuries, home_sentiment,
-                             away_xg_diff, away_injuries, away_sentiment)
+                             away_xg_diff, away_injuries, away_sentiment,
+                             home_adv, home_opta, away_opta, completion_ratio)
         
         # Calculate EV and Kelly if odds exist in current record
         odds_h = match['odds_home']
@@ -824,6 +981,18 @@ if __name__ == '__main__':
         log("即時賠率與博弈分析值更新成功！")
     except Exception as e:
         log(f"自動執行賠率爬蟲時發生錯誤: {e}")
-        
+
+    # Roll the daily champion (title-race) prediction: market + Opta + AI Monte Carlo.
+    try:
+        log("正在計算每日總冠軍預測（賭盤 + Opta + AI 蒙地卡羅）...")
+        import champion_predictor
+        champion_predictor.run_champion_prediction()
+        log("總冠軍奪冠機率每日快照更新成功！")
+        # Regenerate the auto trend report from the rolling snapshots.
+        import champion_trend_report
+        champion_trend_report.main()
+    except Exception as e:
+        log(f"自動執行總冠軍預測時發生錯誤: {e}")
+
     log("同步任務結束。")
 

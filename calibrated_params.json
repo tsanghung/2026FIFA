@@ -1,0 +1,16 @@
+{
+  "DRAW_INFLATION": 1.1,
+  "HOME_ADV_ELO": 120.0,
+  "LAMBDA_BASE_HOME": 1.25,
+  "LAMBDA_BASE_AWAY": 1.35,
+  "LAMBDA_DIVISOR": 800.0,
+  "RHO": -0.18,
+  "W_ENSEMBLE_NOOPTA": [
+    0.22,
+    0.22,
+    0.16,
+    0.4
+  ],
+  "ELO_MOV_ENABLED": true,
+  "W_SENTIMENT": 0.0
+}

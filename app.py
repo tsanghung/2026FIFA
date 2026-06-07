@@ -23,107 +23,9 @@ st.set_page_config(
 )
 
 # Team translation dictionary using Traditional Chinese (Taiwanese idioms)
-TEAM_TRANSLATIONS = {
-    # Group A
-    'Mexico': '墨西哥', 'South Korea': '南韓', 'South Africa': '南非', 'Czechia': '捷克', 'Czech Republic': '捷克',
-    # Group B
-    'Canada': '加拿大', 'Switzerland': '瑞士', 'Qatar': '卡達', 'Bosnia-Herzegovina': '波赫', 'Bosnia and Herzegovina': '波赫',
-    # Group C
-    'Brazil': '巴西', 'Morocco': '摩洛哥', 'Scotland': '蘇格蘭', 'Haiti': '海地',
-    # Group D
-    'USA': '美國', 'United States': '美國', 'Paraguay': '巴拉圭', 'Australia': '澳洲', 'Türkiye': '土耳其', 'Turkey': '土耳其',
-    # Group E
-    'Germany': '德國', 'Ecuador': '厄瓜多', 'Ivory Coast': '象牙海岸', "Côte d'Ivoire": '象牙海岸', 'Curaçao': '庫拉索',
-    # Group F
-    'Netherlands': '荷蘭', 'Japan': '日本', 'Tunisia': '突尼西亞', 'Sweden': '瑞典',
-    # Group G
-    'Belgium': '比利時', 'Iran': '伊朗', 'IR Iran': '伊朗', 'Egypt': '埃及', 'New Zealand': '紐西蘭',
-    # Group H
-    'Spain': '西班牙', 'Uruguay': '烏拉圭', 'Saudi Arabia': '沙烏地阿拉伯', 'Cape Verde': '維德角', 'Cabo Verde': '維德角',
-    # Group I
-    'France': '法國', 'Senegal': '塞內加爾', 'Norway': '挪威', 'Iraq': '伊拉克',
-    # Group J
-    'Argentina': '阿根廷', 'Algeria': '阿爾及利亞', 'Austria': '奧地利', 'Jordan': '約旦',
-    # Group K
-    'Portugal': '葡萄牙', 'Colombia': '哥倫比亞', 'Uzbekistan': '烏茲別克', 'DR Congo': '剛果民主共和國', 'Congo DR': '剛果民主共和國',
-    # Group L
-    'England': '英格蘭', 'Croatia': '克羅埃西亞', 'Ghana': '迦納', 'Panama': '巴拿馬'
-}
-
-def get_team_display_name(eng_name):
-    if not eng_name:
-        return ""
-    eng_name_clean = eng_name.strip()
-    zh_name = TEAM_TRANSLATIONS.get(eng_name_clean, eng_name_clean)
-    if zh_name != eng_name_clean:
-        return f"{zh_name} ({eng_name_clean})"
-    
-    # Translate common placeholder names for knockouts
-    placeholder_map = {
-        'Winner Group A': 'A組第一', 'Runner-up Group A': 'A組第二',
-        'Winner Group B': 'B組第一', 'Runner-up Group B': 'B組第二',
-        'Winner Group C': 'C組第一', 'Runner-up Group C': 'C組第二',
-        'Winner Group D': 'D組第一', 'Runner-up Group D': 'D組第二',
-        'Winner Group E': 'E組第一', 'Runner-up Group E': 'E組第二',
-        'Winner Group F': 'F組第一', 'Runner-up Group F': 'F組第二',
-        'Winner Group G': 'G組第一', 'Runner-up Group G': 'G組第二',
-        'Winner Group H': 'H組第一', 'Runner-up Group H': 'H組第二',
-        'Winner Group I': 'I組第一', 'Runner-up Group I': 'I組第二',
-        'Winner Group J': 'J組第一', 'Runner-up Group J': 'J組第二',
-        'Winner Group K': 'K組第一', 'Runner-up Group K': 'K組第二',
-        'Winner Group L': 'L組第一', 'Runner-up Group L': 'L組第二'
-    }
-    for k, v in placeholder_map.items():
-        if k in eng_name_clean:
-            return f"{v} ({eng_name_clean})"
-            
-    return eng_name_clean
-
-def convert_to_taiwan_time(date_str, time_str):
-    if not date_str:
-        return "", ""
-    if not time_str:
-        return date_str, ""
-        
-    # 清洗 unicode 減號 / hyphen
-    time_clean = time_str.replace('\u2212', '-').replace('−', '-').strip()
-    
-    # 提取時間與 UTC 偏移 (格式如 1:00 p.m. UTC-6 或 12:00 p.m. UTC-4)
-    pattern = r'(\d+):(\d+)\s*(a\.m\.|p\.m\.|am|pm)?\s*(?:UTC([+-]\d+))?'
-    match = re.search(pattern, time_clean, re.IGNORECASE)
-    if not match:
-        return date_str, time_clean
-        
-    hour = int(match.group(1))
-    minute = int(match.group(2))
-    ampm = match.group(3)
-    tz_offset = match.group(4)
-    
-    # 處理 am/pm 轉換為 24 小時制
-    if ampm:
-        ampm = ampm.lower().replace('.', '')
-        if ampm == 'pm' and hour < 12:
-            hour += 12
-        elif ampm == 'am' and hour == 12:
-            hour = 0
-            
-    # 解析日期並結合時間
-    try:
-        dt = datetime.strptime(date_str, '%Y-%m-%d')
-    except Exception:
-        return date_str, time_clean
-        
-    dt = dt.replace(hour=hour, minute=minute)
-    
-    # 預設偏移量 (如果沒有 UTC 標註則不進行時區調整，只輸出 HH:mm)
-    if tz_offset:
-        offset = int(tz_offset)
-        # 台灣是 UTC+8，時間差為 8 - offset
-        td_offset = timedelta(hours=8 - offset)
-        dt_taiwan = dt + td_offset
-        return dt_taiwan.strftime('%Y-%m-%d'), dt_taiwan.strftime('%H:%M')
-    else:
-        return date_str, f"{hour:02d}:{minute:02d}"
+from display_utils import (
+    TEAM_TRANSLATIONS, get_team_display_name, convert_to_taiwan_time,
+)
 
 # Custom Futuristic HUD / Mission Control Theme
 st.markdown("""
@@ -221,7 +123,7 @@ st.markdown("""
         letter-spacing: 0.04em;
     }
 
-    .badge-365 { background-color: #0f9f72; }
+    .badge-pin { background-color: #0f9f72; }
     .badge-wh { background-color: #2375d8; }
     .badge-dk { background-color: #d82e73; }
 
@@ -446,7 +348,7 @@ def get_poisson_random(lamb):
 # Helper to format best odds platform source
 def get_odds_badge_html(best, b, w, d):
     if not best: return ""
-    if best == b: return '<span class="platform-badge badge-365">Bet365</span>'
+    if best == b: return '<span class="platform-badge badge-pin">Pinnacle</span>'
     if best == w: return '<span class="platform-badge badge-wh">WHill</span>'
     if best == d: return '<span class="platform-badge badge-dk">DKings</span>'
     return '<span class="platform-badge" style="background-color: #64748b;">Mixed</span>'
@@ -482,7 +384,7 @@ def build_value_bet_rows(df_source, suffix, fraction, mode_name):
             return "Unknown"
         srcs = []
         if best_odds == b:
-            srcs.append("Bet365")
+            srcs.append("Pinnacle")
         if best_odds == w:
             srcs.append("William Hill")
         if best_odds == d:
@@ -497,11 +399,11 @@ def build_value_bet_rows(df_source, suffix, fraction, mode_name):
 
         candidates = [
             ("Home Win", row.get(f'pred_home_win_prob'), row.get(f'odds_home{suffix}'), row.get(f'ev_home{suffix}'), row.get(f'kelly_home{suffix}'),
-             row.get('odds_home_bet365'), row.get('odds_home_williamhill'), row.get('odds_home_draftkings')),
+             row.get('odds_home_pinnacle'), row.get('odds_home_williamhill'), row.get('odds_home_draftkings')),
             ("Draw", row.get(f'pred_draw_prob'), row.get(f'odds_draw{suffix}'), row.get(f'ev_draw{suffix}'), row.get(f'kelly_draw{suffix}'),
-             row.get('odds_draw_bet365'), row.get('odds_draw_williamhill'), row.get('odds_draw_draftkings')),
+             row.get('odds_draw_pinnacle'), row.get('odds_draw_williamhill'), row.get('odds_draw_draftkings')),
             ("Away Win", row.get(f'pred_away_win_prob'), row.get(f'odds_away{suffix}'), row.get(f'ev_away{suffix}'), row.get(f'kelly_away{suffix}'),
-             row.get('odds_away_bet365'), row.get('odds_away_williamhill'), row.get('odds_away_draftkings')),
+             row.get('odds_away_pinnacle'), row.get('odds_away_williamhill'), row.get('odds_away_draftkings')),
         ]
         for pick, prob, odds, ev, kelly, b, w, d in candidates:
             if ev is not None and not pd.isna(ev) and ev > 0:
@@ -553,14 +455,14 @@ else:
 
 betting_mode = st.sidebar.selectbox(
     "🏦 分析開盤莊家 (Bookmaker Mode)",
-    ["🥇 跨平台最佳套利組合", "🟢 僅限 Bet365", "🔵 僅限 William Hill", "🔴 僅限 DraftKings"],
+    ["🥇 跨平台最佳套利組合", "🟢 僅限 Pinnacle", "🔵 僅限 William Hill", "🔴 僅限 DraftKings"],
     index=0
 )
 
 # Map selections to db columns
 mode_map = {
     "🥇 跨平台最佳套利組合": "",
-    "🟢 僅限 Bet365": "_bet365",
+    "🟢 僅限 Pinnacle": "_pinnacle",
     "🔵 僅限 William Hill": "_williamhill",
     "🔴 僅限 DraftKings": "_draftkings"
 }
@@ -578,13 +480,15 @@ else:
     st.sidebar.caption("尚無同步日誌")
 
 # Tabs
-tab_overview, tab_val, tab_sched, tab_monte, tab_teams, tab_ai = st.tabs([
+tab_overview, tab_title, tab_val, tab_sched, tab_monte, tab_teams, tab_ai, tab_acc = st.tabs([
     "MISSION CONTROL",
+    "TITLE RACE",
     "EV+ VALUE",
     "MATCH SCHEDULE",
     "MONTE CARLO",
     "TEAM RATING",
-    "AI DEEP LEARNING"
+    "AI DEEP LEARNING",
+    "MODEL ACCURACY"
 ])
 
 # ================= TAB 0: Mission Control Overview =================
@@ -616,9 +520,9 @@ with tab_overview:
                    pred_home_win_prob, odds_home{col_suffix}, ev_home{col_suffix}, kelly_home{col_suffix},
                    pred_draw_prob, odds_draw{col_suffix}, ev_draw{col_suffix}, kelly_draw{col_suffix},
                    pred_away_win_prob, odds_away{col_suffix}, ev_away{col_suffix}, kelly_away{col_suffix},
-                   odds_home_bet365, odds_home_williamhill, odds_home_draftkings,
-                   odds_draw_bet365, odds_draw_williamhill, odds_draw_draftkings,
-                   odds_away_bet365, odds_away_williamhill, odds_away_draftkings
+                   odds_home_pinnacle, odds_home_williamhill, odds_home_draftkings,
+                   odds_draw_pinnacle, odds_draw_williamhill, odds_draw_draftkings,
+                   odds_away_pinnacle, odds_away_williamhill, odds_away_draftkings
             FROM matches
             WHERE ev_home{col_suffix} > 0 OR ev_draw{col_suffix} > 0 OR ev_away{col_suffix} > 0
         '''
@@ -758,9 +662,9 @@ with tab_val:
                pred_home_win_prob, odds_home{col_suffix}, ev_home{col_suffix}, kelly_home{col_suffix},
                pred_draw_prob, odds_draw{col_suffix}, ev_draw{col_suffix}, kelly_draw{col_suffix},
                pred_away_win_prob, odds_away{col_suffix}, ev_away{col_suffix}, kelly_away{col_suffix},
-               odds_home_bet365, odds_home_williamhill, odds_home_draftkings,
-               odds_draw_bet365, odds_draw_williamhill, odds_draw_draftkings,
-               odds_away_bet365, odds_away_williamhill, odds_away_draftkings
+               odds_home_pinnacle, odds_home_williamhill, odds_home_draftkings,
+               odds_draw_pinnacle, odds_draw_williamhill, odds_draw_draftkings,
+               odds_away_pinnacle, odds_away_williamhill, odds_away_draftkings
         FROM matches
         WHERE ev_home{col_suffix} > 0 OR ev_draw{col_suffix} > 0 OR ev_away{col_suffix} > 0
     '''
@@ -788,7 +692,7 @@ with tab_val:
             def get_source_str(best_odds, b, w, d):
                 if not best_odds: return "未知"
                 srcs = []
-                if best_odds == b: srcs.append("Bet365")
+                if best_odds == b: srcs.append("Pinnacle")
                 if best_odds == w: srcs.append("WilliamHill")
                 if best_odds == d: srcs.append("DraftKings")
                 return "/".join(srcs) if srcs else "綜合"
@@ -797,7 +701,7 @@ with tab_val:
             ev_h = row[f'ev_home{col_suffix}']
             if ev_h and ev_h > 0:
                 o_h = row[f'odds_home{col_suffix}']
-                src = get_source_str(o_h, row['odds_home_bet365'], row['odds_home_williamhill'], row['odds_home_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
+                src = get_source_str(o_h, row['odds_home_pinnacle'], row['odds_home_williamhill'], row['odds_home_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
                 val_rows.append({
                     "場次": f"#{match_num}",
                     "客場": a_name,
@@ -814,7 +718,7 @@ with tab_val:
             ev_d = row[f'ev_draw{col_suffix}']
             if ev_d and ev_d > 0:
                 o_d = row[f'odds_draw{col_suffix}']
-                src = get_source_str(o_d, row['odds_draw_bet365'], row['odds_draw_williamhill'], row['odds_draw_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
+                src = get_source_str(o_d, row['odds_draw_pinnacle'], row['odds_draw_williamhill'], row['odds_draw_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
                 val_rows.append({
                     "場次": f"#{match_num}",
                     "客場": a_name,
@@ -831,7 +735,7 @@ with tab_val:
             ev_a = row[f'ev_away{col_suffix}']
             if ev_a and ev_a > 0:
                 o_a = row[f'odds_away{col_suffix}']
-                src = get_source_str(o_a, row['odds_away_bet365'], row['odds_away_williamhill'], row['odds_away_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
+                src = get_source_str(o_a, row['odds_away_pinnacle'], row['odds_away_williamhill'], row['odds_away_draftkings']) if col_suffix == "" else betting_mode.split(" ")[1]
                 val_rows.append({
                     "場次": f"#{match_num}",
                     "客場": a_name,
@@ -876,9 +780,9 @@ with tab_sched:
         SELECT m.match_num, m.group_or_stage, m.date, m.time, m.home_team, m.away_team, 
                m.pred_home_win_prob, m.pred_draw_prob, m.pred_away_win_prob, m.pred_score,
                m.odds_home, m.odds_draw, m.odds_away, m.status, m.score,
-               m.odds_home_bet365, m.odds_home_williamhill, m.odds_home_draftkings,
-               m.odds_draw_bet365, m.odds_draw_williamhill, m.odds_draw_draftkings,
-               m.odds_away_bet365, m.odds_away_williamhill, m.odds_away_draftkings,
+               m.odds_home_pinnacle, m.odds_home_williamhill, m.odds_home_draftkings,
+               m.odds_draw_pinnacle, m.odds_draw_williamhill, m.odds_draw_draftkings,
+               m.odds_away_pinnacle, m.odds_away_williamhill, m.odds_away_draftkings,
                t_h.injury_count as home_injuries, t_h.sentiment_score as home_sentiment,
                t_a.injury_count as away_injuries, t_a.sentiment_score as away_sentiment
         FROM matches m
@@ -899,7 +803,7 @@ with tab_sched:
     display_df = df_sched.copy()
     if filter_stage:
         display_df = display_df[display_df['group_or_stage'].isin(filter_stage)]
-        
+
     # Render table nicely
     rows_html = []
     for idx, r in display_df.iterrows():
@@ -923,15 +827,15 @@ with tab_sched:
         def get_source_label(best, b, w, d):
             if not best: return "-"
             label = f"{best:.2f}"
-            if best == b: label += " (365)"
+            if best == b: label += " (PIN)"
             elif best == w: label += " (WH)"
             elif best == d: label += " (DK)"
             return label
             
-        b_h = get_source_label(r['odds_home'], r['odds_home_bet365'], r['odds_home_williamhill'], r['odds_home_draftkings'])
-        b_d = get_source_label(r['odds_draw'], r['odds_draw_bet365'], r['odds_draw_williamhill'], r['odds_draw_draftkings'])
-        b_a = get_source_label(r['odds_away'], r['odds_away_bet365'], r['odds_away_williamhill'], r['odds_away_draftkings'])
-        
+        b_h = get_source_label(r['odds_home'], r['odds_home_pinnacle'], r['odds_home_williamhill'], r['odds_home_draftkings'])
+        b_d = get_source_label(r['odds_draw'], r['odds_draw_pinnacle'], r['odds_draw_williamhill'], r['odds_draw_draftkings'])
+        b_a = get_source_label(r['odds_away'], r['odds_away_pinnacle'], r['odds_away_williamhill'], r['odds_away_draftkings'])
+
         status_str = "已完賽" if r['status'] == "Completed" else "未開賽"
         score_str = r['score'] if r['score'] else "VS"
         
@@ -957,8 +861,9 @@ with tab_sched:
             "最佳和局賠率": b_d,
             "最佳客勝賠率": b_a
         })
-        
+
     st.dataframe(pd.DataFrame(rows_html), use_container_width=True, hide_index=True)
+    st.caption("📊 賠率為研究/價值分析用途，本站不提供投注服務。")
 
 # ================= TAB 3: Monte Carlo Simulator =================
 with tab_monte:
@@ -1226,7 +1131,12 @@ with tab_ai:
     mc_samples_ai = st.sidebar.slider("MC Dropout 採樣次數", 50, 200, 100, step=50)
 
     if st.sidebar.button("訓練 / 重新訓練模型", type="primary"):
-        from dl_predictor import train_model
+        try:
+            from dl_predictor import train_model
+        except Exception:
+            st.error("⚠️ AI 深度學習引擎需要 PyTorch，雲端部署為符合資源上限未安裝。"
+                     "請於本機執行 `pip install -r requirements-full.txt` 後再使用此分頁。")
+            st.stop()
 
         progress_bar = st.progress(0)
         status_text = st.empty()
@@ -1295,8 +1205,13 @@ with tab_ai:
         if not os.path.exists(model_file):
             st.warning("模型尚未訓練，請先點擊側邊欄的「訓練模型」按鈕。")
         else:
-            from dl_predictor import predict_all_matches, get_feature_importance, WorldCupPredictor, MODEL_PATH, SCALER_PATH
-            import torch as torch_import
+            try:
+                from dl_predictor import predict_all_matches, get_feature_importance, WorldCupPredictor, MODEL_PATH, SCALER_PATH
+                import torch as torch_import
+            except Exception:
+                st.error("⚠️ AI 深度學習引擎需要 PyTorch，雲端部署為符合資源上限未安裝。"
+                         "請於本機執行 `pip install -r requirements-full.txt` 後再使用此分頁。")
+                st.stop()
 
             with st.spinner("正在執行 Monte Carlo 採樣預測..."):
                 results, err = predict_all_matches(n_mc_samples=mc_samples_ai)
@@ -1477,3 +1392,161 @@ with tab_ai:
                                 f"{'信心充足，建議重点关注。' if r['confidence_level'] == 'HIGH' else '但仍需留意不確定性因素。'}"
                             )
                         st.info(analysis)
+
+
+# ================= TAB: Title Race (總冠軍預測) =================
+with tab_title:
+    st.header("🏆 總冠軍預測 (Title Race)")
+    st.write(
+        "以**賭盤為主**、融合**權威超級電腦 (Opta)** 與**本系統 AI 全賽事蒙地卡羅模型**，"
+        "預測每隊奪冠機率。每日滾動更新並以 EWMA 平滑，下方可追蹤奪冠機率的歷史走勢。"
+    )
+
+    cp_conn = get_db_connection()
+    has_table = cp_conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='champion_predictions'"
+    ).fetchone()
+
+    col_a, col_b = st.columns([1, 3])
+    with col_a:
+        if st.button("🔄 重新計算奪冠機率", type="primary"):
+            try:
+                import champion_predictor as _cp
+                with st.spinner("執行 10,000 次完整賽事蒙地卡羅並融合市場/權威..."):
+                    _cp.run_champion_prediction(n_sims=10000)
+                st.success("已更新今日奪冠機率快照！")
+                st.rerun()
+            except Exception as e:
+                st.error(f"計算失敗：{e}")
+
+    if not has_table:
+        st.info("尚無奪冠機率資料。請點擊「重新計算奪冠機率」產生第一份快照。")
+    else:
+        latest_date = cp_conn.execute(
+            "SELECT MAX(snapshot_date) FROM champion_predictions"
+        ).fetchone()[0]
+        df = pd.read_sql_query(
+            "SELECT * FROM champion_predictions WHERE snapshot_date = ? ORDER BY rank",
+            cp_conn, params=(latest_date,)
+        )
+        with col_b:
+            st.caption(f"最新快照日期：{latest_date} ｜ 融合來源：賭盤(交叉比對) · Opta 超級電腦 · 本系統 AI 模型")
+
+        if not df.empty:
+            # ---- Top-3 favourite cards ----
+            top3 = df.head(3)
+            cards = st.columns(3)
+            medals = ["🥇", "🥈", "🥉"]
+            for i, (_, row) in enumerate(top3.iterrows()):
+                with cards[i]:
+                    name = get_team_display_name(row['team'])
+                    delta = row['delta'] or 0.0
+                    st.metric(
+                        f"{medals[i]} {name}",
+                        f"{row['blended_ewma']*100:.1f}%",
+                        f"{delta*100:+.2f}% vs 前一日",
+                    )
+
+            # ---- Full ranking table ----
+            st.subheader("奪冠機率排行 (Top 20)")
+            show = df.head(20).copy()
+
+            def _arrow(d):
+                d = d or 0.0
+                if d > 0.0005:
+                    return f"▲ {d*100:+.2f}%"
+                if d < -0.0005:
+                    return f"▼ {d*100:+.2f}%"
+                return "—"
+
+            table = pd.DataFrame({
+                "#": show['rank'],
+                "隊伍": show['team'].apply(get_team_display_name),
+                "融合奪冠率": (show['blended_ewma'] * 100).map("{:.1f}%".format),
+                "賭盤": (show['market_prob'].fillna(0) * 100).map("{:.1f}%".format),
+                "Opta": (show['opta_prob'].fillna(0) * 100).map("{:.1f}%".format),
+                "AI 模型": (show['model_prob'].fillna(0) * 100).map("{:.1f}%".format),
+                "日變動": show['delta'].apply(_arrow),
+            })
+            st.dataframe(table, use_container_width=True, hide_index=True)
+
+            # ---- Trend chart over time ----
+            hist = pd.read_sql_query(
+                "SELECT snapshot_date, team, blended_ewma FROM champion_predictions "
+                "ORDER BY snapshot_date", cp_conn
+            )
+            n_days = hist['snapshot_date'].nunique()
+            if n_days >= 2:
+                st.subheader("奪冠機率走勢 (Top 6)")
+                top_teams = df.head(6)['team'].tolist()
+                fig = go.Figure()
+                for t in top_teams:
+                    sub = hist[hist['team'] == t]
+                    fig.add_trace(go.Scatter(
+                        x=sub['snapshot_date'], y=sub['blended_ewma'] * 100,
+                        mode='lines+markers', name=get_team_display_name(t),
+                    ))
+                fig.update_layout(
+                    template="plotly_dark",
+                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                    xaxis_title="日期", yaxis_title="奪冠機率 (%)",
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02),
+                    margin=dict(t=40),
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.caption("📈 累積 2 天以上的每日快照後，這裡會顯示奪冠機率走勢圖。")
+
+            st.caption(
+                "方法論：賭盤為主（The Odds API 交叉比對 Pinnacle/William Hill/DraftKings，去水後取共識；"
+                "無 API 時用內建 2026-06 快照）。權威為 Opta 超級電腦。AI 模型為本系統 Elo/Pi/Berrar 集成驅動的"
+                "全賽事蒙地卡羅；開賽後依實際成績更新評級，模型權重隨完賽比例自動上升。每日以 EWMA(α=0.4) 平滑。"
+            )
+
+# ================= TAB 7: Model Accuracy (Historical Backtest) =================
+with tab_acc:
+    st.header("🎯 模型準確度（歷史回測校準）")
+    st.write("用 ~5 萬場歷史國際賽，把現行預測引擎做時序回測，量化勝負預測準確度並校準參數。")
+
+    import json as _json
+    _mpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backtest_metrics.json')
+    if not os.path.exists(_mpath):
+        st.info("尚未產生回測指標。請在本機執行 `python backtest.py` 後再查看。")
+    else:
+        with open(_mpath, 'r', encoding='utf-8') as _f:
+            _m = _json.load(_f)
+        base, cal = _m['baseline'], _m['calibrated']
+        st.caption(f"評估窗：{_m.get('eval_start','?')} 起，共 {cal['n']:,} 場（含 {cal['draw_total']:,} 場和局）。"
+                   "RPS（Ranked Probability Score）為 1X2 機率預測的標準評分，越低越好。")
+
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("RPS（越低越好）", f"{cal['rps']:.4f}", f"{cal['rps']-base['rps']:+.4f}", delta_color="inverse")
+        c2.metric("Log-Loss（越低越好）", f"{cal['log_loss']:.4f}", f"{cal['log_loss']-base['log_loss']:+.4f}", delta_color="inverse")
+        c3.metric("命中率 Accuracy", f"{cal['accuracy']:.1%}", f"{(cal['accuracy']-base['accuracy'])*100:+.1f} pp")
+        c4.metric("Brier", f"{cal['brier']:.4f}", f"{cal['brier']-base['brier']:+.4f}", delta_color="inverse")
+
+        st.markdown(
+            f"- **RPS {cal['rps']:.3f}** 屬職業級水準（足球模型常見 0.19–0.21；隨機約 0.33）。\n"
+            f"- **命中率 {cal['accuracy']:.1%}**：以最高機率作為勝負預測時的正確率。\n"
+            f"- **和局召回 {cal['draw_recall']:.1%}**：和局極少成為單場最可能結果，這是足球的真實特性——"
+            "強行多押和局會同時拉低 RPS 與命中率，故校準後仍維持低和局召回（屬最佳取捨）。"
+        )
+
+        st.subheader("信心校準曲線")
+        st.caption("把每場「最高機率」分箱，比較『模型宣稱的信心』與『實際命中率』。兩者越接近，代表機率越可信。")
+        _cal = cal.get('calibration', {})
+        if _cal:
+            _rows = []
+            for _b, _v in sorted(_cal.items()):
+                _hit, _tot = _v
+                _rows.append({"宣稱信心區間": f"~{float(_b)*100:.0f}%",
+                              "場數": _tot,
+                              "實際命中率": f"{(_hit/_tot if _tot else 0):.0%}"})
+            st.dataframe(pd.DataFrame(_rows), use_container_width=True, hide_index=True)
+
+        with st.expander("已校準的模型參數（calibrated_params.json）"):
+            _cpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'calibrated_params.json')
+            if os.path.exists(_cpath):
+                with open(_cpath, 'r', encoding='utf-8') as _cf:
+                    st.json(_json.load(_cf))
+            st.caption("這些值由 backtest.py 以最小化 RPS 自動搜尋而得，並在每次預測時由 model_config 載入。")

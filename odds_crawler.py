@@ -32,7 +32,7 @@ def normalize_team_name(name):
 
 def migrate_odds_columns():
     """
-    Schema Migration: Dynamically add dedicated tracking columns for Bet365, William Hill,
+    Schema Migration: Dynamically add dedicated tracking columns for Pinnacle, William Hill,
     and DraftKings to track odds, EV, and Kelly separately.
     """
     conn = sqlite3.connect(DB_PATH)
@@ -41,7 +41,7 @@ def migrate_odds_columns():
     cursor.execute("PRAGMA table_info(matches)")
     existing_cols = [row[1] for row in cursor.fetchall()]
     
-    platforms = ['bet365', 'williamhill', 'draftkings']
+    platforms = ['pinnacle', 'williamhill', 'draftkings']
     cols_added = []
     
     for p in platforms:
@@ -77,7 +77,7 @@ class OddsCrawler:
     def fetch_live_odds_api(self, api_key):
         """
         Stage 1: Using The Odds API
-        Gets odds from Bet365, William Hill, and DraftKings.
+        Gets odds from Pinnacle, William Hill, and DraftKings.
         """
         log("正在嘗試透過 The Odds API 抓取 2026 FIFA 世界盃即時賠率...")
         
@@ -102,7 +102,7 @@ class OddsCrawler:
 
     def _process_api_odds(self, api_data):
         """
-        Processes multi-bookmaker odds. Stores Bet365, DraftKings, and William Hill 
+        Processes multi-bookmaker odds. Stores Pinnacle, DraftKings, and William Hill 
         independently, then calculates the best-value arbitrage odds for the default columns.
         """
         conn = self.get_connection()
@@ -128,7 +128,7 @@ class OddsCrawler:
             match_num, p_h, p_d, p_a = match_row
             
             bookmakers = game.get('bookmakers', [])
-            targets = ['bet365', 'draftkings', 'williamhill']
+            targets = ['pinnacle', 'draftkings', 'williamhill']
             found_odds = {}
             
             for bk in bookmakers:
@@ -230,10 +230,10 @@ class OddsCrawler:
         """
         Stage 2: Advanced Dynamic Simulator (Fallback)
         Simulates highly realistic, market-accurate live-fluctuating decimal odds for
-        Bet365, DraftKings, and William Hill based on Poisson probabilities,
+        Pinnacle, DraftKings, and William Hill based on Poisson probabilities,
         skews, and random walk fluctuations.
         """
-        log("啟用進階即時賠率模擬引擎 (同時追蹤 Bet365 / DraftKings / William Hill)...")
+        log("啟用進階即時賠率模擬引擎 (同時追蹤 Pinnacle / DraftKings / William Hill)...")
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -257,7 +257,7 @@ class OddsCrawler:
                 
             # Create distinct skews and pricing models for each of the Big Three
             platforms = {
-                'bet365': {'h_skew': 0.98, 'd_skew': 1.01, 'a_skew': 1.01},       # Skews to home
+                'pinnacle': {'h_skew': 0.98, 'd_skew': 1.01, 'a_skew': 1.01},       # Skews to home
                 'williamhill': {'h_skew': 1.01, 'd_skew': 0.98, 'a_skew': 1.01},  # Skews to draw
                 'draftkings': {'h_skew': 1.01, 'd_skew': 1.01, 'a_skew': 0.98}   # Skews to away
             }
@@ -309,9 +309,9 @@ class OddsCrawler:
                 ''', (oh, od, oa, evh, evd, eva, kh, kd, ka, match_num))
                 
             # Determine MAX/BEST market odds across all three
-            best_h = max(p_odds['bet365'][0], p_odds['williamhill'][0], p_odds['draftkings'][0])
-            best_d = max(p_odds['bet365'][1], p_odds['williamhill'][1], p_odds['draftkings'][1])
-            best_a = max(p_odds['bet365'][2], p_odds['williamhill'][2], p_odds['draftkings'][2])
+            best_h = max(p_odds['pinnacle'][0], p_odds['williamhill'][0], p_odds['draftkings'][0])
+            best_d = max(p_odds['pinnacle'][1], p_odds['williamhill'][1], p_odds['draftkings'][1])
+            best_a = max(p_odds['pinnacle'][2], p_odds['williamhill'][2], p_odds['draftkings'][2])
             
             ev_h = (p_h * best_h) - 1.0
             ev_d = (p_d * best_d) - 1.0
