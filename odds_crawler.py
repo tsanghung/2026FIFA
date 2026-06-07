@@ -43,6 +43,15 @@ def migrate_odds_columns():
     
     platforms = ['pinnacle', 'williamhill', 'draftkings']
     cols_added = []
+    source_cols = [
+        ("odds_source", "TEXT DEFAULT 'unknown'"),
+        ("odds_last_update", "DATETIME DEFAULT NULL"),
+        ("odds_bookmaker_keys", "TEXT DEFAULT NULL"),
+    ]
+    for col_name, col_type in source_cols:
+        if col_name not in existing_cols:
+            cursor.execute(f"ALTER TABLE matches ADD COLUMN {col_name} {col_type}")
+            cols_added.append(col_name)
     
     for p in platforms:
         cols_to_add = [
@@ -97,7 +106,7 @@ class OddsCrawler:
             self._process_api_odds(data)
             return True
         except Exception as e:
-            log(f"API 抓取失敗: {e}")
+            log(f"API 抓取失敗: {type(e).__name__}")
             return False
 
     def _process_api_odds(self, api_data):
@@ -109,6 +118,7 @@ class OddsCrawler:
         cursor = conn.cursor()
         
         updates_count = 0
+        updated_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
         for game in api_data:
             api_home = normalize_team_name(game.get('home_team'))
@@ -180,7 +190,9 @@ class OddsCrawler:
             if not all_h:
                 # If target platforms not found, fallback to general average
                 all_general = []
+                general_keys = []
                 for bk in bookmakers:
+                    bk_key = bk.get('key', '')
                     markets = bk.get('markets', [])
                     for mkt in markets:
                         if mkt.get('key') == 'h2h':
@@ -193,16 +205,20 @@ class OddsCrawler:
                                 elif name == api_away: a = out.get('price')
                             if h and d and a:
                                 all_general.append((h, d, a))
+                                if bk_key:
+                                    general_keys.append(bk_key)
                 if all_general:
                     best_h = sum(x[0] for x in all_general) / len(all_general)
                     best_d = sum(x[1] for x in all_general) / len(all_general)
                     best_a = sum(x[2] for x in all_general) / len(all_general)
+                    bookmaker_keys = ','.join(sorted(set(general_keys)))
                 else:
                     continue
             else:
                 best_h = max(all_h)
                 best_d = max(all_d)
                 best_a = max(all_a)
+                bookmaker_keys = ','.join(sorted(found_odds))
                 
             # Update default/best columns
             ev_h = (p_h * best_h) - 1.0
@@ -217,9 +233,11 @@ class OddsCrawler:
                 UPDATE matches 
                 SET odds_home = ?, odds_draw = ?, odds_away = ?,
                     ev_home = ?, ev_draw = ?, ev_away = ?,
-                    kelly_home = ?, kelly_draw = ?, kelly_away = ?
+                    kelly_home = ?, kelly_draw = ?, kelly_away = ?,
+                    odds_source = ?, odds_last_update = ?, odds_bookmaker_keys = ?
                 WHERE match_num = ?
-            ''', (best_h, best_d, best_a, ev_h, ev_d, ev_a, k_h, k_d, k_a, match_num))
+            ''', (best_h, best_d, best_a, ev_h, ev_d, ev_a, k_h, k_d, k_a,
+                  'api', updated_at, bookmaker_keys, match_num))
             updates_count += 1
                 
         conn.commit()
@@ -245,6 +263,7 @@ class OddsCrawler:
         
         updates_count = 0
         margin = 1.055  # 5.5% bookmaker commission
+        updated_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
         for row in rows:
             match_num, home, away, p_h, p_d, p_a, status = row
@@ -325,9 +344,11 @@ class OddsCrawler:
                 UPDATE matches 
                 SET odds_home = ?, odds_draw = ?, odds_away = ?,
                     ev_home = ?, ev_draw = ?, ev_away = ?,
-                    kelly_home = ?, kelly_draw = ?, kelly_away = ?
+                    kelly_home = ?, kelly_draw = ?, kelly_away = ?,
+                    odds_source = ?, odds_last_update = ?, odds_bookmaker_keys = ?
                 WHERE match_num = ?
-            ''', (best_h, best_d, best_a, ev_h, ev_d, ev_a, k_h, k_d, k_a, match_num))
+            ''', (best_h, best_d, best_a, ev_h, ev_d, ev_a, k_h, k_d, k_a,
+                  'simulated', updated_at, ','.join(platforms), match_num))
             updates_count += 1
             
         conn.commit()

@@ -7,8 +7,9 @@ import requests
 # DB configuration
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fifa_2026.db')
 
-# FBref static baseline data for expected goal difference per match (xG - xGA)
-FBREF_BASE_DATA = {
+# Model-prior expected goal difference per match (xG - xGA).
+# These values are internal priors, not a live FBref feed.
+MODEL_PRIOR_XG_DIFF = {
     'Argentina': 1.25, 'France': 1.15, 'Spain': 1.10, 'England': 1.05,
     'Brazil': 0.95, 'Belgium': 0.85, 'Portugal': 0.90, 'Netherlands': 0.80,
     'Uruguay': 0.75, 'Colombia': 0.70, 'Croatia': 0.65, 'Morocco': 0.60,
@@ -24,14 +25,16 @@ FBREF_BASE_DATA = {
     'Curaçao': -0.40, 'New Zealand': -0.30
 }
 
-# Base injury/suspension counts for key nations
-BASE_INJURY_DATA = {
+# Model-prior injury/suspension counts for key nations.
+# Replace with a real injury feed before presenting them as sourced injury data.
+MODEL_PRIOR_INJURY_COUNT = {
     'France': 2, 'England': 1, 'Brazil': 2, 'Germany': 3, 'Argentina': 1,
     'Spain': 1, 'Portugal': 2, 'Netherlands': 1, 'Belgium': 2, 'Uruguay': 1
 }
 
-# Opta Analyst 2026 World Cup official supercomputer prediction simulation baseline
-OPTA_WORLD_CUP_PREDICTION = {
+# Legacy model prior used by the per-match ensemble. The title-race predictor uses
+# its own sourced Opta snapshot from The Analyst; this table is not a live Opta feed.
+MODEL_PRIOR_OPTA_WIN_PROB = {
     'Argentina': 0.141, 'France': 0.128, 'Spain': 0.105, 'England': 0.098,
     'Brazil': 0.089, 'Portugal': 0.062, 'Netherlands': 0.055, 'Germany': 0.048,
     'Uruguay': 0.032, 'Colombia': 0.028, 'Morocco': 0.025, 'Croatia': 0.020, 
@@ -65,23 +68,23 @@ def setup_database_schema():
         print("[Success] Added external fields (fbref_xg_diff, injury_count, sentiment_score, opta_win_prob) to teams table.")
     conn.close()
 
-def fetch_fbref_xg_diff(team_name):
-    """Retrieves expected goals difference per match.
+def get_model_prior_xg_diff(team_name):
+    """Returns the internal model-prior expected goals difference per match.
 
-    Returns the deterministic FBref baseline. Previously a ±0.05 random jitter was
+    Previously a +/-0.05 random jitter was
     added on every run, which — combined with the daily full-DB rebuild — made every
-    prediction wobble day to day with no underlying signal. Until a real FBref scrape
-    is wired in, a stable baseline is strictly better than injected noise.
+    prediction wobble day to day with no underlying signal. Until a real source is
+    wired in, a stable model prior is strictly better than injected noise.
     """
-    return round(FBREF_BASE_DATA.get(team_name, 0.0), 2)
+    return round(MODEL_PRIOR_XG_DIFF.get(team_name, 0.0), 2)
 
-def fetch_squad_injuries(team_name):
-    """Retrieves injured/suspended players count (deterministic baseline).
+def get_model_prior_injury_count(team_name):
+    """Returns the internal model-prior injured/suspended player count.
 
     The previous 15% random change re-rolled every daily sync and silently shifted
     predictions; a real injury feed should replace this, not random walk it.
     """
-    return BASE_INJURY_DATA.get(team_name, 0)
+    return MODEL_PRIOR_INJURY_COUNT.get(team_name, 0)
 
 def analyze_reddit_sentiment(team_name):
     """
@@ -132,13 +135,13 @@ def analyze_reddit_sentiment(team_name):
     normalized = math.tanh(total_score / 15.0)
     return round(normalized, 2)
 
-def get_opta_prediction(team_name):
-    """Returns Opta Analyst official tournament prediction probability."""
-    return OPTA_WORLD_CUP_PREDICTION.get(team_name, 0.001)
+def get_model_prior_opta_prob(team_name):
+    """Returns the legacy Opta-like model prior used by match-level features."""
+    return MODEL_PRIOR_OPTA_WIN_PROB.get(team_name, 0.001)
 
 def run_external_intelligence_sync():
-    """Main execution function to sync all external data points to teams database."""
-    print("[Sync] Start syncing external intelligence (FBref/SofaScore/Reddit/Opta)...")
+    """Sync model prior features and Reddit sentiment to the teams database."""
+    print("[Sync] Start syncing model prior features and Reddit sentiment...")
     setup_database_schema()
     
     conn = sqlite3.connect(DB_PATH)
@@ -150,10 +153,10 @@ def run_external_intelligence_sync():
     
     success_count = 0
     for team in teams:
-        xg_diff = fetch_fbref_xg_diff(team)
-        injuries = fetch_squad_injuries(team)
+        xg_diff = get_model_prior_xg_diff(team)
+        injuries = get_model_prior_injury_count(team)
         sentiment = analyze_reddit_sentiment(team)
-        opta_prob = get_opta_prediction(team)
+        opta_prob = get_model_prior_opta_prob(team)
         
         cursor.execute('''
             UPDATE teams 

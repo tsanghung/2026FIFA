@@ -448,7 +448,7 @@ def fetch_market_api(api_key):
         r.raise_for_status()
         data = r.json()
     except Exception as e:
-        log(f"outright API 抓取失敗 ({e})，改用內建快照。")
+        log(f"outright API 抓取失敗 ({type(e).__name__})，改用內建快照。")
         return None
 
     per_book = {}  # book -> {team: odds}
@@ -500,6 +500,19 @@ def normalise(d):
     return {k: v / total for k, v in d.items()} if total > 0 else d
 
 
+def canonicalise_probability_map(probs, allowed_teams):
+    """Fold aliases and discard non-qualified / non-registered teams."""
+    folded = {}
+    for raw_team, value in (probs or {}).items():
+        if value is None:
+            continue
+        team = normalize_team_name(raw_team)
+        if team not in allowed_teams:
+            continue
+        folded[team] = folded.get(team, 0.0) + float(value)
+    return normalise(folded)
+
+
 def completed_fraction(matches):
     done = sum(1 for m in matches if m['status'] == 'Completed')
     return done / max(1, len(matches))
@@ -537,14 +550,15 @@ def run_champion_prediction(api_key=None, n_sims=10000, alpha=EWMA_ALPHA, store=
     cache = PredictionCache(teams)
     model_probs, stage_probs = simulate_tournament(matches, cache, n_sims)
 
-    market_probs = normalise(get_market_probs(api_key))
-    opta_probs = normalise({normalize_team_name(t): p for t, p in OPTA_2026.items()})
-    model_probs = normalise(model_probs)
+    official_teams = set(teams)
+    market_probs = canonicalise_probability_map(get_market_probs(api_key), official_teams)
+    opta_probs = canonicalise_probability_map(OPTA_2026, official_teams)
+    model_probs = canonicalise_probability_map(model_probs, official_teams)
 
     w = interp_weights(frac)
     log(f"融合權重（市場/權威/模型）= {w['market']:.2f}/{w['opta']:.2f}/{w['model']:.2f}")
 
-    all_teams = set(teams) | set(market_probs) | set(opta_probs) | set(model_probs)
+    all_teams = set(teams)
     blended_raw = {}
     for t in all_teams:
         blended_raw[t] = (w['market'] * market_probs.get(t, 0.0)
@@ -563,6 +577,11 @@ def run_champion_prediction(api_key=None, n_sims=10000, alpha=EWMA_ALPHA, store=
     ranked = sorted(blended_ewma.items(), key=lambda kv: kv[1], reverse=True)
 
     if store:
+        placeholders = ','.join('?' for _ in official_teams)
+        cursor.execute(
+            f'DELETE FROM champion_predictions WHERE team NOT IN ({placeholders})',
+            tuple(sorted(official_teams)),
+        )
         # Fresh write for the day so retired/withdrawn teams never linger.
         cursor.execute('DELETE FROM champion_predictions WHERE snapshot_date = ?', (today,))
         for rank, (t, ev) in enumerate(ranked, 1):

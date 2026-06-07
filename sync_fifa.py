@@ -171,6 +171,7 @@ def normalize_team_name(name):
         "Côte d'Ivoire": 'Ivory Coast',
         'Cabo Verde': 'Cape Verde',
         'Bosnia and Herzegovina': 'Bosnia-Herzegovina',
+        'Bosnia & Herzegovina': 'Bosnia-Herzegovina',
         # Common Wikipedia/feed variants that previously failed to join the teams
         # table (e.g. Match 23 'Turkey' vs 'United States' fell back to 1400 Elo).
         'Turkey': 'Türkiye',
@@ -270,6 +271,9 @@ def init_db(force_recreate=False):
             kelly_home REAL,
             kelly_draw REAL,
             kelly_away REAL,
+            odds_source TEXT DEFAULT 'unknown',
+            odds_last_update DATETIME DEFAULT NULL,
+            odds_bookmaker_keys TEXT DEFAULT NULL,
             last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -958,13 +962,13 @@ def parse_and_sync():
     
     log(f"成功爬取並寫入 {inserted_count} 場基礎賽事數據到資料庫。")
     
-    # 執行第二階段多源情報 (FBref/SofaScore/Reddit/Opta) 自動抓取與情感分析
+    # 執行第二階段模型先驗與 Reddit 輿情同步；非即時 FBref/SofaScore/Opta 抓取。
     try:
-        log("正在同步第二階段多源情報 (FBref/SofaScore/Reddit/Opta)...")
+        log("正在同步第二階段模型先驗與 Reddit 輿情...")
         import subprocess
         subprocess.run(["python", "external_intelligence.py"], check=True)
     except Exception as e:
-        log(f"同步外部情報失敗: {e}，將使用現有的資料庫快取數據。")
+        log(f"同步模型先驗與 Reddit 輿情失敗: {e}，將使用現有的資料庫快取數據。")
 
     # Run the comprehensive dynamic recalculation engine (Elo rating history and predictions)
     reset_and_recalculate_all_elo_and_predictions()

@@ -10,7 +10,7 @@ site build and work immediately on GitHub/Cloudflare Pages without a domain.
 SITE_URL = "https://tsanghung.github.io/2026FIFA"
 
 SITE_TITLE = "2026 世界盃 AI 預測 ・ 賠率 ・ 比分"
-SITE_DESC = ("2026 FIFA 世界盃全 104 場 AI 勝負預測、即時賠率對比與最佳投注價值（EV）。"
+SITE_DESC = ("2026 FIFA 世界盃全 104 場 AI 勝負預測、來源標示賠率對比與期望值（EV）研究。"
              "Elo/Pi/Berrar/Dixon-Coles 集成模型，經 5 萬場歷史回測校準。")
 SITE_LANG = "zh-Hant"
 

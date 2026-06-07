@@ -320,6 +320,17 @@ def check_and_update_db_schema():
             if col_name not in cols:
                 cursor.execute(f"ALTER TABLE teams ADD COLUMN {col_name} {col_def}")
                 updated = True
+        cursor.execute("PRAGMA table_info(matches)")
+        match_cols = [row[1] for row in cursor.fetchall()]
+        odds_source_fields = [
+            ("odds_source", "TEXT DEFAULT 'unknown'"),
+            ("odds_last_update", "DATETIME DEFAULT NULL"),
+            ("odds_bookmaker_keys", "TEXT DEFAULT NULL")
+        ]
+        for col_name, col_def in odds_source_fields:
+            if col_name not in match_cols:
+                cursor.execute(f"ALTER TABLE matches ADD COLUMN {col_name} {col_def}")
+                updated = True
         if updated:
             conn.commit()
         conn.close()
@@ -357,6 +368,35 @@ def fmt_pct(value):
     if value is None or pd.isna(value):
         return "-"
     return f"{float(value) * 100:.1f}%"
+
+def get_odds_feed_summary():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(matches)")
+        cols = {row[1] for row in cursor.fetchall()}
+        if "odds_source" not in cols:
+            conn.close()
+            return "SOURCE UNKNOWN"
+        rows = cursor.execute('''
+            SELECT COALESCE(odds_source, 'unknown'), COUNT(*)
+            FROM matches
+            WHERE odds_home IS NOT NULL
+            GROUP BY COALESCE(odds_source, 'unknown')
+            ORDER BY 1
+        ''').fetchall()
+        conn.close()
+    except Exception:
+        return "SOURCE UNKNOWN"
+    if not rows:
+        return "NO ODDS"
+    labels = {
+        "api": "API",
+        "simulated": "SIM",
+        "manual": "MANUAL",
+        "unknown": "UNKNOWN",
+    }
+    return " / ".join(f"{labels.get(src, src.upper())} {count}" for src, count in rows)
 
 def fmt_signed_pct(value):
     if value is None or pd.isna(value):
@@ -565,7 +605,7 @@ with tab_overview:
     top_kelly_value = f"{top_kelly['kelly']:.2%}" if top_kelly else "-"
     top_kelly_match = top_kelly["matchup"] if top_kelly else "No stake signal"
     latest_log = get_latest_log_line()
-    feed_state = "API / LIVE" if os.environ.get('THE_ODDS_API_KEY', '').strip() else "SIMULATED FEED"
+    feed_state = get_odds_feed_summary()
 
     queue_rows = sorted(value_rows, key=lambda item: item["ev"], reverse=True)[:4]
     queue_html = ""
@@ -773,7 +813,7 @@ with tab_val:
 # ================= TAB 2: Match Schedule =================
 with tab_sched:
     st.header("📅 2026 FIFA 世界盃賽程預測與賠率對比")
-    st.write("並列顯示三大莊家在該場的 Decimal 賠率。如果沒有 API 即時開盤，將自動調用動態微隨機游走模擬賠率。")
+    st.write("並列顯示三大莊家在該場的 Decimal 賠率；來源狀態由資料庫 odds_source 欄位標示。")
     
     conn = get_db_connection()
     query = '''
@@ -863,7 +903,7 @@ with tab_sched:
         })
 
     st.dataframe(pd.DataFrame(rows_html), use_container_width=True, hide_index=True)
-    st.caption("📊 賠率為研究/價值分析用途，本站不提供投注服務。")
+    st.caption(f"📊 賠率為研究/價值分析用途，本站不提供投注服務。來源狀態：{get_odds_feed_summary()}")
 
 # ================= TAB 3: Monte Carlo Simulator =================
 with tab_monte:

@@ -42,6 +42,19 @@ def pct(x):
     return f"{(x or 0) * 100:.0f}%"
 
 
+def odds_source_label(row):
+    source = (row.get('odds_source') or 'unknown').lower()
+    labels = {
+        'api': 'API 實盤',
+        'simulated': '模型模擬',
+        'manual': '手動輸入',
+        'unknown': '來源未標示',
+    }
+    detail = row.get('odds_bookmaker_keys')
+    suffix = f'：{detail}' if detail else ''
+    return labels.get(source, source.upper()) + suffix
+
+
 def load_data():
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
@@ -50,7 +63,8 @@ def load_data():
         SELECT match_num, group_or_stage, date, time, home_team, away_team,
                pred_home_win_prob, pred_draw_prob, pred_away_win_prob, pred_score,
                odds_home, odds_draw, odds_away, status, score,
-               odds_home_pinnacle, odds_home_williamhill, odds_home_draftkings
+               odds_home_pinnacle, odds_home_williamhill, odds_home_draftkings,
+               odds_source, odds_last_update, odds_bookmaker_keys
         FROM matches ORDER BY match_num ASC''')]
     teams = [dict(r) for r in cur.execute(
         'SELECT name, elo_rating, fifa_rank FROM teams ORDER BY elo_rating DESC')]
@@ -125,7 +139,7 @@ def foot():
     yr = datetime.now().year
     return f'''</main>
 <footer class="site-foot">
-  <p>資料每日更新・模型經 ~5 萬場歷史回測校準。本站僅提供研究與數據分析，不提供任何投注服務；賠率僅作價值研究參考。</p>
+  <p>資料每日更新・模型經 ~5 萬場歷史回測校準。本站僅提供研究與數據分析，不提供任何投注服務；賠率僅作價值研究參考，並標示 API、手動、模擬或未標示來源。</p>
   <p>進階互動工具（蒙地卡羅模擬器等）：<a href="{site.STREAMLIT_APP_URL}" rel="nofollow">開啟 App</a>
    ｜ © {yr} {esc(site.SITE_TITLE)}</p>
 </footer>
@@ -348,9 +362,12 @@ def build_match(m, matches):
 
     # Odds table (research / value reference only — no betting channel)
     if m['odds_home']:
-        p.append('<h2>市場賠率（研究參考）</h2><table class="odds"><thead><tr><th>客勝</th><th>和局</th><th>主勝</th></tr></thead>'
+        source = esc(odds_source_label(m))
+        p.append(f'<h2>賠率（{source}，研究參考）</h2><table class="odds"><thead><tr><th>客勝</th><th>和局</th><th>主勝</th></tr></thead>'
                  f'<tbody><tr><td>{m["odds_away"] or "-"}</td><td>{m["odds_draw"] or "-"}</td>'
                  f'<td>{m["odds_home"] or "-"}</td></tr></tbody></table>')
+        if m.get('odds_last_update'):
+            p.append(f'<p class="muted">賠率更新時間：{esc(m["odds_last_update"])}</p>')
     p.append(ad_unit())
 
     if m['score']:

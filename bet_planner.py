@@ -1,6 +1,7 @@
 import os
 import sys
 import sqlite3
+from datetime import datetime
 
 # Enforce UTF-8 output on Windows to prevent UnicodeEncodeError (cp950)
 if sys.platform.startswith('win'):
@@ -218,9 +219,11 @@ def update_odds():
         UPDATE matches
         SET odds_home = ?, odds_draw = ?, odds_away = ?,
             ev_home = ?, ev_draw = ?, ev_away = ?,
-            kelly_home = ?, kelly_draw = ?, kelly_away = ?
+            kelly_home = ?, kelly_draw = ?, kelly_away = ?,
+            odds_source = ?, odds_last_update = ?, odds_bookmaker_keys = ?
         WHERE match_num = ?
-    ''', (best_h, best_d, best_a, ev_h, ev_d, ev_a, k_h, k_d, k_a, match_num))
+    ''', (best_h, best_d, best_a, ev_h, ev_d, ev_a, k_h, k_d, k_a,
+          'manual', datetime.now().strftime('%Y-%m-%d %H:%M:%S'), p_key, match_num))
     
     conn.commit()
     conn.close()
@@ -327,7 +330,8 @@ def reset_odds():
         "odds_home", "odds_draw", "odds_away", "ev_home", "ev_draw", "ev_away", "kelly_home", "kelly_draw", "kelly_away",
         "odds_home_bet365", "odds_draw_bet365", "odds_away_bet365", "ev_home_bet365", "ev_draw_bet365", "ev_away_bet365", "kelly_home_bet365", "kelly_draw_bet365", "kelly_away_bet365",
         "odds_home_williamhill", "odds_draw_williamhill", "odds_away_williamhill", "ev_home_williamhill", "ev_draw_williamhill", "ev_away_williamhill", "kelly_home_williamhill", "kelly_draw_williamhill", "kelly_away_williamhill",
-        "odds_home_draftkings", "odds_draw_draftkings", "odds_away_draftkings", "ev_home_draftkings", "ev_draw_draftkings", "ev_away_draftkings", "kelly_home_draftkings", "kelly_draw_draftkings", "kelly_away_draftkings"
+        "odds_home_draftkings", "odds_draw_draftkings", "odds_away_draftkings", "ev_home_draftkings", "ev_draw_draftkings", "ev_away_draftkings", "kelly_home_draftkings", "kelly_draw_draftkings", "kelly_away_draftkings",
+        "odds_source", "odds_last_update", "odds_bookmaker_keys"
     ]
     
     set_clause = ", ".join([f"{col} = NULL" for col in cols])
