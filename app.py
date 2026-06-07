@@ -26,6 +26,7 @@ st.set_page_config(
 from display_utils import (
     TEAM_TRANSLATIONS, get_team_display_name, convert_to_taiwan_time,
 )
+import external_predictions
 
 # Custom Futuristic HUD / Mission Control Theme
 st.markdown("""
@@ -331,6 +332,7 @@ def check_and_update_db_schema():
             if col_name not in match_cols:
                 cursor.execute(f"ALTER TABLE matches ADD COLUMN {col_name} {col_def}")
                 updated = True
+        external_predictions.ensure_default_data(conn)
         if updated:
             conn.commit()
         conn.close()
@@ -520,9 +522,10 @@ else:
     st.sidebar.caption("尚無同步日誌")
 
 # Tabs
-tab_overview, tab_title, tab_val, tab_sched, tab_monte, tab_teams, tab_ai, tab_acc = st.tabs([
+tab_overview, tab_title, tab_sources, tab_val, tab_sched, tab_monte, tab_teams, tab_ai, tab_acc = st.tabs([
     "MISSION CONTROL",
     "TITLE RACE",
+    "SOURCE BOARD",
     "EV+ VALUE",
     "MATCH SCHEDULE",
     "MONTE CARLO",
@@ -1542,6 +1545,92 @@ with tab_title:
                 "無 API 時用內建 2026-06 快照）。權威為 Opta 超級電腦。AI 模型為本系統 Elo/Pi/Berrar 集成驅動的"
                 "全賽事蒙地卡羅；開賽後依實際成績更新評級，模型權重隨完賽比例自動上升。每日以 EWMA(α=0.4) 平滑。"
             )
+
+# ================= TAB: External Source Board =================
+with tab_sources:
+    st.header("External Source Board / 外部模型來源看板")
+    st.write(
+        "這裡只呈現來源狀態與跨模型共識，不把文章型、商業型或人工快照偽裝成即時 API。"
+        "可自動同步、PDF 快照、人工快照、需人工審查會分開標示。"
+    )
+
+    src_conn = get_db_connection()
+    try:
+        external_predictions.ensure_default_data(src_conn)
+        sources = external_predictions.load_sources(src_conn)
+        consensus = external_predictions.load_champion_consensus(src_conn, limit=12)
+    finally:
+        src_conn.close()
+
+    auto_count = sum(1 for s in sources if s.get("sync_mode") == "auto")
+    partial_count = sum(1 for s in sources if s.get("sync_mode") in ("partial_pdf", "manual_snapshot"))
+    review_count = sum(1 for s in sources if s.get("sync_mode") == "manual_review")
+    source_count = max((int(r.get("source_count") or 0) for r in consensus), default=0)
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("AUTO", auto_count, "HTML 可直接同步")
+    c2.metric("PARTIAL", partial_count, "PDF/文章快照")
+    c3.metric("REVIEW", review_count, "先人工確認")
+    c4.metric("Max Sources", source_count, "同隊最大來源數")
+
+    if sources:
+        source_df = pd.DataFrame(sources)
+        source_df["免費直接抓"] = source_df["free_direct"].map(lambda x: "Yes" if int(x or 0) else "No")
+        st.subheader("8 個來源的可用性")
+        st.dataframe(
+            source_df[[
+                "source_name", "sync_mode", "免費直接抓", "coverage",
+                "trust_tier", "snapshot_date", "last_sync_status", "source_url"
+            ]].rename(columns={
+                "source_name": "來源",
+                "sync_mode": "同步模式",
+                "coverage": "資料範圍",
+                "trust_tier": "可信度類型",
+                "snapshot_date": "快照日期",
+                "last_sync_status": "狀態",
+                "source_url": "URL",
+            }),
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    if consensus:
+        consensus_df = pd.DataFrame(consensus)
+        consensus_df["avg_pct"] = consensus_df["avg_prob"] * 100
+        st.subheader("跨模型奪冠共識 Top 12")
+        fig = px.bar(
+            consensus_df,
+            x="avg_pct",
+            y=consensus_df["team"].apply(get_team_display_name),
+            orientation="h",
+            color="source_count",
+            color_continuous_scale="Viridis",
+            labels={"x": "平均奪冠率 (%)", "y": "隊伍", "source_count": "來源數"},
+        )
+        fig.update_layout(
+            template="plotly_dark",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            yaxis={"categoryorder": "total ascending"},
+            height=440,
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        st.dataframe(
+            pd.DataFrame({
+                "隊伍": consensus_df["team"].apply(get_team_display_name),
+                "平均奪冠率": consensus_df["avg_prob"].map(lambda v: f"{v * 100:.1f}%"),
+                "最低/最高": consensus_df.apply(
+                    lambda r: f"{r['min_prob'] * 100:.1f}% / {r['max_prob'] * 100:.1f}%",
+                    axis=1,
+                ),
+                "來源數": consensus_df["source_count"],
+                "來源": consensus_df["sources"],
+            }),
+            use_container_width=True,
+            hide_index=True,
+        )
+    else:
+        st.info("尚無外部模型快照。")
 
 # ================= TAB 7: Model Accuracy (Historical Backtest) =================
 with tab_acc:

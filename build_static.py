@@ -27,6 +27,7 @@ import sqlite3
 from datetime import datetime, timezone, timedelta
 
 from display_utils import get_team_display_name, convert_to_taiwan_time
+import external_predictions
 import site_config as site
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -77,13 +78,20 @@ def load_data():
                 'WHERE snapshot_date=? ORDER BY blended_ewma DESC LIMIT 12', (d,))]
     except Exception:
         pass
+    try:
+        external_predictions.ensure_default_data(con)
+        external_sources = external_predictions.load_sources(con)
+        external_consensus = external_predictions.load_champion_consensus(con, limit=12)
+    except Exception:
+        external_sources = []
+        external_consensus = []
     con.close()
     metrics = {}
     mp = os.path.join(HERE, 'backtest_metrics.json')
     if os.path.exists(mp):
         with open(mp, encoding='utf-8') as f:
             metrics = json.load(f)
-    return matches, teams, champs, metrics
+    return matches, teams, champs, metrics, external_sources, external_consensus
 
 
 # ---------------------------------------------------------------- HTML helpers
@@ -115,6 +123,7 @@ def head(title, desc, canonical, og_extra=""):
 <header class="site-head">
   <a class="brand" href="{site.SITE_URL}/">⚽ {esc(site.SITE_TITLE)}</a>
   <nav><a href="{site.SITE_URL}/#schedule">賽程</a><a href="{site.SITE_URL}/#title">奪冠</a>
+  <a href="{site.SITE_URL}/#sources">來源</a>
   <a href="{site.SITE_URL}/#ratings">評級</a><a href="{site.SITE_URL}/monte.html">模擬器</a>
   <a href="{site.SITE_URL}/#accuracy">準確度</a></nav>
 </header>
@@ -170,7 +179,80 @@ def match_row_html(m):
 </tr>'''
 
 
-def build_index(matches, teams, champs, metrics):
+def _sync_badge(source):
+    mode = (source.get('sync_mode') or '').lower()
+    if mode == 'auto':
+        return 'AUTO'
+    if mode == 'partial_pdf':
+        return 'PDF'
+    if mode == 'manual_snapshot':
+        return 'SNAPSHOT'
+    return 'REVIEW'
+
+
+def external_payload(external_sources, external_consensus):
+    return {
+        'generated_at': datetime.now(timezone.utc).isoformat(),
+        'external_sources': external_sources,
+        'external_champion_consensus': external_consensus,
+    }
+
+
+def build_source_board(external_sources, external_consensus):
+    if not external_sources and not external_consensus:
+        return ''
+
+    auto_count = sum(1 for s in external_sources if s.get('sync_mode') == 'auto')
+    partial_count = sum(1 for s in external_sources if s.get('sync_mode') in ('partial_pdf', 'manual_snapshot'))
+    review_count = sum(1 for s in external_sources if s.get('sync_mode') == 'manual_review')
+
+    parts = ['<section id="sources" class="source-board">']
+    parts.append('<div class="section-head"><div><h2>External Source Board / 外部模型來源看板</h2>')
+    parts.append('<p class="muted">每個外部模型都標示免費性、同步模式、資料覆蓋範圍與快照狀態；避免把文章、商業頁或人工快照誤寫成即時 API。</p></div>')
+    parts.append('<div class="source-summary">')
+    parts.append(f'<span><b>{auto_count}</b> AUTO</span>')
+    parts.append(f'<span><b>{partial_count}</b> PARTIAL</span>')
+    parts.append(f'<span><b>{review_count}</b> REVIEW</span>')
+    parts.append('</div></div>')
+
+    parts.append('<div class="source-grid">')
+    for s in external_sources:
+        badge = _sync_badge(s)
+        direct = '免費可抓' if s.get('free_direct') else '需人工確認'
+        parts.append(
+            '<article class="source-card">'
+            f'<div class="source-top"><a href="{esc(s.get("source_url", ""))}" rel="nofollow">{esc(s.get("source_name", ""))}</a>'
+            f'<span class="source-badge {badge.lower()}">{badge}</span></div>'
+            f'<div class="source-meta">{esc(direct)} · {esc(s.get("trust_tier", ""))}</div>'
+            f'<p>{esc(s.get("coverage", ""))}</p>'
+            f'<small>Snapshot: {esc(s.get("snapshot_date") or "-")} · Status: {esc(s.get("last_sync_status") or "-")}</small>'
+            '</article>'
+        )
+    parts.append('</div>')
+
+    if external_consensus:
+        parts.append('<h3>跨模型奪冠共識 Top 12</h3>')
+        parts.append('<div class="tablewrap"><table><thead><tr>'
+                     '<th>#</th><th>隊伍</th><th>平均奪冠率</th><th>來源數</th><th>來源</th>'
+                     '</tr></thead><tbody>')
+        for idx, row in enumerate(external_consensus, 1):
+            parts.append(
+                '<tr>'
+                f'<td class="muted">{idx}</td>'
+                f'<td>{esc(get_team_display_name(row.get("team", "")))}</td>'
+                f'<td><b>{float(row.get("avg_prob") or 0) * 100:.1f}%</b></td>'
+                f'<td>{esc(row.get("source_count", 0))}</td>'
+                f'<td class="muted">{esc(row.get("sources", ""))}</td>'
+                '</tr>'
+            )
+        parts.append('</tbody></table></div>')
+    parts.append('</section>')
+    return ''.join(parts)
+
+
+def build_index(matches, teams, champs, metrics, external_sources=None, external_consensus=None):
+    external_sources = external_sources or []
+    external_consensus = external_consensus or []
     canonical = f"{site.SITE_URL}/"
     parts = [head(site.SITE_TITLE, site.SITE_DESC, canonical)]
     parts.append(f'''<section class="hero">
@@ -186,6 +268,8 @@ def build_index(matches, teams, champs, metrics):
             parts.append(f'<div class="card"><span>{esc(get_team_display_name(c["team"]))}</span>'
                          f'<b>{c["blended_ewma"]*100:.1f}%</b></div>')
         parts.append('</div></section>')
+
+    parts.append(build_source_board(external_sources, external_consensus))
 
     # Schedule
     parts.append('<section id="schedule"><h2>📅 賽程預測與賠率</h2>')
@@ -397,6 +481,16 @@ th{background:#0d1426;color:var(--mut);position:sticky;top:0}td.muted,.muted{col
 .track{background:#0d1426;border-radius:8px;height:16px;overflow:hidden}.track i{display:block;height:100%}
 .track .h{background:var(--h)}.track .a{background:var(--a)}.track .d{background:var(--d)}
 .lead{font-size:17px}.odds{max-width:360px}.crumb{margin:6px 0 14px}
+.section-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;flex-wrap:wrap}
+.source-summary{display:flex;gap:8px;flex-wrap:wrap}.source-summary span{background:#0d1426;border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--mut)}
+.source-summary b{display:block;color:var(--txt);font-size:20px;line-height:1}
+.source-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:14px 0 20px}
+.source-card{background:linear-gradient(180deg,#121a30,#0d1426);border:1px solid var(--line);border-radius:12px;padding:14px;min-height:150px}
+.source-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.source-top a{font-weight:800;color:var(--txt)}
+.source-badge{font-size:11px;font-weight:900;border-radius:999px;padding:3px 8px;color:#06101d;background:var(--mut)}
+.source-badge.auto{background:var(--acc)}.source-badge.pdf{background:var(--d)}.source-badge.snapshot{background:var(--h);color:#fff}.source-badge.review{background:#718096;color:#fff}
+.source-meta{color:var(--acc);font-size:12px;margin-top:8px;text-transform:uppercase;letter-spacing:.04em}
+.source-card p{color:var(--mut);margin:8px 0}.source-card small{color:#7184aa}
 .ad{margin:20px 0;min-height:1px}.site-foot{max-width:1080px;margin:30px auto;padding:18px;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
 @media(max-width:560px){.prob{grid-template-columns:110px 1fr 48px}.hero h1{font-size:24px}}
 '''
@@ -409,11 +503,12 @@ def write(path, content):
 
 
 def main():
-    matches, teams, champs, metrics = load_data()
+    matches, teams, champs, metrics, external_sources, external_consensus = load_data()
     os.makedirs(os.path.join(OUT, 'match'), exist_ok=True)
     os.makedirs(os.path.join(OUT, 'assets'), exist_ok=True)
 
-    write(os.path.join(OUT, 'index.html'), build_index(matches, teams, champs, metrics))
+    write(os.path.join(OUT, 'index.html'), build_index(
+        matches, teams, champs, metrics, external_sources, external_consensus))
     for m in matches:
         write(os.path.join(OUT, 'match', f"{m['match_num']}.html"), build_match(m, matches))
     write(os.path.join(OUT, 'monte.html'), build_monte(sim_params()))
@@ -421,6 +516,8 @@ def main():
 
     # data.json (machine-readable)
     write(os.path.join(OUT, 'data.json'), json.dumps(matches, ensure_ascii=False))
+    write(os.path.join(OUT, 'external_predictions.json'),
+          json.dumps(external_payload(external_sources, external_consensus), ensure_ascii=False))
 
     # SEO: sitemap + robots
     now = datetime.now(timezone.utc).strftime('%Y-%m-%d')

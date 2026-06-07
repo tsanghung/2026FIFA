@@ -166,6 +166,28 @@ graph TD
 
 > 執行：`python champion_predictor.py`（可用 `CHAMPION_SIMS` 環境變數調整模擬次數，預設 10000）。
 
+### 4.6 外部模型來源看板與跨模型共識
+
+新增 `external_predictions.py`，將外部 2026 世界盃預測來源獨立管理，不再混入本系統 AI、賠率或 Opta 欄位。
+
+| 類型 | 來源 | 自動化策略 |
+| :--- | :--- | :--- |
+| **AUTO** | LeadAfrik、Zeileis/Groll | 免費公開 HTML，排程會嘗試直接抓取；若本機或 GitHub runner 抓取失敗，保留已標示的公開快照。 |
+| **PARTIAL** | Goldman Sachs PDF、Opta Analyst 文章 | 免費可讀，但不是穩定完整 API；目前以快照形式入庫並標明 `snapshot_date` / `data_quality`。 |
+| **REVIEW** | Squawka、Statz、CalibrSports、TheModelSays | 免費或 freemium 頁面，但不是可無條件自動抓取的完整資料源；先列入來源看板，不自動入正式模型。 |
+
+資料表：
+
+* `prediction_sources`：8 個來源的 URL、同步模式、免費性、資料範圍、快照日期與狀態。
+* `external_champion_predictions`：外部來源的奪冠機率快照。
+* `external_match_predictions`：預留逐場外部預測欄位，供 LeadAfrik 等來源後續擴充。
+
+前端：
+
+* Streamlit 新增 **SOURCE BOARD** 分頁。
+* GitHub Pages 首頁新增 **External Source Board / 外部模型來源看板**。
+* `docs/external_predictions.json` 輸出外部來源與跨模型奪冠共識，保留 `data.json` 原本賽程格式。
+
 ---
 
 ## 🌍 4.9 靜態網站 → GitHub / Cloudflare Pages（SEO + 變現首選）

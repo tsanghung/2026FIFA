@@ -1,5 +1,6 @@
 __pycache__/
 *.pyc
+.test-tmp/
 .vscode/
 .idea/
 .DS_Store

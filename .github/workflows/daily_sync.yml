@@ -34,6 +34,10 @@ jobs:
         run: |
           python sync_fifa.py
 
+      - name: Sync External Prediction Sources
+        run: |
+          python external_predictions.py
+
       - name: 🏗️ Build Static Site (SEO/AdSense-ready, for GitHub Pages)
         run: |
           python build_static.py
