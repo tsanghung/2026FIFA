@@ -275,7 +275,7 @@ def build_index(matches, teams, champs, metrics, external_sources=None, external
     parts.append('<section id="schedule"><h2>📅 賽程預測與賠率</h2>')
     parts.append('<input id="q" class="filter" placeholder="搜尋隊伍 / 階段…" oninput="filt()">')
     parts.append('<div class="tablewrap"><table id="sched"><thead><tr>'
-                 '<th>#</th><th>時間(台)</th><th>客</th><th>比分</th><th>主</th>'
+                 '<th>#</th><th class="sortable" onclick="sortTime(this)">時間(台)<span class="arr"></span></th><th>客</th><th>比分</th><th>主</th>'
                  '<th>客/和/主</th><th>預測</th><th>比分預測</th></tr></thead><tbody>')
     for m in matches:
         parts.append(match_row_html(m))
@@ -306,6 +306,16 @@ def build_index(matches, teams, champs, metrics, external_sources=None, external
 function filt(){var q=document.getElementById('q').value.toLowerCase();
 document.querySelectorAll('#sched tbody tr').forEach(function(r){
 r.style.display=r.innerText.toLowerCase().indexOf(q)>-1?'':'none';});}
+function sortTime(th){
+ var tb=document.querySelector('#sched tbody');
+ var rows=[].slice.call(tb.querySelectorAll('tr'));
+ var asc=th.getAttribute('data-asc')!=='1';
+ th.setAttribute('data-asc',asc?'1':'0');
+ rows.sort(function(a,b){
+  var x=a.cells[1].innerText.trim(), y=b.cells[1].innerText.trim();
+  return asc?(x>y?1:x<y?-1:0):(x<y?1:x>y?-1:0);});
+ rows.forEach(function(r){tb.appendChild(r);});
+ th.querySelector('.arr').textContent=asc?' ▲':' ▼';}
 </script>''')
     parts.append(foot())
     return ''.join(parts)
@@ -472,6 +482,7 @@ h2{margin-top:34px;border-left:4px solid var(--acc);padding-left:10px}
 .cards{display:flex;flex-wrap:wrap;gap:10px}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:130px;display:flex;flex-direction:column}
 .card span{color:var(--mut);font-size:13px}.card b{font-size:22px}
 .filter{width:100%;max-width:340px;padding:10px 12px;margin:8px 0 12px;border-radius:10px;border:1px solid var(--line);background:#0d1426;color:var(--txt)}
+th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--txt)}.arr{color:var(--acc);font-size:12px}
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
 table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 th{background:#0d1426;color:var(--mut);position:sticky;top:0}td.muted,.muted{color:var(--mut)}.team a{color:var(--txt)}.vs{color:var(--mut);text-align:center}
