@@ -192,6 +192,60 @@ def _fmt(x, suffix='', dash='—'):
     return f"{x:.2f}{suffix}" if isinstance(x, (int, float)) else dash
 
 
+# 結果代碼 → 中文
+_SIDE_ZH = {'home': '主勝', 'away': '客勝', 'draw': '和局'}
+
+
+def analyze_divergence(m):
+    """
+    賽後分析單場「模型預測 vs 真實結果」的落差與原因。
+    m: dict，需含 home, away, ph, pd, pa, pred_score, elo_h, elo_a,
+       pick_side, pick_team, hg, ag。
+    回傳 (命中?bool, 原因字串)；若尚未開賽回傳 (None, '⏳ 待開賽')。
+    """
+    hg, ag = m['hg'], m['ag']
+    if hg is None or ag is None:
+        return None, '⏳ 待開賽'
+
+    actual = _actual_outcome(hg, ag)                      # home/away/draw
+    probs = {'home': m['ph'] or 0, 'draw': m['pd'] or 0, 'away': m['pa'] or 0}
+    fav = max(probs, key=probs.get)                       # 模型最看好的結果
+    fav_p = probs[fav] * 100
+    pick = m['pick_side']
+    hit = (actual == pick)
+
+    win_name = m['home'] if actual == 'home' else m['away'] if actual == 'away' else '雙方'
+    elo_gap = abs((m['elo_h'] or 0) - (m['elo_a'] or 0))
+
+    # 命中：照預測押中
+    if hit:
+        sc = f"（賽前估比分 {m['pred_score']}，實際 {hg}:{ag}）" if m['pred_score'] else ""
+        conf = "高信心" if fav_p >= 60 else "中信心" if fav_p >= 45 else "低信心(本就難料卻押中)"
+        return True, f"✅ 命中：模型賽前看好{_SIDE_ZH[pick]}（{fav_p:.0f}%，{conf}），結果如預期 {sc}"
+
+    # 未命中：分類冷門原因
+    reasons = []
+    if actual == 'draw':
+        reasons.append(f"爆和局：你押{m['pick_team']}贏，最後 {hg}:{ag} 言和；"
+                       f"模型其實也給了和局 {probs['draw']*100:.0f}% 的不低機率")
+    else:
+        reasons.append(f"翻盤：你押{m['pick_team']}贏，最後由{win_name}勝出（{hg}:{ag}）")
+
+    # 信心層級 → 屬「合理變異」還是「真大冷門」
+    if fav_p >= 60:
+        reasons.append(f"屬大冷門：模型高度看好{_SIDE_ZH[fav]}（{fav_p:.0f}%）仍翻車，"
+                       f"多半是紅牌、定位球、門將神勇或臨場狀態等模型無法預知的單場因素")
+    elif fav_p < 45 or (sorted(probs.values(), reverse=True)[0] - sorted(probs.values(), reverse=True)[1]) < 0.10:
+        reasons.append(f"屬合理變異：三方機率接近（主{probs['home']*100:.0f}/和{probs['draw']*100:.0f}/客{probs['away']*100:.0f}），"
+                       f"模型信心本就低，押這種場次風險高")
+    else:
+        reasons.append(f"中等意外：模型看好{_SIDE_ZH[fav]}（{fav_p:.0f}%）但非壓倒性")
+
+    if elo_gap < 60:
+        reasons.append(f"兩隊實力接近（Elo 僅差 {elo_gap:.0f}），本是五五波")
+    return False, "❌ " + "；".join(reasons)
+
+
 def build_report(conn):
     """產出文字報表並寫入 BET_TRACKING.md。回傳報表字串。"""
     cur = conn.cursor()
@@ -201,79 +255,88 @@ def build_report(conn):
            FROM bets ORDER BY placed_date, bet_id''').fetchall()
 
     lines = []
-    lines.append("# 🎟️ 個人投注追蹤 ─ 實際結果 vs 投注 勝率比較\n")
+    lines.append("# 🎟️ 照預測投注 → 真實結果 落差分析\n")
     lines.append(f"_更新時間：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}（台灣時間）_\n")
+    lines.append("> 投注策略：**照模型預測下注**。下面比對「模型賽前怎麼說」與「球真的怎麼踢」，"
+                 "並在每場開賽後自動分析落差原因。\n")
 
-    # 彩票層級統計
+    # 收集所有腿的賽後分析（含 model 完整數據）
+    all_legs = cur.execute(
+        '''SELECT l.bet_id, l.match_num, l.pick_team, l.pick_side, l.result,
+                  m.home_team, m.away_team, m.home_goals, m.away_goals, m.date,
+                  m.pred_home_win_prob, m.pred_draw_prob, m.pred_away_win_prob,
+                  m.pred_score, m.home_pre_match_elo, m.away_pre_match_elo
+           FROM bet_legs l JOIN matches m ON m.match_num=l.match_num
+           ORDER BY m.date, l.match_num''').fetchall()
+
+    def leg_to_m(row):
+        return {
+            'home': row[5], 'away': row[6], 'hg': row[7], 'ag': row[8],
+            'ph': row[10], 'pd': row[11], 'pa': row[12], 'pred_score': row[13],
+            'elo_h': row[14], 'elo_a': row[15],
+            'pick_side': row[3], 'pick_team': row[2],
+        }
+
+    # 單場層級命中統計
+    played = [r for r in all_legs if r[7] is not None]
+    hits = sum(1 for r in played if r[4] == 'won')
+    leg_hit = (hits / len(played) * 100) if played else None
+
+    # 彩票層級
     n_total = len(bets)
     n_settled = sum(1 for b in bets if b[7] in ('won', 'lost'))
     n_won = sum(1 for b in bets if b[7] == 'won')
     n_open = sum(1 for b in bets if b[7] == 'open')
-    total_stake = sum(b[3] for b in bets)
-    settled_stake = sum(b[3] for b in bets if b[7] in ('won', 'lost'))
-    total_payout = sum(b[8] for b in bets if b[7] in ('won', 'lost') and b[8] is not None)
-    net = total_payout - settled_stake if n_settled else 0.0
-    win_rate = (n_won / n_settled * 100) if n_settled else None
-    roi = (net / settled_stake * 100) if settled_stake else None
 
-    lines.append("## 📊 總覽（彩票層級）\n")
-    lines.append(f"- 彩票張數：{n_total}（已結算 {n_settled}、未開獎 {n_open}）")
-    lines.append(f"- 已結算命中：{n_won}/{n_settled}　勝率：{_fmt(win_rate, '%') if win_rate is not None else '尚無已結算彩票'}")
-    lines.append(f"- 總投注本金：{total_stake:.0f} 元（已結算 {settled_stake:.0f} 元）")
-    lines.append(f"- 已結算派彩：{total_payout:.0f} 元　淨損益：{net:+.0f} 元　ROI：{_fmt(roi, '%') if roi is not None else '—'}\n")
+    lines.append("## 📊 總覽\n")
+    lines.append(f"- 投注張數：{n_total} 張過關（已開獎 {n_settled}、未開獎 {n_open}）")
+    if n_settled:
+        lines.append(f"- 過關命中：{n_won}/{n_settled} 張（{n_won/n_settled*100:.0f}%）")
+    if played:
+        lines.append(f"- 單場層級：模型預測命中 {hits}/{len(played)} 場（{leg_hit:.0f}%）")
+    else:
+        lines.append("- ⏳ 四場皆未開賽（6/11、6/12 陸續開打），開賽後此處自動更新命中率與原因。")
+    lines.append("")
 
     # 每張彩票明細
-    lines.append("## 🧾 彩票明細\n")
-    status_zh = {'open': '⏳ 未開獎', 'won': '✅ 中獎', 'lost': '❌ 未中', 'void': '➖ 作廢'}
+    lines.append("## 🧾 投注明細（照預測押）\n")
+    status_zh = {'open': '⏳ 未開獎', 'won': '✅ 全過關', 'lost': '❌ 未過關', 'void': '➖ 作廢'}
     for (bid, name, btype, stake, cur_unit, placed, todds, status, payout, profit) in bets:
         type_zh = '全部過關' if btype == 'parlay' else '單場'
-        lines.append(f"### #{bid}　{name}　[{type_zh}]")
-        head = (f"- 本金 {stake:.0f} {cur_unit}　總賠率 {_fmt(todds, '', '待補')}　"
-                f"狀態 {status_zh.get(status, status)}")
-        if status == 'won' and payout is not None:
-            head += f"　派彩 {payout:.0f}　損益 {profit:+.0f}"
-        elif status == 'lost':
-            head += f"　損益 {-stake:+.0f}"
-        elif status == 'open' and todds:
-            head += f"　（全中可派彩 {stake * todds:.0f}）"
-        lines.append(head)
-
-        legs = cur.execute(
-            '''SELECT l.match_num, l.pick_team, l.pick_side, l.odds, l.model_prob, l.result,
-                      m.home_team, m.away_team, m.home_goals, m.away_goals, m.date
-               FROM bet_legs l JOIN matches m ON m.match_num=l.match_num
-               WHERE l.bet_id=? ORDER BY m.date, l.match_num''', (bid,)).fetchall()
+        lines.append(f"### #{bid}　{name}　[{type_zh}]　{status_zh.get(status, status)}")
         lines.append("")
-        lines.append("| 場次 | 對戰 | 投注 | 賠率 | 模型勝率 | 實際比分 | 結果 |")
-        lines.append("|---|---|---|---|---|---|---|")
-        res_zh = {'won': '✅ 中', 'lost': '❌ 槓', 'push': '➖ 和', 'pending': '⏳ 待開'}
-        for (mn, pteam, pside, odds, mprob, result,
-             home, away, hg, ag, mdate) in legs:
+        lines.append("| 場次 | 對戰 | 我押 | 模型賽前預測 | 實際比分 | 命中 |")
+        lines.append("|---|---|---|---|---|---|")
+        res_zh = {'won': '✅', 'lost': '❌', 'pending': '⏳'}
+        for row in all_legs:
+            if row[0] != bid:
+                continue
+            mn, pteam, pside = row[1], row[2], row[3]
+            home, away, hg, ag = row[5], row[6], row[7], row[8]
+            ph, pd, pa, pred_score = row[10], row[11], row[12], row[13]
+            probs = {'home': ph or 0, 'draw': pd or 0, 'away': pa or 0}
+            fav = max(probs, key=probs.get)
+            pred_str = f"{_SIDE_ZH[fav]} {probs[fav]*100:.0f}%・比分 {pred_score}"
             score = f"{hg}:{ag}" if hg is not None else "—"
-            mprob_s = f"{mprob*100:.0f}%" if mprob is not None else "—"
-            odds_s = _fmt(odds, '', '待補')
-            lines.append(f"| #{mn} | {home} vs {away} | {pteam}勝 | {odds_s} | {mprob_s} | {score} | {res_zh.get(result, result)} |")
+            lines.append(f"| #{mn} | {home} vs {away} | {pteam}勝 | {pred_str} | {score} | {res_zh.get(row[4], row[4])} |")
         lines.append("")
 
-    # 腿（單場）層級命中率 + 模型對照
-    leg_rows = cur.execute(
-        '''SELECT result, model_prob FROM bet_legs''').fetchall()
-    settled_legs = [r for r in leg_rows if r[0] in ('won', 'lost')]
-    leg_won = sum(1 for r in settled_legs if r[0] == 'won')
-    leg_hit = (leg_won / len(settled_legs) * 100) if settled_legs else None
-    # 模型對「我所投注選項」的平均預期勝率（作為對照基準）
-    probs = [r[1] for r in leg_rows if r[1] is not None]
-    model_avg = (sum(probs) / len(probs) * 100) if probs else None
+    # 逐場落差原因
+    lines.append("## 🔍 逐場落差與原因（賽後自動產生）\n")
+    if not played:
+        lines.append("⏳ 尚無已開賽場次。6/11、6/12 比完後，這裡會逐場列出"
+                     "「模型怎麼預測、實際怎麼踢、為何有落差」。\n")
+    else:
+        for row in all_legs:
+            m = leg_to_m(row)
+            hit, reason = analyze_divergence(m)
+            if hit is None:
+                continue
+            lines.append(f"- **#{row[1]} {m['home']} vs {m['away']}**（{row[9]}）：{reason}")
+        lines.append("")
 
-    lines.append("## 🎯 單場（腿）層級：實際 vs 模型\n")
-    lines.append(f"- 已開獎場次：{len(settled_legs)}　實際命中率：{_fmt(leg_hit, '%') if leg_hit is not None else '尚無已開獎場次'}")
-    lines.append(f"- 模型對「所投選項」的平均預測勝率：{_fmt(model_avg, '%') if model_avg is not None else '—'}")
-    if leg_hit is not None and model_avg is not None:
-        diff = leg_hit - model_avg
-        verdict = "實際優於模型預期 👍" if diff >= 0 else "實際低於模型預期 👎"
-        lines.append(f"- 落差：{diff:+.1f} 個百分點（{verdict}）")
-    lines.append("")
-    lines.append("> 說明：本表為個人對帳用途，網站只提供研究資訊、不提供賭博管道。")
+    lines.append("> 說明：本檔為個人對帳/檢討用途，不會放上對外研究網站，"
+                 "網站只提供研究資訊、不提供賭博管道。")
 
     report = "\n".join(lines) + "\n"
     with open(REPORT_PATH, 'w', encoding='utf-8') as f:
