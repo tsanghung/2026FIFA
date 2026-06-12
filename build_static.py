@@ -28,6 +28,7 @@ from datetime import datetime, timezone, timedelta
 
 from display_utils import get_team_display_name, convert_to_taiwan_time
 import external_predictions
+import bet_tracker
 import site_config as site
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -94,6 +95,29 @@ def load_data():
     return matches, teams, champs, metrics, external_sources, external_consensus
 
 
+def load_bets():
+    """讀取個人投注（bets/bet_legs）與每腿的模型預測，供投注實測頁使用。"""
+    con = sqlite3.connect(DB_PATH)
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+    try:
+        bets = [dict(r) for r in cur.execute(
+            'SELECT * FROM bets ORDER BY placed_date, bet_id')]
+    except sqlite3.OperationalError:
+        con.close()
+        return []
+    for b in bets:
+        b['legs'] = [dict(r) for r in cur.execute('''
+            SELECT l.match_num, l.pick_team, l.pick_side, l.result,
+                   m.home_team, m.away_team, m.home_goals, m.away_goals, m.date,
+                   m.pred_home_win_prob, m.pred_draw_prob, m.pred_away_win_prob,
+                   m.pred_score, m.home_pre_match_elo, m.away_pre_match_elo
+            FROM bet_legs l JOIN matches m ON m.match_num=l.match_num
+            WHERE l.bet_id=? ORDER BY m.date, l.match_num''', (b['bet_id'],))]
+    con.close()
+    return bets
+
+
 # ---------------------------------------------------------------- HTML helpers
 
 def head(title, desc, canonical, og_extra=""):
@@ -125,6 +149,7 @@ def head(title, desc, canonical, og_extra=""):
   <nav><a href="{site.SITE_URL}/#schedule">賽程</a><a href="{site.SITE_URL}/#title">奪冠</a>
   <a href="{site.SITE_URL}/#sources">來源</a>
   <a href="{site.SITE_URL}/#ratings">評級</a><a href="{site.SITE_URL}/monte.html">模擬器</a>
+  <a href="{site.SITE_URL}/bets.html">投注實測</a>
   <a href="{site.SITE_URL}/#accuracy">準確度</a></nav>
 </header>
 <main>'''
@@ -258,7 +283,8 @@ def build_index(matches, teams, champs, metrics, external_sources=None, external
     parts.append(f'''<section class="hero">
 <h1>2026 FIFA 世界盃 AI 預測中心</h1>
 <p>全 104 場賽事的勝負機率、賠率對比與最佳投注價值（EV）。集成 Elo／Pi-Rating／Berrar／Dixon-Coles
-模型，並以約 5 萬場歷史國際賽回測校準。</p></section>''')
+模型，並以約 5 萬場歷史國際賽回測校準。</p>
+<p><a class="btn" href="{site.SITE_URL}/bets.html">🎟️ 投注實測：照預測下注 vs 真實結果 →</a></p></section>''')
     parts.append(ad_unit())
 
     # Champion race
@@ -471,6 +497,102 @@ def build_match(m, matches):
     return ''.join(p)
 
 
+def _leg_to_m(leg):
+    return {
+        'home': leg['home_team'], 'away': leg['away_team'],
+        'hg': leg['home_goals'], 'ag': leg['away_goals'],
+        'ph': leg['pred_home_win_prob'], 'pd': leg['pred_draw_prob'],
+        'pa': leg['pred_away_win_prob'], 'pred_score': leg['pred_score'],
+        'elo_h': leg['home_pre_match_elo'], 'elo_a': leg['away_pre_match_elo'],
+        'pick_side': leg['pick_side'], 'pick_team': leg['pick_team'],
+    }
+
+
+def build_bets(bets):
+    """投注實測頁：照模型預測下注 → 真實結果 落差與原因分析（公開對外）。"""
+    canonical = f"{site.SITE_URL}/bets.html"
+    title = "投注實測：照預測下注 vs 真實結果 | 2026 世界盃 AI"
+    desc = ("公開實測：完全照本站 AI 模型預測下注，逐場比對模型賽前預測與真實比賽結果，"
+            "並分析每一場落差原因（命中／爆冷／合理變異）。研究與透明度展示，非投注服務。")
+    p = [head(title, desc, canonical)]
+    p.append('<section class="hero"><h1>🎟️ 投注實測：照預測下注 vs 真實結果</h1>'
+             '<p>這裡公開記錄「<b>完全照本站 AI 模型預測</b>下注」的實際結果，逐場比對模型賽前怎麼說、'
+             '球真的怎麼踢，並自動分析落差原因。目的是<b>透明驗證模型</b>，本站不提供任何投注服務。</p></section>')
+
+    if not bets:
+        p.append('<p class="muted">目前尚無投注紀錄。</p>')
+        p.append(foot())
+        return ''.join(p)
+
+    # 統計
+    all_legs = [lg for b in bets for lg in b['legs']]
+    played = [lg for lg in all_legs if lg['home_goals'] is not None]
+    hits = sum(1 for lg in played if lg['result'] == 'won')
+    n_settled = sum(1 for b in bets if b['status'] in ('won', 'lost'))
+    n_won = sum(1 for b in bets if b['status'] == 'won')
+    total_stake = sum(b['stake'] for b in bets)
+
+    leg_hit = f"{hits/len(played)*100:.0f}%" if played else '—'
+    parlay_hit = f"{n_won}/{n_settled}" if n_settled else '—'
+    p.append('<div class="cards">')
+    p.append(f'<div class="card"><span>投注張數</span><b>{len(bets)}</b></div>')
+    p.append(f'<div class="card"><span>總投注</span><b>NT${total_stake:.0f}</b></div>')
+    p.append(f'<div class="card"><span>單場命中率</span><b>{leg_hit}</b></div>')
+    p.append(f'<div class="card"><span>過關命中</span><b>{parlay_hit}</b></div>')
+    p.append('</div>')
+
+    side_zh = {'home': '主勝', 'away': '客勝', 'draw': '和局'}
+    res_emoji = {'won': '✅', 'lost': '❌', 'pending': '⏳'}
+    status_zh = {'open': '⏳ 未開獎', 'won': '✅ 全過關', 'lost': '❌ 未過關', 'void': '➖ 作廢'}
+
+    p.append('<h2 id="tickets">投注明細（照預測押）</h2>')
+    for b in bets:
+        type_zh = '全部過關' if b['bet_type'] == 'parlay' else '單場'
+        p.append(f'<h3>{esc(b["name"])}　<span class="muted">[{type_zh}・本金 '
+                 f'NT${b["stake"]:.0f}・{esc(b["placed_date"])}]</span>　{status_zh.get(b["status"], b["status"])}</h3>')
+        p.append('<div class="tablewrap"><table><thead><tr>'
+                 '<th>場次</th><th>對戰</th><th>我押</th><th>模型賽前預測</th><th>實際比分</th><th>命中</th>'
+                 '</tr></thead><tbody>')
+        for lg in b['legs']:
+            a = get_team_display_name(lg['away_team'])
+            h = get_team_display_name(lg['home_team'])
+            pick = get_team_display_name(lg['pick_team'])
+            probs = {'home': lg['pred_home_win_prob'] or 0,
+                     'draw': lg['pred_draw_prob'] or 0,
+                     'away': lg['pred_away_win_prob'] or 0}
+            fav = max(probs, key=probs.get)
+            pred_str = f"{side_zh[fav]} {probs[fav]*100:.0f}%・{esc(lg['pred_score'] or '')}"
+            score = f"{lg['home_goals']}:{lg['away_goals']}" if lg['home_goals'] is not None else '—'
+            url = f"{site.SITE_URL}/match/{lg['match_num']}.html"
+            p.append(f'<tr><td class="muted">#{lg["match_num"]}</td>'
+                     f'<td class="team"><a href="{url}">{esc(a)} vs {esc(h)}</a></td>'
+                     f'<td><b>{esc(pick)}勝</b></td><td>{pred_str}</td>'
+                     f'<td>{esc(score)}</td><td>{res_emoji.get(lg["result"], lg["result"])}</td></tr>')
+        p.append('</tbody></table></div>')
+
+    p.append('<h2 id="analysis">逐場落差與原因</h2>')
+    if not played:
+        p.append('<p class="muted">⏳ 尚無已開賽場次。各場（6/11、6/12 起）比完後，'
+                 '這裡會自動逐場列出「模型怎麼預測、實際怎麼踢、為何有落差」。</p>')
+    else:
+        p.append('<ul class="reasons">')
+        for lg in all_legs:
+            hit, reason = bet_tracker.analyze_divergence(_leg_to_m(lg))
+            if hit is None:
+                continue
+            a = get_team_display_name(lg['away_team'])
+            h = get_team_display_name(lg['home_team'])
+            cls = 'ok' if hit else 'miss'
+            p.append(f'<li class="{cls}"><b>#{lg["match_num"]} {esc(a)} vs {esc(h)}</b>'
+                     f'（{esc(lg["date"])}）<br>{esc(reason)}</li>')
+        p.append('</ul>')
+
+    p.append('<p class="muted" style="margin-top:24px">說明：本頁為模型透明度驗證與研究用途，'
+             '記錄個人照預測下注的結果，<b>不提供任何投注管道或導流</b>。</p>')
+    p.append(foot())
+    return ''.join(p)
+
+
 CSS = '''
 :root{--bg:#0b1020;--panel:#121a30;--line:#1f2c4d;--txt:#e8edf7;--mut:#8aa0c8;--acc:#21d07a;--h:#3aa0ff;--a:#ff6b6b;--d:#f4c542}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,"Noto Sans TC",Segoe UI,Roboto,sans-serif;line-height:1.6}
@@ -502,6 +624,8 @@ th{background:#0d1426;color:var(--mut);position:sticky;top:0}td.muted,.muted{col
 .source-badge.auto{background:var(--acc)}.source-badge.pdf{background:var(--d)}.source-badge.snapshot{background:var(--h);color:#fff}.source-badge.review{background:#718096;color:#fff}
 .source-meta{color:var(--acc);font-size:12px;margin-top:8px;text-transform:uppercase;letter-spacing:.04em}
 .source-card p{color:var(--mut);margin:8px 0}.source-card small{color:#7184aa}
+.reasons{list-style:none;padding:0}.reasons li{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:12px 14px;margin:10px 0;line-height:1.7}
+.reasons li.ok{border-left-color:var(--acc)}.reasons li.miss{border-left-color:var(--a)}
 .ad{margin:20px 0;min-height:1px}.site-foot{max-width:1080px;margin:30px auto;padding:18px;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
 @media(max-width:560px){.prob{grid-template-columns:110px 1fr 48px}.hero h1{font-size:24px}}
 '''
@@ -523,6 +647,7 @@ def main():
     for m in matches:
         write(os.path.join(OUT, 'match', f"{m['match_num']}.html"), build_match(m, matches))
     write(os.path.join(OUT, 'monte.html'), build_monte(sim_params()))
+    write(os.path.join(OUT, 'bets.html'), build_bets(load_bets()))
     write(os.path.join(OUT, 'assets', 'style.css'), CSS)
 
     # data.json (machine-readable)
@@ -532,7 +657,7 @@ def main():
 
     # SEO: sitemap + robots
     now = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-    urls = ([f"{site.SITE_URL}/", f"{site.SITE_URL}/monte.html"]
+    urls = ([f"{site.SITE_URL}/", f"{site.SITE_URL}/monte.html", f"{site.SITE_URL}/bets.html"]
             + [f"{site.SITE_URL}/match/{m['match_num']}.html" for m in matches])
     sm = ['<?xml version="1.0" encoding="UTF-8"?>',
           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']

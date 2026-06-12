@@ -38,6 +38,10 @@ jobs:
         run: |
           python external_predictions.py
 
+      - name: 🎟️ Settle Personal Bets & Refresh Win-Rate Report
+        run: |
+          python bet_tracker.py
+
       - name: 🏗️ Build Static Site (SEO/AdSense-ready, for GitHub Pages)
         run: |
           python build_static.py
@@ -49,7 +53,7 @@ jobs:
 
           # Check if there are changes to commit
           if [ -n "$(git status --porcelain)" ]; then
-            git add fifa_2026.db sync.log CHAMPION_TREND.md docs
+            git add fifa_2026.db sync.log CHAMPION_TREND.md BET_TRACKING.md docs
             git commit -m "chore: daily data, odds sync & static site rebuild [skip ci]"
             git push origin HEAD:${{ github.ref }}
           else
