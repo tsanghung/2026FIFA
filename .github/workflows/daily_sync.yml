@@ -2,8 +2,8 @@ name: 🏆 2026 FIFA Daily Data Sync
 
 on:
   schedule:
-    # Runs at 13:00 UTC (9:00 PM Taiwan Time) daily
-    - cron: '0 13 * * *'
+    # Runs at 07:00 UTC (3:00 PM Taiwan Time) daily
+    - cron: '0 7 * * *'
   workflow_dispatch: # Allows manual execution from GitHub actions tab
 
 permissions:
