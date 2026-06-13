@@ -417,13 +417,17 @@ def predict_dixon_coles_model(lambda_home, lambda_away, rho=None):
     
     max_prob = -1.0
     best_score = "0-0"
-    
+    # Track the most likely exact score *within each outcome class* so the caller can
+    # report a scoreline consistent with the predicted 1X2 winner (avoids the
+    # "winner=home but score=1-1" contradiction and the global collapse toward 1-1).
+    modal_by_outcome = {'home': (None, "1-0"), 'draw': (None, "1-1"), 'away': (None, "0-1")}
+
     for h in range(8):
         h_prob = poisson_pmf(h, lambda_home)
         for a in range(8):
             a_prob = poisson_pmf(a, lambda_away)
             joint = h_prob * a_prob
-            
+
             # Dixon-Coles tau adjustment
             tau = 1.0
             if h == 0 and a == 0:
@@ -434,27 +438,34 @@ def predict_dixon_coles_model(lambda_home, lambda_away, rho=None):
                 tau = 1.0 + lambda_home * rho
             elif h == 1 and a == 1:
                 tau = 1.0 - rho
-                
+
             joint *= max(0.0, tau)
-            
+
             if h > a:
                 prob_home += joint
+                key = 'home'
             elif h == a:
                 prob_draw += joint
+                key = 'draw'
             else:
                 prob_away += joint
-                
+                key = 'away'
+
+            if joint > (modal_by_outcome[key][0] or -1.0):
+                modal_by_outcome[key] = (joint, f"{h}-{a}")
+
             if joint > max_prob:
                 max_prob = joint
                 best_score = f"{h}-{a}"
-                
+
     total = prob_home + prob_draw + prob_away
     if total > 0:
         prob_home /= total
         prob_draw /= total
         prob_away /= total
-        
-    return prob_home, prob_draw, prob_away, best_score
+
+    modal_scores = {k: v[1] for k, v in modal_by_outcome.items()}
+    return prob_home, prob_draw, prob_away, best_score, modal_scores
 
 def predict_opta_model(home_opta, away_opta):
     """Derives a single-match 1X2 prior from the Opta supercomputer tournament-win
@@ -532,7 +543,7 @@ def predict_match(home_elo, away_elo, home_pi_h, away_pi_a, home_att, away_def, 
     # 4. Dixon-Coles Model with Hybrid Lambdas (Model D)
     lambda_mix_home = 0.5 * lambda_elo_home + 0.5 * lambda_b_home
     lambda_mix_away = 0.5 * lambda_elo_away + 0.5 * lambda_b_away
-    p_dc_h, p_dc_d, p_dc_a, best_score = predict_dixon_coles_model(lambda_mix_home, lambda_mix_away)
+    p_dc_h, p_dc_d, p_dc_a, best_score, dc_modal_scores = predict_dixon_coles_model(lambda_mix_home, lambda_mix_away)
 
     # 5. Opta supercomputer prior (Model E) — independent external opinion
     p_opta = predict_opta_model(home_opta, away_opta)
@@ -569,13 +580,23 @@ def predict_match(home_elo, away_elo, home_pi_h, away_pi_a, home_att, away_def, 
         final_d /= final_sum
         final_a /= final_sum
         
+    # Report a scoreline consistent with the ENSEMBLE's most likely outcome, not the
+    # standalone Dixon-Coles global argmax (which collapsed toward 1-1 and could
+    # contradict the predicted winner). Pick the modal exact score within the winning class.
+    if final_h >= final_d and final_h >= final_a:
+        predicted_score = dc_modal_scores['home']
+    elif final_a >= final_d and final_a >= final_h:
+        predicted_score = dc_modal_scores['away']
+    else:
+        predicted_score = dc_modal_scores['draw']
+
     return {
         'home_expected_goals': lambda_mix_home,
         'away_expected_goals': lambda_mix_away,
         'home_win_prob': final_h,
         'draw_prob': final_d,
         'away_win_prob': final_a,
-        'predicted_score': best_score
+        'predicted_score': predicted_score
     }
 
 def mov_multiplier(goal_diff, elo_diff):

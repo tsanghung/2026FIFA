@@ -92,6 +92,16 @@ def load_data():
     if os.path.exists(mp):
         with open(mp, encoding='utf-8') as f:
             metrics = json.load(f)
+    # Live tournament accuracy (this World Cup's completed matches), if available.
+    lp = os.path.join(HERE, 'prediction_metrics_live.json')
+    if os.path.exists(lp):
+        try:
+            with open(lp, encoding='utf-8') as f:
+                live = json.load(f)
+            if live.get('n'):
+                metrics['live'] = live
+        except Exception:
+            pass
     return matches, teams, champs, metrics, external_sources, external_consensus
 
 
@@ -150,7 +160,7 @@ def head(title, desc, canonical, og_extra=""):
   <a href="{site.SITE_URL}/#sources">來源</a>
   <a href="{site.SITE_URL}/#ratings">評級</a><a href="{site.SITE_URL}/monte.html">模擬器</a>
   <a href="{site.SITE_URL}/bets.html">投注實測</a>
-  <a href="{site.SITE_URL}/#accuracy">準確度</a></nav>
+  <a href="{site.SITE_URL}/#accuracy">準確度</a><a href="{site.SITE_URL}/#live-accuracy">即時準確度</a></nav>
 </header>
 <main>'''
 
@@ -326,6 +336,20 @@ def build_index(matches, teams, champs, metrics, external_sources=None, external
 <div class="card"><span>回測場數</span><b>{c['n']:,}</b></div>
 </div>
 <p class="muted">RPS 0.17 屬職業級（足球模型常見 0.19–0.21，隨機約 0.33）；以 {metrics.get('eval_start','')} 起的歷史賽事評估。</p>
+</section>''')
+
+    # Live tournament accuracy — this World Cup's completed matches so far.
+    lv = metrics.get('live')
+    if lv:
+        warn = '（樣本小，僅供參考）' if lv['n'] < 20 else ''
+        parts.append(f'''<section id="live-accuracy"><h2>📡 本屆即時準確度{warn}</h2>
+<div class="cards">
+<div class="card"><span>已評估場次</span><b>{lv['n']}</b></div>
+<div class="card"><span>1X2 命中率</span><b>{lv['accuracy']*100:.0f}%</b></div>
+<div class="card"><span>RPS（越低越好）</span><b>{lv['rps']:.3f}</b></div>
+<div class="card"><span>隨機基準 RPS</span><b>{lv['rps_uniform']:.3f}</b></div>
+</div>
+<p class="muted">本屆已完賽場次的「正式預測」即時評分；RPS 低於隨機基準代表模型有效。每日自動更新。</p>
 </section>''')
 
     parts.append('''<script>
