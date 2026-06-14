@@ -350,14 +350,25 @@ def build_index(matches, teams, champs, metrics, external_sources=None, external
     lv = metrics.get('live')
     if lv:
         warn = '（樣本小，僅供參考）' if lv['n'] < 20 else ''
+        hits = lv.get('hits', round(lv['accuracy'] * lv['n']))
+        cf = lv.get('acc_by_conf', {})
+        def _ct(tier):
+            t = cf.get(tier) or {}
+            return f"{t.get('hit', 0)}/{t.get('n', 0)}" if t.get('n') else "—"
+        draw_note = ''
+        if lv.get('draws_actual'):
+            draw_note = (f" 已完賽含 {lv['draws_actual']} 場和局，模型漏判 {lv.get('draw_miss', 0)} 場"
+                         f"——和局是足球模型的結構性盲點（歷史 5 萬場和局召回僅 ~0.6%）；"
+                         f"強行多猜和局會讓整體命中率下降，故維持校準不動。")
         parts.append(f'''<section id="live-accuracy"><h2>📡 本屆即時準確度{warn}</h2>
 <div class="cards">
 <div class="card"><span>已評估場次</span><b>{lv['n']}</b></div>
-<div class="card"><span>1X2 命中率</span><b>{lv['accuracy']*100:.0f}%</b></div>
+<div class="card"><span>勝負命中率</span><b>{lv['accuracy']*100:.0f}%</b><span>{hits}/{lv['n']}</span></div>
 <div class="card"><span>RPS（越低越好）</span><b>{lv['rps']:.3f}</b></div>
 <div class="card"><span>隨機基準 RPS</span><b>{lv['rps_uniform']:.3f}</b></div>
 </div>
-<p class="muted">本屆已完賽場次的「正式預測」即時評分；RPS 低於隨機基準代表模型有效。每日自動更新。</p>
+<p class="muted">依信心分層命中：高信心(≥60%) <b>{_ct('high')}</b>、中信心(45–60%) <b>{_ct('mid')}</b>、低信心(&lt;45%) <b>{_ct('low')}</b>。{draw_note}
+本屆已完賽場次的「正式預測」即時評分；RPS 低於隨機基準代表模型有效。每日自動更新。</p>
 </section>''')
 
     parts.append('''<script>

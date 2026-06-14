@@ -171,6 +171,24 @@ def evaluate(conn):
                             'avg_pred': v['sum_p'] / v['n']}
                         for k, v in sorted(cal_buckets.items())},
     })
+
+    # Confidence-tier accuracy + draw breakdown (decision-support, not model tuning):
+    # high-confidence picks are far more reliable; draws are the structural blind spot.
+    def _tier(tp):
+        return 'high' if tp >= 0.60 else 'mid' if tp >= 0.45 else 'low'
+    conf = {'high': [0, 0], 'mid': [0, 0], 'low': [0, 0]}
+    for d in details:
+        t = _tier(max(d['probs']))
+        conf[t][1] += 1
+        conf[t][0] += 1 if d['hit'] else 0
+    metrics['acc_by_conf'] = {k: {'hit': v[0], 'n': v[1],
+                                  'rate': (v[0] / v[1]) if v[1] else None}
+                              for k, v in conf.items()}
+    metrics['draws_actual'] = sum(1 for d in details if d['actual'] == 'draw')
+    metrics['draws_called'] = sum(1 for d in details if d['pred_outcome'] == 'draw')
+    metrics['draw_miss'] = sum(1 for d in details
+                               if d['actual'] == 'draw' and not d['hit'])
+    metrics['hits'] = hits
     return metrics, details
 
 

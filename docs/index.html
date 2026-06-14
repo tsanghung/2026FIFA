@@ -974,11 +974,12 @@
 </section><section id="live-accuracy"><h2>📡 本屆即時準確度（樣本小，僅供參考）</h2>
 <div class="cards">
 <div class="card"><span>已評估場次</span><b>8</b></div>
-<div class="card"><span>1X2 命中率</span><b>50%</b></div>
+<div class="card"><span>勝負命中率</span><b>50%</b><span>4/8</span></div>
 <div class="card"><span>RPS（越低越好）</span><b>0.198</b></div>
 <div class="card"><span>隨機基準 RPS</span><b>0.215</b></div>
 </div>
-<p class="muted">本屆已完賽場次的「正式預測」即時評分；RPS 低於隨機基準代表模型有效。每日自動更新。</p>
+<p class="muted">依信心分層命中：高信心(≥60%) <b>2/3</b>、中信心(45–60%) <b>0/2</b>、低信心(&lt;45%) <b>2/3</b>。 已完賽含 3 場和局，模型漏判 3 場——和局是足球模型的結構性盲點（歷史 5 萬場和局召回僅 ~0.6%）；強行多猜和局會讓整體命中率下降，故維持校準不動。
+本屆已完賽場次的「正式預測」即時評分；RPS 低於隨機基準代表模型有效。每日自動更新。</p>
 </section><script>
 function filt(){var q=document.getElementById('q').value.toLowerCase();
 var ds=document.getElementById('datesel').value;
