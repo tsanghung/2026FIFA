@@ -991,6 +991,18 @@ def parse_and_sync():
     except Exception as e:
         log(f"同步模型先驗與 Reddit 輿情失敗: {e}，將使用現有的資料庫快取數據。")
 
+    # Re-apply persistent manual score overrides that Wikipedia has not yet reflected,
+    # so manual updates survive the daily force_recreate (official scores still win).
+    try:
+        import manual_results
+        _oc = sqlite3.connect(DB_PATH)
+        _n = manual_results.apply_overrides(_oc, respect_existing=True)
+        _oc.close()
+        if _n:
+            log(f"已套用 {_n} 筆手動賽果覆蓋(維基尚無官方比分的場次)。")
+    except Exception as e:
+        log(f"套用手動賽果覆蓋時發生錯誤: {e}")
+
     # Run the comprehensive dynamic recalculation engine (Elo rating history and predictions)
     reset_and_recalculate_all_elo_and_predictions()
 

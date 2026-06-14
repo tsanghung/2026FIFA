@@ -56,12 +56,42 @@ def _rps(probs, actual_idx):
 def load_completed(conn):
     rows = conn.execute('''
         SELECT match_num, home_team, away_team, home_goals, away_goals,
-               pred_home_win_prob, pred_draw_prob, pred_away_win_prob, pred_score
+               pred_home_win_prob, pred_draw_prob, pred_away_win_prob, pred_score,
+               home_pre_match_elo, away_pre_match_elo
         FROM matches
         WHERE status='Completed' AND home_goals IS NOT NULL
           AND pred_home_win_prob IS NOT NULL
         ORDER BY match_num ASC''').fetchall()
     return rows
+
+
+_SIDE_ZH = {'home': '主勝', 'draw': '和局', 'away': '客勝'}
+
+
+def match_reason(probs, pred_idx, actual_idx, home, away, elo_h, elo_a):
+    """模型角度的「預測 vs 結果」差異原因(回傳字串)。"""
+    top_p = probs[pred_idx] * 100
+    fav_name = home if pred_idx == 0 else away if pred_idx == 2 else '和局'
+    win_name = home if actual_idx == 0 else away if actual_idx == 2 else '雙方'
+    gap = abs((elo_h or 0) - (elo_a or 0))
+    conf = '高信心' if top_p >= 60 else '中信心' if top_p >= 45 else '低信心'
+
+    if pred_idx == actual_idx:
+        return f"✅ 命中:模型賽前看好{_SIDE_ZH[_ORDER[pred_idx]]}（{fav_name} {top_p:.0f}%，{conf}），結果如預期。"
+
+    parts = []
+    if actual_idx == 1:
+        parts.append(f"模型看好{fav_name}贏，最後雙方言和；模型其實也給了和局 {probs[1]*100:.0f}%")
+    else:
+        parts.append(f"模型看好{fav_name}（{top_p:.0f}%），最後由{win_name}勝出")
+    top2 = sorted(probs, reverse=True)
+    if top_p >= 60:
+        parts.append("大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素")
+    elif top_p < 45 or (top2[0] - top2[1]) < 0.10:
+        parts.append(f"合理變異:三方接近(主{probs[0]*100:.0f}/和{probs[1]*100:.0f}/客{probs[2]*100:.0f}),模型信心本就低")
+    if gap < 60:
+        parts.append(f"兩隊實力接近(Elo 僅差 {gap:.0f})")
+    return "❌ " + "；".join(parts) + "。"
 
 
 def evaluate(conn):
@@ -83,7 +113,7 @@ def evaluate(conn):
     # 校準桶:依「最高機率」分組
     cal_buckets = {}
 
-    for (mn, home, away, hg, ag, ph, pd, pa, pred_score) in rows:
+    for (mn, home, away, hg, ag, ph, pd, pa, pred_score, elo_h, elo_a) in rows:
         probs = [ph or 0.0, pd or 0.0, pa or 0.0]
         s = sum(probs) or 1.0
         probs = [p / s for p in probs]                      # 防呆正規化
@@ -125,6 +155,7 @@ def evaluate(conn):
             'pred_outcome': _ORDER[pred_idx], 'pred_score': pred_score,
             'actual': actual, 'actual_score': actual_score,
             'hit': bool(hit), 'exact': bool(exact),
+            'reason': match_reason(probs, pred_idx, ai, home, away, elo_h, elo_a),
         })
 
     metrics.update({
@@ -145,7 +176,7 @@ def evaluate(conn):
 
 def write_report(metrics, details):
     with open(JSON_PATH, 'w', encoding='utf-8') as f:
-        json.dump(metrics, f, ensure_ascii=False, indent=2)
+        json.dump({**metrics, 'details': details}, f, ensure_ascii=False, indent=2)
 
     L = []
     L.append("# 🎯 本屆世界盃「正式預測」即時準確度\n")
@@ -177,6 +208,10 @@ def write_report(metrics, details):
                  f"{p[0]*100:.0f}/{p[1]*100:.0f}/{p[2]*100:.0f} | {d['pred_score']} | "
                  f"{d['actual_score']} | {'✅' if d['hit'] else '❌'} | "
                  f"{'✅' if d['exact'] else '—'} |")
+    L.append("")
+    L.append("## 逐場差異與原因\n")
+    for d in details:
+        L.append(f"- **#{d['match_num']} {d['home']} vs {d['away']}**：{d['reason']}")
     L.append("")
     _flush(L)
 

@@ -309,6 +309,10 @@ def build_index(matches, teams, champs, metrics, external_sources=None, external
 
     # Schedule
     parts.append('<section id="schedule"><h2>📅 賽程預測與賠率</h2>')
+    parts.append('<div class="updnote">📝 比賽結束想立即回填賽果？用 '
+                 '<a href="https://github.com/tsanghung/2026FIFA/actions/workflows/manual_result.yml" '
+                 'rel="nofollow">手動更新賽果</a>（填場次與比分按 Run）：會即時重算預測、結算投注、'
+                 '更新即時準確度並重建本頁。每日 sync 也會自動抓官方比分。</div>')
     parts.append('<input id="q" class="filter" placeholder="搜尋隊伍 / 階段…" oninput="filt()">')
     parts.append('<div class="tablewrap"><table id="sched"><thead><tr>'
                  '<th>#</th><th class="sortable" onclick="sortTime(this)">時間(台)<span class="arr"></span></th><th>客</th><th>比分</th><th>主</th>'
@@ -465,7 +469,7 @@ document.getElementById('run').onclick=run; run();
     return ''.join(p)
 
 
-def build_match(m, matches):
+def build_match(m, matches, live_details=None):
     a = get_team_display_name(m['away_team'])
     h = get_team_display_name(m['home_team'])
     a_en, h_en = esc(m['away_team']), esc(m['home_team'])
@@ -514,8 +518,14 @@ def build_match(m, matches):
             p.append(f'<p class="muted">賠率更新時間：{esc(m["odds_last_update"])}</p>')
     p.append(ad_unit())
 
-    if m['score']:
-        p.append(f'<p class="muted">實際比分：{esc(m["score"])}</p>')
+    # Completed match: show actual result + model-vs-reality divergence reason.
+    if m.get('status') == 'Completed' and m['score'] and not str(m['score']).startswith('Match'):
+        score_disp = str(m['score']).replace('–', '-').replace('−', '-')
+        p.append(f'<h2>賽果 vs 預測</h2><p class="lead">實際比分：<b>{esc(score_disp)}</b></p>')
+        det = (live_details or {}).get(m['match_num'])
+        if det and det.get('reason'):
+            cls = 'ok' if det.get('hit') else 'miss'
+            p.append(f'<ul class="reasons"><li class="{cls}">{esc(det["reason"])}</li></ul>')
     p.append('</article>')
     p.append(foot())
     return ''.join(p)
@@ -648,6 +658,7 @@ th{background:#0d1426;color:var(--mut);position:sticky;top:0}td.muted,.muted{col
 .source-badge.auto{background:var(--acc)}.source-badge.pdf{background:var(--d)}.source-badge.snapshot{background:var(--h);color:#fff}.source-badge.review{background:#718096;color:#fff}
 .source-meta{color:var(--acc);font-size:12px;margin-top:8px;text-transform:uppercase;letter-spacing:.04em}
 .source-card p{color:var(--mut);margin:8px 0}.source-card small{color:#7184aa}
+.updnote{background:#0d1426;border:1px solid var(--line);border-left:4px solid var(--h);border-radius:10px;padding:10px 14px;margin:8px 0 12px;color:var(--mut);font-size:13px}
 .reasons{list-style:none;padding:0}.reasons li{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:12px 14px;margin:10px 0;line-height:1.7}
 .reasons li.ok{border-left-color:var(--acc)}.reasons li.miss{border-left-color:var(--a)}
 .ad{margin:20px 0;min-height:1px}.site-foot{max-width:1080px;margin:30px auto;padding:18px;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
@@ -668,8 +679,10 @@ def main():
 
     write(os.path.join(OUT, 'index.html'), build_index(
         matches, teams, champs, metrics, external_sources, external_consensus))
+    live_details = {d['match_num']: d for d in (metrics.get('live', {}).get('details') or [])}
     for m in matches:
-        write(os.path.join(OUT, 'match', f"{m['match_num']}.html"), build_match(m, matches))
+        write(os.path.join(OUT, 'match', f"{m['match_num']}.html"),
+              build_match(m, matches, live_details))
     write(os.path.join(OUT, 'monte.html'), build_monte(sim_params()))
     write(os.path.join(OUT, 'bets.html'), build_bets(load_bets()))
     write(os.path.join(OUT, 'assets', 'style.css'), CSS)
