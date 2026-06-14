@@ -1,13 +1,13 @@
 {
-  "n": 7,
-  "generated_at": "2026-06-14 06:54:11",
-  "accuracy": 0.5714285714285714,
-  "rps": 0.16778338457480713,
-  "rps_uniform": 0.20634920634920642,
-  "brier": 0.6419064709228658,
-  "logloss": 1.0622358978790916,
-  "exact_score_acc": 0.14285714285714285,
-  "gd_mae": 1.5714285714285714,
+  "n": 8,
+  "generated_at": "2026-06-14 07:42:40",
+  "accuracy": 0.5,
+  "rps": 0.1983185565102844,
+  "rps_uniform": 0.21527777777777785,
+  "brier": 0.6743130102322419,
+  "logloss": 1.1108940532201033,
+  "exact_score_acc": 0.125,
+  "gd_mae": 1.75,
   "tg_mae": 1.0,
   "calibration": {
     "30-40%": {
@@ -16,9 +16,9 @@
       "avg_pred": 0.3916757609665456
     },
     "40-50%": {
-      "n": 2,
-      "win_rate": 0.5,
-      "avg_pred": 0.4358545454510897
+      "n": 3,
+      "win_rate": 0.3333333333333333,
+      "avg_pred": 0.4527236097333682
     },
     "50-60%": {
       "n": 2,
@@ -110,9 +110,9 @@
       "home": "Brazil",
       "away": "Morocco",
       "probs": [
-        0.426,
-        0.262,
-        0.312
+        0.425,
+        0.263,
+        0.313
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -120,7 +120,7 @@
       "actual_score": "1-1",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Brazil贏，最後雙方言和；模型其實也給了和局 26%；合理變異:三方接近(主43/和26/客31),模型信心本就低；兩隊實力接近(Elo 僅差 4)。"
+      "reason": "❌ 模型看好Brazil贏，最後雙方言和；模型其實也給了和局 26%；合理變異:三方接近(主42/和26/客31),模型信心本就低；兩隊實力接近(Elo 僅差 4)。"
     },
     {
       "match_num": 14,
@@ -155,6 +155,23 @@
       "hit": true,
       "exact": false,
       "reason": "✅ 命中:模型賽前看好主勝（USA 45%，低信心），結果如預期。"
+    },
+    {
+      "match_num": 20,
+      "home": "Australia",
+      "away": "Türkiye",
+      "probs": [
+        0.234,
+        0.279,
+        0.487
+      ],
+      "pred_outcome": "away",
+      "pred_score": "1-2",
+      "actual": "home",
+      "actual_score": "2-0",
+      "hit": false,
+      "exact": false,
+      "reason": "❌ 模型看好Türkiye（49%），最後由Australia勝出。"
     }
   ]
 }
