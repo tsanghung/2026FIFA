@@ -309,13 +309,6 @@ def build_index(matches, teams, champs, metrics, external_sources=None, external
 
     # Schedule
     parts.append('<section id="schedule"><h2>📅 賽程預測與賠率</h2>')
-<<<<<<< HEAD
-=======
-    parts.append('<div class="updnote">📝 比賽結束想立即回填賽果？用 '
-                 '<a href="https://github.com/tsanghung/2026FIFA/actions/workflows/manual_result.yml" '
-                 'rel="nofollow">手動更新賽果</a>（填場次與比分按 Run）：會即時重算預測、結算投注、'
-                 '更新即時準確度並重建本頁。每日 sync 也會自動抓官方比分。</div>')
->>>>>>> origin/main
     # Date dropdown (Taiwan-time match dates) — filter schedule to one day.
     tw_dates = sorted({d for d in (convert_to_taiwan_time(m['date'], m['time'])[0] for m in matches)
                        if re.match(r'^\d{4}-\d{2}-\d{2}$', d or '')})
@@ -672,10 +665,6 @@ th{background:#0d1426;color:var(--mut);position:sticky;top:0}td.muted,.muted{col
 .source-badge.auto{background:var(--acc)}.source-badge.pdf{background:var(--d)}.source-badge.snapshot{background:var(--h);color:#fff}.source-badge.review{background:#718096;color:#fff}
 .source-meta{color:var(--acc);font-size:12px;margin-top:8px;text-transform:uppercase;letter-spacing:.04em}
 .source-card p{color:var(--mut);margin:8px 0}.source-card small{color:#7184aa}
-<<<<<<< HEAD
-=======
-.updnote{background:#0d1426;border:1px solid var(--line);border-left:4px solid var(--h);border-radius:10px;padding:10px 14px;margin:8px 0 12px;color:var(--mut);font-size:13px}
->>>>>>> origin/main
 .schedctl{display:flex;flex-wrap:wrap;gap:10px}.schedctl .filter{margin:8px 0;flex:1 1 240px}
 .reasons{list-style:none;padding:0}.reasons li{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:12px 14px;margin:10px 0;line-height:1.7}
 .reasons li.ok{border-left-color:var(--acc)}.reasons li.miss{border-left-color:var(--a)}
