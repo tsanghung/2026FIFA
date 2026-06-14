@@ -202,7 +202,7 @@ def match_row_html(m):
     d, t = convert_to_taiwan_time(m['date'], m['time'])
     url = f"{site.SITE_URL}/match/{m['match_num']}.html"
     score = esc(m['score']) if m['score'] else 'VS'
-    return f'''<tr>
+    return f'''<tr data-twdate="{esc(d)}">
 <td class="muted">#{m['match_num']}</td>
 <td>{esc(d)} {esc(t)}</td>
 <td class="team"><a href="{url}">{esc(a)}</a></td>
@@ -313,7 +313,15 @@ def build_index(matches, teams, champs, metrics, external_sources=None, external
                  '<a href="https://github.com/tsanghung/2026FIFA/actions/workflows/manual_result.yml" '
                  'rel="nofollow">手動更新賽果</a>（填場次與比分按 Run）：會即時重算預測、結算投注、'
                  '更新即時準確度並重建本頁。每日 sync 也會自動抓官方比分。</div>')
+    # Date dropdown (Taiwan-time match dates) — filter schedule to one day.
+    tw_dates = sorted({d for d in (convert_to_taiwan_time(m['date'], m['time'])[0] for m in matches)
+                       if re.match(r'^\d{4}-\d{2}-\d{2}$', d or '')})
+    date_opts = ''.join(f'<option value="{d}">{d}</option>' for d in tw_dates)
+    parts.append('<div class="schedctl">')
+    parts.append(f'<select id="datesel" class="filter" onchange="filt()">'
+                 f'<option value="">📅 全部日期（台灣時間）</option>{date_opts}</select>')
     parts.append('<input id="q" class="filter" placeholder="搜尋隊伍 / 階段…" oninput="filt()">')
+    parts.append('</div>')
     parts.append('<div class="tablewrap"><table id="sched"><thead><tr>'
                  '<th>#</th><th class="sortable" onclick="sortTime(this)">時間(台)<span class="arr"></span></th><th>客</th><th>比分</th><th>主</th>'
                  '<th>客/和/主</th><th>預測</th><th>比分預測</th></tr></thead><tbody>')
@@ -358,8 +366,11 @@ def build_index(matches, teams, champs, metrics, external_sources=None, external
 
     parts.append('''<script>
 function filt(){var q=document.getElementById('q').value.toLowerCase();
+var ds=document.getElementById('datesel').value;
 document.querySelectorAll('#sched tbody tr').forEach(function(r){
-r.style.display=r.innerText.toLowerCase().indexOf(q)>-1?'':'none';});}
+var okText=r.innerText.toLowerCase().indexOf(q)>-1;
+var okDate=!ds||r.getAttribute('data-twdate')===ds;
+r.style.display=(okText&&okDate)?'':'none';});}
 function sortTime(th){
  var tb=document.querySelector('#sched tbody');
  var rows=[].slice.call(tb.querySelectorAll('tr'));
@@ -659,6 +670,7 @@ th{background:#0d1426;color:var(--mut);position:sticky;top:0}td.muted,.muted{col
 .source-meta{color:var(--acc);font-size:12px;margin-top:8px;text-transform:uppercase;letter-spacing:.04em}
 .source-card p{color:var(--mut);margin:8px 0}.source-card small{color:#7184aa}
 .updnote{background:#0d1426;border:1px solid var(--line);border-left:4px solid var(--h);border-radius:10px;padding:10px 14px;margin:8px 0 12px;color:var(--mut);font-size:13px}
+.schedctl{display:flex;flex-wrap:wrap;gap:10px}.schedctl .filter{margin:8px 0;flex:1 1 240px}
 .reasons{list-style:none;padding:0}.reasons li{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:12px 14px;margin:10px 0;line-height:1.7}
 .reasons li.ok{border-left-color:var(--acc)}.reasons li.miss{border-left-color:var(--a)}
 .ad{margin:20px 0;min-height:1px}.site-foot{max-width:1080px;margin:30px auto;padding:18px;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
