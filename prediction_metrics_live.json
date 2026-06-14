@@ -1,6 +1,6 @@
 {
   "n": 4,
-  "generated_at": "2026-06-13 10:19:36",
+  "generated_at": "2026-06-14 04:49:24",
   "accuracy": 0.75,
   "rps": 0.16706371762447425,
   "rps_uniform": 0.23611111111111116,
@@ -30,5 +30,75 @@
       "win_rate": 1.0,
       "avg_pred": 0.6921655344689325
     }
-  }
+  },
+  "details": [
+    {
+      "match_num": 1,
+      "home": "Mexico",
+      "away": "South Africa",
+      "probs": [
+        0.692,
+        0.16,
+        0.147
+      ],
+      "pred_outcome": "home",
+      "pred_score": "3-0",
+      "actual": "home",
+      "actual_score": "2-0",
+      "hit": true,
+      "exact": false,
+      "reason": "✅ 命中:模型賽前看好主勝（Mexico 69%，高信心），結果如預期。"
+    },
+    {
+      "match_num": 2,
+      "home": "South Korea",
+      "away": "Czechia",
+      "probs": [
+        0.392,
+        0.308,
+        0.3
+      ],
+      "pred_outcome": "home",
+      "pred_score": "2-1",
+      "actual": "home",
+      "actual_score": "2-1",
+      "hit": true,
+      "exact": true,
+      "reason": "✅ 命中:模型賽前看好主勝（South Korea 39%，低信心），結果如預期。"
+    },
+    {
+      "match_num": 7,
+      "home": "Canada",
+      "away": "Bosnia-Herzegovina",
+      "probs": [
+        0.593,
+        0.225,
+        0.182
+      ],
+      "pred_outcome": "home",
+      "pred_score": "2-0",
+      "actual": "draw",
+      "actual_score": "1-1",
+      "hit": false,
+      "exact": false,
+      "reason": "❌ 模型看好Canada贏，最後雙方言和；模型其實也給了和局 22%。"
+    },
+    {
+      "match_num": 19,
+      "home": "USA",
+      "away": "Paraguay",
+      "probs": [
+        0.446,
+        0.294,
+        0.26
+      ],
+      "pred_outcome": "home",
+      "pred_score": "2-1",
+      "actual": "home",
+      "actual_score": "4-1",
+      "hit": true,
+      "exact": false,
+      "reason": "✅ 命中:模型賽前看好主勝（USA 45%，低信心），結果如預期。"
+    }
+  ]
 }
