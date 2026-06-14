@@ -1,6 +1,6 @@
 {
   "n": 8,
-  "generated_at": "2026-06-14 07:42:40",
+  "generated_at": "2026-06-14 07:59:29",
   "accuracy": 0.5,
   "rps": 0.1983185565102844,
   "rps_uniform": 0.21527777777777785,
@@ -36,6 +36,27 @@
       "avg_pred": 0.7225845838199153
     }
   },
+  "acc_by_conf": {
+    "high": {
+      "hit": 2,
+      "n": 3,
+      "rate": 0.6666666666666666
+    },
+    "mid": {
+      "hit": 0,
+      "n": 2,
+      "rate": 0.0
+    },
+    "low": {
+      "hit": 2,
+      "n": 3,
+      "rate": 0.6666666666666666
+    }
+  },
+  "draws_actual": 3,
+  "draws_called": 0,
+  "draw_miss": 3,
+  "hits": 4,
   "details": [
     {
       "match_num": 1,
