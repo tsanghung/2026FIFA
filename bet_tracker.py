@@ -362,6 +362,15 @@ SEED_BETS = [
             {'match_num': 19, 'pick_side': 'home'},   # USA 勝 Paraguay
         ],
     },
+    {
+        'name': '荷蘭 & 厄瓜多 & 瑞典 三過關',
+        'stake': 200, 'placed_date': '2026-06-14', 'bet_type': 'parlay',
+        'legs': [
+            {'match_num': 31, 'pick_side': 'home'},   # Netherlands 勝 Japan
+            {'match_num': 26, 'pick_side': 'away'},   # Ecuador 勝 Ivory Coast (厄瓜多為客隊)
+            {'match_num': 32, 'pick_side': 'home'},   # Sweden 勝 Tunisia
+        ],
+    },
 ]
 
 
