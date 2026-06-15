@@ -44,6 +44,14 @@ def pct(x):
     return f"{(x or 0) * 100:.0f}%"
 
 
+def flip_score(s):
+    """DB stores scores as 'home-away'; the tables/pages list teams as 客(away) then
+    主(home), so flip to 'away-home' for display. Returns None for non-scores
+    (e.g. 'Match 31', '', 'VS') so the caller can show a placeholder."""
+    m = re.match(r'^\s*(\d+)\s*[–\-−]\s*(\d+)\s*$', str(s or ''))
+    return f"{m.group(2)}-{m.group(1)}" if m else None
+
+
 def odds_source_label(row):
     source = (row.get('odds_source') or 'unknown').lower()
     labels = {
@@ -201,7 +209,11 @@ def match_row_html(m):
     h = get_team_display_name(m['home_team'])
     d, t = convert_to_taiwan_time(m['date'], m['time'])
     url = f"{site.SITE_URL}/match/{m['match_num']}.html"
-    score = esc(m['score']) if m['score'] else 'VS'
+    # Display scores as 客-主 (away-home) to match the 客 | 比分 | 主 column order.
+    fs = flip_score(m['score'])
+    score = esc(fs) if fs else 'VS'
+    pred = flip_score(m['pred_score'])
+    pred_disp = esc(pred) if pred else ''
     return f'''<tr data-twdate="{esc(d)}">
 <td class="muted">#{m['match_num']}</td>
 <td>{esc(d)} {esc(t)}</td>
@@ -210,7 +222,7 @@ def match_row_html(m):
 <td class="team"><a href="{url}">{esc(h)}</a></td>
 <td>{pct(m['pred_away_win_prob'])}/{pct(m['pred_draw_prob'])}/{pct(m['pred_home_win_prob'])}</td>
 <td><b>{esc(outcome_label(m))}</b></td>
-<td>{esc(m['pred_score'] or '')}</td>
+<td>{pred_disp}</td>
 </tr>'''
 
 
@@ -320,7 +332,7 @@ def build_index(matches, teams, champs, metrics, external_sources=None, external
     parts.append('</div>')
     parts.append('<div class="tablewrap"><table id="sched"><thead><tr>'
                  '<th>#</th><th class="sortable" onclick="sortTime(this)">時間(台)<span class="arr"></span></th><th>客</th><th>比分</th><th>主</th>'
-                 '<th>客/和/主</th><th>預測</th><th>比分預測</th></tr></thead><tbody>')
+                 '<th>客/和/主</th><th>預測</th><th>比分預測(客-主)</th></tr></thead><tbody>')
     for m in matches:
         parts.append(match_row_html(m))
     parts.append('</tbody></table></div></section>')
@@ -524,7 +536,8 @@ def build_match(m, matches, live_details=None):
     p.append(bar(f'主勝（{esc(h)}）', m['pred_home_win_prob'], 'h'))
     p.append('</div>')
 
-    p.append(f'<p class="lead">模型預測最可能結果：<b>{esc(pred)}</b>，預測比分 <b>{esc(m["pred_score"] or "—")}</b>。</p>')
+    pscore = flip_score(m['pred_score'])
+    p.append(f'<p class="lead">模型預測最可能結果：<b>{esc(pred)}</b>，預測比分（{esc(a)}-{esc(h)}）<b>{esc(pscore or "—")}</b>。</p>')
 
     # Odds table (research / value reference only — no betting channel)
     if m['odds_home']:
@@ -537,9 +550,9 @@ def build_match(m, matches, live_details=None):
     p.append(ad_unit())
 
     # Completed match: show actual result + model-vs-reality divergence reason.
-    if m.get('status') == 'Completed' and m['score'] and not str(m['score']).startswith('Match'):
-        score_disp = str(m['score']).replace('–', '-').replace('−', '-')
-        p.append(f'<h2>賽果 vs 預測</h2><p class="lead">實際比分：<b>{esc(score_disp)}</b></p>')
+    if m.get('status') == 'Completed' and flip_score(m['score']):
+        score_disp = flip_score(m['score'])   # 客-主 to match the "客 vs 主" header
+        p.append(f'<h2>賽果 vs 預測</h2><p class="lead">實際比分（{esc(a)}-{esc(h)}）：<b>{esc(score_disp)}</b></p>')
         det = (live_details or {}).get(m['match_num'])
         if det and det.get('reason'):
             cls = 'ok' if det.get('hit') else 'miss'
