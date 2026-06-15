@@ -616,7 +616,7 @@ def build_bets(bets):
         p.append(f'<h3>{esc(b["name"])}　<span class="muted">[{type_zh}・本金 '
                  f'NT${b["stake"]:.0f}・{esc(b["placed_date"])}]</span>　{status_zh.get(b["status"], b["status"])}</h3>')
         p.append('<div class="tablewrap"><table><thead><tr>'
-                 '<th>場次</th><th>對戰</th><th>我押</th><th>模型賽前預測</th><th>實際比分</th><th>命中</th>'
+                 '<th>場次</th><th>對戰</th><th>我押</th><th>模型賽前預測</th><th>實際比分(客-主)</th><th>命中</th>'
                  '</tr></thead><tbody>')
         for lg in b['legs']:
             a = get_team_display_name(lg['away_team'])
@@ -626,8 +626,9 @@ def build_bets(bets):
                      'draw': lg['pred_draw_prob'] or 0,
                      'away': lg['pred_away_win_prob'] or 0}
             fav = max(probs, key=probs.get)
-            pred_str = f"{side_zh[fav]} {probs[fav]*100:.0f}%・{esc(lg['pred_score'] or '')}"
-            score = f"{lg['home_goals']}:{lg['away_goals']}" if lg['home_goals'] is not None else '—'
+            # Display scores as 客-主 (away-home) to match the "客 vs 主" matchup column.
+            pred_str = f"{side_zh[fav]} {probs[fav]*100:.0f}%・{esc(flip_score(lg['pred_score']) or '')}"
+            score = f"{lg['away_goals']}-{lg['home_goals']}" if lg['home_goals'] is not None else '—'
             url = f"{site.SITE_URL}/match/{lg['match_num']}.html"
             p.append(f'<tr><td class="muted">#{lg["match_num"]}</td>'
                      f'<td class="team"><a href="{url}">{esc(a)} vs {esc(h)}</a></td>'
