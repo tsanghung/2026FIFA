@@ -1,6 +1,6 @@
 {
   "n": 16,
-  "generated_at": "2026-06-16 12:11:54",
+  "generated_at": "2026-06-16 13:39:18",
   "accuracy": 0.375,
   "rps": 0.20244722822453864,
   "rps_uniform": 0.19444444444444448,
@@ -57,6 +57,8 @@
   "draws_called": 0,
   "draw_miss": 8,
   "hits": 6,
+  "draw_rate": 0.5,
+  "draw_rate_hist": 0.222,
   "details": [
     {
       "match_num": 1,

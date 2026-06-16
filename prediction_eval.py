@@ -31,6 +31,9 @@ JSON_PATH = os.path.join(HERE, 'prediction_metrics_live.json')
 # 機率向量順序固定為 [home, draw, away]
 _ORDER = ('home', 'draw', 'away')
 
+# 歷史和局率基準:全體國際賽 22.7%、世界盃 964 場 22.2%(實質相同)。
+HIST_DRAW_RATE = 0.222
+
 
 def _outcome(hg, ag):
     if hg > ag:
@@ -189,6 +192,11 @@ def evaluate(conn):
     metrics['draw_miss'] = sum(1 for d in details
                                if d['actual'] == 'draw' and not d['hit'])
     metrics['hits'] = hits
+    # Draw-rate tracking: this tournament vs the long-run historical baseline
+    # (World Cup history ≈ all-internationals ≈ 22%). Lets us see if the live
+    # draw cluster is a real signal or just small-sample variance.
+    metrics['draw_rate'] = metrics['draws_actual'] / n
+    metrics['draw_rate_hist'] = HIST_DRAW_RATE
     return metrics, details
 
 
@@ -212,7 +220,11 @@ def write_report(metrics, details):
     L.append(f"- RPS：**{metrics['rps']:.3f}**（越低越好;隨機基準 {metrics['rps_uniform']:.3f}）")
     L.append(f"- Brier：{metrics['brier']:.3f}　Log-loss：{metrics['logloss']:.3f}")
     L.append(f"- 精確比分命中率：{metrics['exact_score_acc']*100:.0f}%　"
-             f"進球差 MAE：{metrics['gd_mae']:.2f}　總進球 MAE：{metrics['tg_mae']:.2f}\n")
+             f"進球差 MAE：{metrics['gd_mae']:.2f}　總進球 MAE：{metrics['tg_mae']:.2f}")
+    dr = metrics['draw_rate'] * 100
+    flag = "（遠高於歷史，留意是否為變異）" if dr > HIST_DRAW_RATE * 100 + 10 else ""
+    L.append(f"- 本屆和局率：**{dr:.0f}%**（{metrics['draws_actual']}/{metrics['n']}）"
+             f" vs 歷史 {HIST_DRAW_RATE*100:.0f}%{flag}\n")
 
     verdict = "優於隨機" if metrics['rps'] < metrics['rps_uniform'] else "尚未優於隨機"
     L.append(f"> RPS {metrics['rps']:.3f} vs 隨機 {metrics['rps_uniform']:.3f} → **{verdict}**。\n")
