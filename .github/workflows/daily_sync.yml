@@ -2,9 +2,28 @@ name: 🏆 2026 FIFA Daily Data Sync
 
 on:
   schedule:
-    # Runs at 07:00 UTC (3:00 PM Taiwan Time) daily
-    - cron: '0 7 * * *'
+    # GitHub cron is best-effort and is frequently delayed by hours under load
+    # (a single 07:00 run was landing anywhere from 09:00–17:00 UTC). To reliably
+    # have results on the site by 15:00 Taiwan (07:00 UTC), fire several times in
+    # the morning window so at least one lands by the deadline despite delays,
+    # plus afternoon/evening runs to catch same-day late (Taiwan-evening) matches.
+    - cron: '0 1 * * *'    # 09:00 Taiwan
+    - cron: '0 3 * * *'    # 11:00 Taiwan
+    - cron: '0 5 * * *'    # 13:00 Taiwan
+    - cron: '0 6 * * *'    # 14:00 Taiwan
+    - cron: '0 7 * * *'    # 15:00 Taiwan  ← deadline
+    - cron: '0 11 * * *'   # 19:00 Taiwan
+    - cron: '0 15 * * *'   # 23:00 Taiwan
+  push:
+    # Any push to main also refreshes data immediately (the sync's own commit uses
+    # [skip ci], so this does not loop). Lets a merge trigger an on-demand update.
+    branches: [main]
   workflow_dispatch: # Allows manual execution from GitHub actions tab
+
+# Never let two syncs run at once (they both commit to main and would race).
+concurrency:
+  group: daily-sync
+  cancel-in-progress: false
 
 permissions:
   contents: write # Crucial permission to allow push back to repository
