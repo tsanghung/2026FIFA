@@ -1,14 +1,14 @@
 {
-  "n": 24,
-  "generated_at": "2026-06-18 14:14:12",
-  "accuracy": 0.5,
-  "rps": 0.18706572239559094,
-  "rps_uniform": 0.21527777777777776,
-  "brier": 0.6463085010345919,
-  "logloss": 1.068106420886679,
-  "exact_score_acc": 0.041666666666666664,
-  "gd_mae": 1.7083333333333333,
-  "tg_mae": 1.4583333333333333,
+  "n": 25,
+  "generated_at": "2026-06-18 17:59:14",
+  "accuracy": 0.48,
+  "rps": 0.18636915997040418,
+  "rps_uniform": 0.2111111111111111,
+  "brier": 0.6562763754127825,
+  "logloss": 1.0802182861331873,
+  "exact_score_acc": 0.04,
+  "gd_mae": 1.72,
+  "tg_mae": 1.4,
   "calibration": {
     "30-40%": {
       "n": 1,
@@ -18,17 +18,17 @@
     "40-50%": {
       "n": 6,
       "win_rate": 0.3333333333333333,
-      "avg_pred": 0.4573719040646911
+      "avg_pred": 0.4569504577153849
     },
     "50-60%": {
-      "n": 5,
-      "win_rate": 0.4,
-      "avg_pred": 0.5514714872445706
+      "n": 6,
+      "win_rate": 0.3333333333333333,
+      "avg_pred": 0.5505844125295817
     },
     "60-70%": {
       "n": 9,
       "win_rate": 0.6666666666666666,
-      "avg_pred": 0.64541996441478
+      "avg_pred": 0.6452903889153356
     },
     "70-80%": {
       "n": 3,
@@ -44,8 +44,8 @@
     },
     "mid": {
       "hit": 2,
-      "n": 7,
-      "rate": 0.2857142857142857
+      "n": 8,
+      "rate": 0.25
     },
     "low": {
       "hit": 2,
@@ -53,11 +53,11 @@
       "rate": 0.5
     }
   },
-  "draws_actual": 9,
+  "draws_actual": 10,
   "draws_called": 0,
-  "draw_miss": 9,
+  "draw_miss": 10,
   "hits": 12,
-  "draw_rate": 0.375,
+  "draw_rate": 0.4,
   "draw_rate_hist": 0.222,
   "details": [
     {
@@ -93,6 +93,23 @@
       "hit": true,
       "exact": true,
       "reason": "✅ 命中:模型賽前看好主勝（South Korea 39%，低信心），結果如預期。"
+    },
+    {
+      "match_num": 3,
+      "home": "Czechia",
+      "away": "South Africa",
+      "probs": [
+        0.547,
+        0.254,
+        0.199
+      ],
+      "pred_outcome": "home",
+      "pred_score": "2-0",
+      "actual": "draw",
+      "actual_score": "1-1",
+      "hit": false,
+      "exact": false,
+      "reason": "❌ 模型看好Czechia贏，最後雙方言和；模型其實也給了和局 25%。"
     },
     {
       "match_num": 7,
@@ -219,8 +236,8 @@
       "away": "Ecuador",
       "probs": [
         0.249,
-        0.258,
-        0.493
+        0.259,
+        0.492
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -235,8 +252,8 @@
       "home": "Netherlands",
       "away": "Japan",
       "probs": [
-        0.435,
-        0.264,
+        0.434,
+        0.265,
         0.301
       ],
       "pred_outcome": "home",
@@ -245,7 +262,7 @@
       "actual_score": "2-2",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Netherlands贏，最後雙方言和；模型其實也給了和局 26%；合理變異:三方接近(主43/和26/客30),模型信心本就低；兩隊實力接近(Elo 僅差 20)。"
+      "reason": "❌ 模型看好Netherlands贏，最後雙方言和；模型其實也給了和局 27%；合理變異:三方接近(主43/和27/客30),模型信心本就低；兩隊實力接近(Elo 僅差 20)。"
     },
     {
       "match_num": 32,
@@ -337,9 +354,9 @@
       "home": "France",
       "away": "Senegal",
       "probs": [
-        0.61,
+        0.609,
         0.207,
-        0.183
+        0.184
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -439,8 +456,8 @@
       "home": "England",
       "away": "Croatia",
       "probs": [
-        0.501,
-        0.252,
+        0.5,
+        0.253,
         0.247
       ],
       "pred_outcome": "home",
