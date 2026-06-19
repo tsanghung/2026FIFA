@@ -1,14 +1,14 @@
 {
-  "n": 25,
-  "generated_at": "2026-06-18 17:59:14",
-  "accuracy": 0.48,
-  "rps": 0.18636915997040418,
-  "rps_uniform": 0.2111111111111111,
-  "brier": 0.6562763754127825,
-  "logloss": 1.0802182861331873,
-  "exact_score_acc": 0.04,
-  "gd_mae": 1.72,
-  "tg_mae": 1.4,
+  "n": 28,
+  "generated_at": "2026-06-19 04:56:57",
+  "accuracy": 0.5357142857142857,
+  "rps": 0.17792201209150987,
+  "rps_uniform": 0.2182539682539682,
+  "brier": 0.614515232023731,
+  "logloss": 1.0225890001774374,
+  "exact_score_acc": 0.03571428571428571,
+  "gd_mae": 1.6785714285714286,
+  "tg_mae": 1.5357142857142858,
   "calibration": {
     "30-40%": {
       "n": 1,
@@ -16,19 +16,19 @@
       "avg_pred": 0.3916757609665456
     },
     "40-50%": {
-      "n": 6,
-      "win_rate": 0.3333333333333333,
-      "avg_pred": 0.4569504577153849
+      "n": 8,
+      "win_rate": 0.5,
+      "avg_pred": 0.4617881584427691
     },
     "50-60%": {
-      "n": 6,
-      "win_rate": 0.3333333333333333,
-      "avg_pred": 0.5505844125295817
+      "n": 5,
+      "win_rate": 0.2,
+      "avg_pred": 0.5606528338337512
     },
     "60-70%": {
-      "n": 9,
-      "win_rate": 0.6666666666666666,
-      "avg_pred": 0.6452903889153356
+      "n": 11,
+      "win_rate": 0.7272727272727273,
+      "avg_pred": 0.6460698361979488
     },
     "70-80%": {
       "n": 3,
@@ -38,14 +38,14 @@
   },
   "acc_by_conf": {
     "high": {
-      "hit": 8,
-      "n": 13,
-      "rate": 0.6153846153846154
+      "hit": 10,
+      "n": 15,
+      "rate": 0.6666666666666666
     },
     "mid": {
-      "hit": 2,
-      "n": 8,
-      "rate": 0.25
+      "hit": 3,
+      "n": 9,
+      "rate": 0.3333333333333333
     },
     "low": {
       "hit": 2,
@@ -56,8 +56,8 @@
   "draws_actual": 10,
   "draws_called": 0,
   "draw_miss": 10,
-  "hits": 12,
-  "draw_rate": 0.4,
+  "hits": 15,
+  "draw_rate": 0.35714285714285715,
   "draw_rate_hist": 0.222,
   "details": [
     {
@@ -112,6 +112,23 @@
       "reason": "❌ 模型看好Czechia贏，最後雙方言和；模型其實也給了和局 25%。"
     },
     {
+      "match_num": 4,
+      "home": "Mexico",
+      "away": "South Korea",
+      "probs": [
+        0.463,
+        0.291,
+        0.247
+      ],
+      "pred_outcome": "home",
+      "pred_score": "2-1",
+      "actual": "home",
+      "actual_score": "1-0",
+      "hit": true,
+      "exact": false,
+      "reason": "✅ 命中:模型賽前看好主勝（Mexico 46%，中信心），結果如預期。"
+    },
+    {
       "match_num": 7,
       "home": "Canada",
       "away": "Bosnia-Herzegovina",
@@ -146,13 +163,47 @@
       "reason": "❌ 模型看好Switzerland贏，最後雙方言和；模型其實也給了和局 14%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。"
     },
     {
+      "match_num": 9,
+      "home": "Switzerland",
+      "away": "Bosnia-Herzegovina",
+      "probs": [
+        0.667,
+        0.179,
+        0.154
+      ],
+      "pred_outcome": "home",
+      "pred_score": "3-0",
+      "actual": "home",
+      "actual_score": "4-1",
+      "hit": true,
+      "exact": false,
+      "reason": "✅ 命中:模型賽前看好主勝（Switzerland 67%，高信心），結果如預期。"
+    },
+    {
+      "match_num": 10,
+      "home": "Canada",
+      "away": "Qatar",
+      "probs": [
+        0.635,
+        0.2,
+        0.164
+      ],
+      "pred_outcome": "home",
+      "pred_score": "2-0",
+      "actual": "home",
+      "actual_score": "6-0",
+      "hit": true,
+      "exact": false,
+      "reason": "✅ 命中:模型賽前看好主勝（Canada 64%，高信心），結果如預期。"
+    },
+    {
       "match_num": 13,
       "home": "Brazil",
       "away": "Morocco",
       "probs": [
-        0.409,
-        0.27,
-        0.321
+        0.406,
+        0.272,
+        0.322
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -236,8 +287,8 @@
       "away": "Ecuador",
       "probs": [
         0.249,
-        0.259,
-        0.492
+        0.26,
+        0.491
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -252,9 +303,9 @@
       "home": "Netherlands",
       "away": "Japan",
       "probs": [
-        0.434,
-        0.265,
-        0.301
+        0.43,
+        0.267,
+        0.303
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -354,9 +405,9 @@
       "home": "France",
       "away": "Senegal",
       "probs": [
-        0.609,
-        0.207,
-        0.184
+        0.606,
+        0.209,
+        0.185
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -456,9 +507,9 @@
       "home": "England",
       "away": "Croatia",
       "probs": [
-        0.5,
-        0.253,
-        0.247
+        0.498,
+        0.254,
+        0.248
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
