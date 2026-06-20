@@ -1,39 +1,39 @@
 {
   "n": 32,
-  "generated_at": "2026-06-20 09:44:38",
+  "generated_at": "2026-06-20 10:10:37",
   "accuracy": 0.5625,
-  "rps": 0.16073753830573656,
+  "rps": 0.16071363003322395,
   "rps_uniform": 0.22569444444444434,
-  "brier": 0.55049918644376,
-  "logloss": 0.9334313024108664,
+  "brier": 0.5504027037800452,
+  "logloss": 0.9333003705711003,
   "exact_score_acc": 0.03125,
-  "gd_mae": 1.59375,
-  "tg_mae": 1.59375,
+  "gd_mae": 1.625,
+  "tg_mae": 1.625,
   "calibration": {
     "30-40%": {
       "n": 1,
       "win_rate": 0.0,
-      "avg_pred": 0.3779271030598355
+      "avg_pred": 0.38026823318442177
     },
     "40-50%": {
       "n": 9,
       "win_rate": 0.3333333333333333,
-      "avg_pred": 0.45186988326024874
+      "avg_pred": 0.45228227999016823
     },
     "50-60%": {
       "n": 6,
       "win_rate": 0.6666666666666666,
-      "avg_pred": 0.5448428110088749
+      "avg_pred": 0.5450806978434016
     },
     "60-70%": {
       "n": 12,
       "win_rate": 0.75,
-      "avg_pred": 0.6510677041745013
+      "avg_pred": 0.6511841257575822
     },
     "70-80%": {
       "n": 4,
       "win_rate": 0.5,
-      "avg_pred": 0.7329426952480584
+      "avg_pred": 0.7331042162695067
     }
   },
   "acc_by_conf": {
@@ -201,9 +201,9 @@
       "home": "Brazil",
       "away": "Morocco",
       "probs": [
-        0.402,
+        0.403,
         0.274,
-        0.324
+        0.323
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -219,8 +219,8 @@
       "away": "Scotland",
       "probs": [
         0.163,
-        0.194,
-        0.643
+        0.193,
+        0.644
       ],
       "pred_outcome": "away",
       "pred_score": "0-2",
@@ -235,8 +235,8 @@
       "home": "Scotland",
       "away": "Morocco",
       "probs": [
-        0.184,
-        0.228,
+        0.183,
+        0.227,
         0.589
       ],
       "pred_outcome": "away",
@@ -257,7 +257,7 @@
         0.131
       ],
       "pred_outcome": "home",
-      "pred_score": "5-0",
+      "pred_score": "6-0",
       "actual": "home",
       "actual_score": "3-0",
       "hit": true,
@@ -269,7 +269,7 @@
       "home": "USA",
       "away": "Paraguay",
       "probs": [
-        0.515,
+        0.516,
         0.266,
         0.218
       ],
@@ -286,9 +286,9 @@
       "home": "Australia",
       "away": "Türkiye",
       "probs": [
-        0.312,
         0.31,
-        0.378
+        0.31,
+        0.38
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -303,9 +303,9 @@
       "home": "USA",
       "away": "Australia",
       "probs": [
-        0.49,
+        0.492,
         0.258,
-        0.252
+        0.25
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
