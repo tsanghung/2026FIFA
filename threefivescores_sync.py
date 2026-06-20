@@ -139,26 +139,42 @@ def ensure_schema(cur):
             cur.execute(f'ALTER TABLE matches ADD COLUMN {col} REAL')
 
 
+def _ymd(s):
+    """Extract the set of integer groups from a date string, order-insensitive, so
+    '2026-06-19' and feed formats like '19/06/2026' compare equal."""
+    import re
+    return {int(x) for x in re.findall(r'\d+', str(s or ''))}
+
+
 def match_fixture(cur, parsed, normalize):
-    """Find (match_num, swapped) for a parsed game, orientation-aware. None if no match."""
+    """Find (match_num, swapped) for a parsed game, orientation-aware. None if no
+    match. A (home, away) pair is unique across the tournament, so names+orientation
+    are the primary key; date is only a tiebreaker if several fixtures collide."""
     h = normalize(parsed['home_name'])
     a = normalize(parsed['away_name'])
     rows = cur.execute(
-        "SELECT match_num, home_team, away_team, date FROM matches "
-        "WHERE status='Completed'").fetchall()
-    same = swapped = None
+        "SELECT match_num, home_team, away_team, date FROM matches").fetchall()
+    same, swapped = [], []
     for mn, ht, at, date in rows:
         ht_n, at_n = normalize(ht), normalize(at)
         if ht_n == h and at_n == a:
-            if parsed['date'] in ('', None) or parsed['date'] == date:
-                same = mn
+            same.append((mn, date))
         elif ht_n == a and at_n == h:
-            if parsed['date'] in ('', None) or parsed['date'] == date:
-                swapped = mn
-    if same is not None:
-        return same, False
-    if swapped is not None:
-        return swapped, True
+            swapped.append((mn, date))
+
+    def pick(cands):
+        if len(cands) == 1:
+            return cands[0][0]
+        pd = _ymd(parsed.get('date'))
+        for mn, date in cands:
+            if pd and pd == _ymd(date):
+                return mn
+        return cands[0][0]
+
+    if same:
+        return pick(same), False
+    if swapped:
+        return pick(swapped), True
     return None
 
 
@@ -178,8 +194,10 @@ def run(dry_run=False):
 
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    if not dry_run:
-        ensure_schema(cur)
+    # Always add the columns: in --dry-run nothing is committed (and the probe
+    # workflow has no push step), so this only affects the ephemeral runner copy
+    # while letting _report_blend read home_xg/away_xg without crashing.
+    ensure_schema(cur)
 
     matched = 0
     for g in games:
