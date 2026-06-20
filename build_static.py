@@ -69,13 +69,22 @@ def load_data():
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
     cur = con.cursor()
-    matches = [dict(r) for r in cur.execute('''
+    # xG/possession/shots columns are added by threefivescores_sync; include them
+    # only if present so the build also works on a DB that predates them.
+    have = {r[1] for r in cur.execute('PRAGMA table_info(matches)')}
+    XG_COLS = ('home_xg', 'away_xg', 'home_possession', 'away_possession',
+               'home_shots', 'away_shots')
+    extra = ''.join(f', {c}' for c in XG_COLS if c in have)
+    matches = [dict(r) for r in cur.execute(f'''
         SELECT match_num, group_or_stage, date, time, home_team, away_team,
                pred_home_win_prob, pred_draw_prob, pred_away_win_prob, pred_score,
                odds_home, odds_draw, odds_away, status, score,
                odds_home_pinnacle, odds_home_williamhill, odds_home_draftkings,
-               odds_source, odds_last_update, odds_bookmaker_keys
+               odds_source, odds_last_update, odds_bookmaker_keys{extra}
         FROM matches ORDER BY match_num ASC''')]
+    for mm in matches:
+        for c in XG_COLS:
+            mm.setdefault(c, None)
     teams = [dict(r) for r in cur.execute(
         'SELECT name, elo_rating, fifa_rank FROM teams ORDER BY elo_rating DESC')]
     champs = []
@@ -564,6 +573,17 @@ def build_match(m, matches, live_details=None):
     if m.get('status') == 'Completed' and flip_score(m['score']):
         score_disp = flip_score(m['score'])   # 客-主 to match the "客 vs 主" header
         p.append(f'<h2>賽果 vs 預測</h2><p class="lead">實際比分（{esc(a)}-{esc(h)}）：<b>{esc(score_disp)}</b></p>')
+        # Post-match advanced stats from 365Scores (away-home order to match header).
+        hx, ax = m.get('home_xg'), m.get('away_xg')
+        if hx is not None and ax is not None:
+            bits = [f'預期進球 xG（{esc(a)}-{esc(h)}）：<b>{ax:.2f}-{hx:.2f}</b>']
+            hp, ap = m.get('home_possession'), m.get('away_possession')
+            if hp is not None and ap is not None:
+                bits.append(f'控球 {ap:.0f}%-{hp:.0f}%')
+            hs, ss = m.get('home_shots'), m.get('away_shots')
+            if hs is not None and ss is not None:
+                bits.append(f'射門 {int(ss)}-{int(hs)}')
+            p.append('<p class="lead">' + '，'.join(bits) + '。<span class="muted">數據來源：365Scores</span></p>')
         det = (live_details or {}).get(m['match_num'])
         if det and det.get('reason'):
             cls = 'ok' if det.get('hit') else 'miss'

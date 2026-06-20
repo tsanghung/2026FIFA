@@ -53,6 +53,14 @@ jobs:
         run: |
           python sync_fifa.py
 
+      - name: 📊 Sync 365Scores xG & blend into model
+        # Pull post-match xG/possession/shots for finished World Cup games, store
+        # them for display, blend each team's live xG-diff into fbref_xg_diff, then
+        # recompute predictions. Non-fatal: a source hiccup must not fail the sync.
+        continue-on-error: true
+        run: |
+          python threefivescores_sync.py
+
       - name: Sync External Prediction Sources
         run: |
           python external_predictions.py
