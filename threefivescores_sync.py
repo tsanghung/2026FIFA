@@ -26,7 +26,8 @@ import urllib.request
 import urllib.error
 
 DB_PATH = 'fifa_2026.db'
-BASE = 'https://webws.365scores.com/web'
+ROOT = 'https://webws.365scores.com'
+BASE = ROOT + '/web'
 COMMON = 'appTypeId=5&langId=1&timezoneName=Asia/Taipei&userCountryId=1'
 UA = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
       '(KHTML, like Gecko) Chrome/124.0 Safari/537.36')
@@ -52,20 +53,58 @@ def is_world_cup(name):
     return bool(name) and ('World Cup' in name or '世界' in name)
 
 
-def find_finished_wc_games():
-    """Return list of dicts {id, comp} for finished World Cup games in the feed."""
+def _finished(g):
+    return (g.get('statusGroup') in (3, 4)
+            or 'End' in str(g.get('statusText', ''))
+            or 'Final' in str(g.get('statusText', '')))
+
+
+def scan_current_feed():
+    """One fetch of the current-games feed -> (finished WC game ids, WC competition ids)."""
     data = fetch_json(f'{BASE}/games/current/?{COMMON}&sports=1')
-    out = []
+    ids, comps = set(), set()
     for g in data.get('games', []):
-        comp = (g.get('competitionDisplayName') or g.get('competitionName') or '')
-        if not is_world_cup(comp):
+        name = (g.get('competitionDisplayName') or g.get('competitionName') or '')
+        if not is_world_cup(name):
             continue
-        finished = (g.get('statusGroup') in (3, 4)
-                    or 'End' in str(g.get('statusText', ''))
-                    or 'Final' in str(g.get('statusText', '')))
-        if finished and g.get('id'):
-            out.append({'id': g['id'], 'comp': comp})
-    return out
+        if g.get('competitionId'):
+            comps.add(g['competitionId'])
+        if _finished(g) and g.get('id'):
+            ids.add(g['id'])
+    return ids, comps
+
+
+def find_all_wc_finished_games(comp_ids):
+    """Backfill enumerator: all finished games for the WC competition(s), INCLUDING
+    ones that have aged out of the rolling 'current' window. Returns list of
+    {id, home, away} read straight from the competition game list (no detail fetch)."""
+    out = {}
+    for cid in comp_ids:
+        url = f'{BASE}/games/?{COMMON}&competitions={cid}&showOdds=false'
+        pages = 0
+        while url and pages < 8:
+            try:
+                data = fetch_json(url)
+            except Exception as e:
+                log(f"  [backfill] competition {cid} fetch failed: {e}")
+                break
+            for g in data.get('games', []):
+                if not (_finished(g) and g.get('id')):
+                    continue
+                hc = g.get('homeCompetitor', {}) or {}
+                ac = g.get('awayCompetitor', {}) or {}
+                if hc.get('name') and ac.get('name'):
+                    out[g['id']] = {'id': g['id'], 'home': hc['name'], 'away': ac['name']}
+            nxt = (data.get('paging') or {}).get('nextPage')
+            if nxt and nxt.startswith('/'):
+                url = ROOT + nxt
+            elif nxt and nxt.startswith('http'):
+                url = nxt
+            else:
+                url = None
+            pages += 1
+        log(f"  [backfill] competition {cid}: enumerated {len(out)} finished game(s)")
+    return list(out.values())
 
 
 def _num(x):
@@ -179,37 +218,57 @@ def match_fixture(cur, parsed, normalize):
 
 
 def run(dry_run=False):
-    from sync_fifa import normalize_team_name, reset_and_recalculate_all_elo_and_predictions
+    from sync_fifa import normalize_team_name as N, reset_and_recalculate_all_elo_and_predictions
     try:
         from external_intelligence import MODEL_PRIOR_XG_DIFF
     except Exception:
         MODEL_PRIOR_XG_DIFF = {}
 
-    log("locating finished World Cup games on 365Scores...")
-    games = find_finished_wc_games()
-    log(f"found {len(games)} finished WC game(s) in feed: {[g['id'] for g in games]}")
-    if not games:
-        log("nothing to sync.")
-        return
-
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    # Always add the columns: in --dry-run nothing is committed (and the probe
-    # workflow has no push step), so this only affects the ephemeral runner copy
-    # while letting _report_blend read home_xg/away_xg without crashing.
+    # Always add the columns: in --dry-run nothing is committed (probe has no push
+    # step), so this only touches the ephemeral runner copy while letting the
+    # missing-xG query and _report_blend read the columns without crashing.
     ensure_schema(cur)
+    conn.commit()
+
+    log("scanning 365Scores current feed for finished World Cup games...")
+    ids, comp_ids = scan_current_feed()
+    log(f"current feed: finished WC {sorted(ids)}; WC competition id(s) {sorted(comp_ids)}")
+
+    # Backfill: any completed fixture still missing xG (e.g. games that aged out of
+    # the rolling 'current' window before we captured them) is filled from the
+    # competition's full game history.
+    missing = {frozenset((N(h), N(a))) for h, a in cur.execute(
+        "SELECT home_team, away_team FROM matches "
+        "WHERE status='Completed' AND (home_xg IS NULL OR away_xg IS NULL)").fetchall()}
+    if missing and comp_ids:
+        log(f"{len(missing)} completed fixture(s) missing xG -> backfilling from competition history...")
+        for bg in find_all_wc_finished_games(comp_ids):
+            if frozenset((N(bg['home']), N(bg['away']))) in missing:
+                ids.add(bg['id'])
+    log(f"{len(ids)} game(s) to process: {sorted(ids)}")
+    if not ids:
+        log("nothing to sync.")
+        conn.close()
+        return
 
     matched = 0
-    for g in games:
+    for gid in sorted(ids):
         try:
-            p = fetch_game_stats(g['id'])
+            p = fetch_game_stats(gid)
         except Exception as e:
-            log(f"  game {g['id']} fetch failed: {e}")
+            log(f"  game {gid} fetch failed: {e}")
             continue
         if not p:
             continue
-        m = match_fixture(cur, p, normalize_team_name)
         tag = 'DRY' if dry_run else 'SYNC'
+        if not p.get('has_chart'):
+            # No shot chart -> no xG. Don't write a misleading 0-0; leave NULL so a
+            # later run can still fill it once 365Scores publishes the chart.
+            log(f"  [{tag}] {p['home_name']} vs {p['away_name']} (game {gid}) -> no xG chart, skipping")
+            continue
+        m = match_fixture(cur, p, N)
         if m is None:
             log(f"  [{tag}] {p['home_name']} vs {p['away_name']} "
                 f"xG {p['home_xg']}-{p['away_xg']}  -> NO DB FIXTURE MATCH")
@@ -229,17 +288,16 @@ def run(dry_run=False):
                 "away_possession=?, home_shots=?, away_shots=? WHERE match_num=?",
                 (hx, ax, hp, ap, hs, ss, mn))
 
-    log(f"matched {matched}/{len(games)} games to fixtures.")
+    log(f"matched {matched}/{len(ids)} game(s) to fixtures.")
 
     if dry_run:
-        # Show what the per-team xG-diff blend WOULD produce, without writing.
-        _report_blend(cur, MODEL_PRIOR_XG_DIFF, normalize_team_name, dry=True)
+        _report_blend(cur, MODEL_PRIOR_XG_DIFF, N, dry=True)
         conn.close()
         log("dry-run complete; no DB writes.")
         return
 
     conn.commit()
-    _report_blend(cur, MODEL_PRIOR_XG_DIFF, normalize_team_name, dry=False)
+    _report_blend(cur, MODEL_PRIOR_XG_DIFF, N, dry=False)
     conn.commit()
     conn.close()
 
