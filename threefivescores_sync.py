@@ -139,7 +139,6 @@ def ensure_schema(cur):
             cur.execute(f'ALTER TABLE matches ADD COLUMN {col} REAL')
 
 
-<<<<<<< HEAD
 def _ymd(s):
     """Extract the set of integer groups from a date string, order-insensitive, so
     '2026-06-19' and feed formats like '19/06/2026' compare equal."""
@@ -176,28 +175,6 @@ def match_fixture(cur, parsed, normalize):
         return pick(same), False
     if swapped:
         return pick(swapped), True
-=======
-def match_fixture(cur, parsed, normalize):
-    """Find (match_num, swapped) for a parsed game, orientation-aware. None if no match."""
-    h = normalize(parsed['home_name'])
-    a = normalize(parsed['away_name'])
-    rows = cur.execute(
-        "SELECT match_num, home_team, away_team, date FROM matches "
-        "WHERE status='Completed'").fetchall()
-    same = swapped = None
-    for mn, ht, at, date in rows:
-        ht_n, at_n = normalize(ht), normalize(at)
-        if ht_n == h and at_n == a:
-            if parsed['date'] in ('', None) or parsed['date'] == date:
-                same = mn
-        elif ht_n == a and at_n == h:
-            if parsed['date'] in ('', None) or parsed['date'] == date:
-                swapped = mn
-    if same is not None:
-        return same, False
-    if swapped is not None:
-        return swapped, True
->>>>>>> origin/main
     return None
 
 
@@ -217,15 +194,10 @@ def run(dry_run=False):
 
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-<<<<<<< HEAD
     # Always add the columns: in --dry-run nothing is committed (and the probe
     # workflow has no push step), so this only affects the ephemeral runner copy
     # while letting _report_blend read home_xg/away_xg without crashing.
     ensure_schema(cur)
-=======
-    if not dry_run:
-        ensure_schema(cur)
->>>>>>> origin/main
 
     matched = 0
     for g in games:
