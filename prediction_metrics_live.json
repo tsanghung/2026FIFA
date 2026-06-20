@@ -1,14 +1,14 @@
 {
   "n": 32,
-  "generated_at": "2026-06-20 09:05:42",
+  "generated_at": "2026-06-20 09:18:53",
   "accuracy": 0.5625,
-  "rps": 0.17857349597467204,
+  "rps": 0.17892027074180686,
   "rps_uniform": 0.22569444444444434,
-  "brier": 0.5902241223524702,
-  "logloss": 0.9897143122358902,
+  "brier": 0.5907698598049447,
+  "logloss": 0.990593628371683,
   "exact_score_acc": 0.03125,
-  "gd_mae": 1.65625,
-  "tg_mae": 1.53125,
+  "gd_mae": 1.6875,
+  "tg_mae": 1.5,
   "calibration": {
     "30-40%": {
       "n": 1,
@@ -18,7 +18,7 @@
     "40-50%": {
       "n": 10,
       "win_rate": 0.5,
-      "avg_pred": 0.46247471729679496
+      "avg_pred": 0.46463842316881293
     },
     "50-60%": {
       "n": 6,
@@ -43,14 +43,14 @@
       "rate": 0.6875
     },
     "mid": {
-      "hit": 5,
-      "n": 12,
-      "rate": 0.4166666666666667
+      "hit": 6,
+      "n": 13,
+      "rate": 0.46153846153846156
     },
     "low": {
-      "hit": 2,
-      "n": 4,
-      "rate": 0.5
+      "hit": 1,
+      "n": 3,
+      "rate": 0.3333333333333333
     }
   },
   "draws_actual": 10,
@@ -269,9 +269,9 @@
       "home": "USA",
       "away": "Paraguay",
       "probs": [
-        0.446,
-        0.294,
-        0.26
+        0.451,
+        0.292,
+        0.256
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -279,19 +279,19 @@
       "actual_score": "4-1",
       "hit": true,
       "exact": false,
-      "reason": "✅ 命中:模型賽前看好主勝（USA 45%，低信心），結果如預期。"
+      "reason": "✅ 命中:模型賽前看好主勝（USA 45%，中信心），結果如預期。"
     },
     {
       "match_num": 20,
       "home": "Australia",
       "away": "Türkiye",
       "probs": [
-        0.234,
-        0.279,
-        0.487
+        0.231,
+        0.277,
+        0.493
       ],
       "pred_outcome": "away",
-      "pred_score": "1-2",
+      "pred_score": "0-2",
       "actual": "home",
       "actual_score": "2-0",
       "hit": false,
@@ -320,9 +320,9 @@
       "home": "Türkiye",
       "away": "Paraguay",
       "probs": [
-        0.481,
-        0.28,
-        0.239
+        0.492,
+        0.276,
+        0.233
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -330,7 +330,7 @@
       "actual_score": "0-1",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Türkiye（48%），最後由Paraguay勝出。"
+      "reason": "❌ 模型看好Türkiye（49%），最後由Paraguay勝出。"
     },
     {
       "match_num": 25,
