@@ -1,7 +1,12 @@
 name: 🔎 Probe Data Sources (FBref / Sofascore / FotMob / 365Scores)
 
+<<<<<<< HEAD
 # 探測資料源。第二版聚焦 365Scores(唯一連得到的):抓一場已完賽比賽的詳情,
 # 遞迴找出 xG / 球員評分 / 陣容 / 統計 等欄位的實際路徑與樣本,決定值不值得接。
+=======
+# 一次性探測:從 GitHub Actions(開放網路)實測 4 個平台到底連不連得到、
+# 回什麼資料。手動觸發,結果印在 log,用來決定哪個資料源可實際接入。
+>>>>>>> origin/main
 on:
   workflow_dispatch:
 
@@ -18,6 +23,7 @@ jobs:
           python-version: '3.10'
       - name: 📦 Install deps
         run: pip install --quiet requests
+<<<<<<< HEAD
       - name: 🔎 Deep-probe 365Scores
         run: |
           python - <<'PY'
@@ -86,5 +92,38 @@ jobs:
                   print(f'   FOUND {len(hits)} interesting keys:')
                   for k,sample in list(hits.items())[:25]:
                       print('    -', sample)
+=======
+      - name: 🔎 Probe each source
+        run: |
+          python - <<'PY'
+          import requests, json
+          UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                              '(KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+                'Accept': 'application/json, text/html, */*',
+                'Accept-Language': 'en-US,en;q=0.9'}
+          tests = [
+            ('FBref  WC fixtures (HTML+xG cols)',
+             'https://fbref.com/en/comps/1/schedule/World-Cup-Scores-and-Fixtures'),
+            ('FBref  comp index',
+             'https://fbref.com/en/comps/1/World-Cup-Stats'),
+            ('Sofascore  live football (JSON)',
+             'https://api.sofascore.com/api/v1/sport/football/events/live'),
+            ('FotMob  matches by date (JSON)',
+             'https://www.fotmob.com/api/matches?date=20260616'),
+            ('365Scores  current games (JSON)',
+             'https://webws.365scores.com/web/games/current/?appTypeId=5&langId=1&timezoneName=Asia/Taipei&sports=1'),
+          ]
+          for name, url in tests:
+              try:
+                  r = requests.get(url, headers=UA, timeout=25)
+                  ct = r.headers.get('content-type', '')
+                  body = r.text[:200].replace('\n', ' ')
+                  has_xg = ('xg' in r.text.lower()) if 'fbref' in url else None
+                  extra = f' has_xG={has_xg}' if has_xg is not None else ''
+                  print(f'PROBE [{name}] -> {r.status_code} | {ct[:40]} | len={len(r.text)}{extra}')
+                  print(f'      sample: {body!r}')
+              except Exception as e:
+                  print(f'PROBE [{name}] -> ERROR {type(e).__name__}: {str(e)[:160]}')
+>>>>>>> origin/main
           print('PROBE DONE')
           PY
