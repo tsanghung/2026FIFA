@@ -1,7 +1,7 @@
 name: 🔎 Probe Data Sources (FBref / Sofascore / FotMob / 365Scores)
 
-# 一次性探測:從 GitHub Actions(開放網路)實測 4 個平台到底連不連得到、
-# 回什麼資料。手動觸發,結果印在 log,用來決定哪個資料源可實際接入。
+# 探測資料源。第二版聚焦 365Scores(唯一連得到的):抓一場已完賽比賽的詳情,
+# 遞迴找出 xG / 球員評分 / 陣容 / 統計 等欄位的實際路徑與樣本,決定值不值得接。
 on:
   workflow_dispatch:
 
@@ -18,36 +18,73 @@ jobs:
           python-version: '3.10'
       - name: 📦 Install deps
         run: pip install --quiet requests
-      - name: 🔎 Probe each source
+      - name: 🔎 Deep-probe 365Scores
         run: |
           python - <<'PY'
-          import requests, json
+          import requests, json, re
           UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                               '(KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-                'Accept': 'application/json, text/html, */*',
-                'Accept-Language': 'en-US,en;q=0.9'}
-          tests = [
-            ('FBref  WC fixtures (HTML+xG cols)',
-             'https://fbref.com/en/comps/1/schedule/World-Cup-Scores-and-Fixtures'),
-            ('FBref  comp index',
-             'https://fbref.com/en/comps/1/World-Cup-Stats'),
-            ('Sofascore  live football (JSON)',
-             'https://api.sofascore.com/api/v1/sport/football/events/live'),
-            ('FotMob  matches by date (JSON)',
-             'https://www.fotmob.com/api/matches?date=20260616'),
-            ('365Scores  current games (JSON)',
-             'https://webws.365scores.com/web/games/current/?appTypeId=5&langId=1&timezoneName=Asia/Taipei&sports=1'),
-          ]
-          for name, url in tests:
-              try:
-                  r = requests.get(url, headers=UA, timeout=25)
-                  ct = r.headers.get('content-type', '')
-                  body = r.text[:200].replace('\n', ' ')
-                  has_xg = ('xg' in r.text.lower()) if 'fbref' in url else None
-                  extra = f' has_xG={has_xg}' if has_xg is not None else ''
-                  print(f'PROBE [{name}] -> {r.status_code} | {ct[:40]} | len={len(r.text)}{extra}')
-                  print(f'      sample: {body!r}')
-              except Exception as e:
-                  print(f'PROBE [{name}] -> ERROR {type(e).__name__}: {str(e)[:160]}')
+                'Accept': 'application/json, text/html, */*'}
+          BASE = 'https://webws.365scores.com/web'
+          COMMON = 'appTypeId=5&langId=1&timezoneName=Asia/Taipei&userCountryId=1'
+
+          def get(url):
+              r = requests.get(url, headers=UA, timeout=25)
+              return r.status_code, r.text
+
+          # 1) current games -> collect competitions + a finished football gameId
+          sc, txt = get(f'{BASE}/games/current/?{COMMON}&sports=1')
+          print(f'PROBE games/current -> {sc} len={len(txt)}')
+          data = json.loads(txt)
+          games = data.get('games', [])
+          comps = {}
+          finished = []
+          wc_finished = []
+          for g in games:
+              comp = g.get('competitionDisplayName') or g.get('competitionName') or str(g.get('competitionId'))
+              comps[comp] = comps.get(comp, 0) + 1
+              # status: look for finished-ish
+              st = json.dumps(g.get('statusText','')) + json.dumps(g.get('gameStatus',''))
+              gid = g.get('id')
+              if g.get('statusGroup') in (3, 4) or 'End' in str(g.get('statusText','')) or g.get('gameStatusScore') is not None:
+                  if gid: finished.append(gid)
+                  if 'World Cup' in comp or '世界' in comp:
+                      wc_finished.append(gid)
+          print('PROBE competitions in feed:', json.dumps(comps, ensure_ascii=False)[:600])
+          print('PROBE finished gameIds sample:', finished[:8])
+          print('PROBE WC finished gameIds:', wc_finished[:8])
+
+          # 2) pick a gameId to inspect (prefer WC, else any finished, else first game)
+          gid = (wc_finished or finished or [games[0]['id'] if games else None])[0]
+          print('PROBE inspecting gameId:', gid)
+          if gid:
+              for shape in [f'{BASE}/game/?{COMMON}&gameId={gid}',
+                            f'{BASE}/game/stats/?{COMMON}&games={gid}']:
+                  sc, txt = get(shape)
+                  print(f'PROBE detail {shape.split("?")[0]} -> {sc} len={len(txt)}')
+                  if sc != 200:
+                      print('   sample:', txt[:160]); continue
+                  try:
+                      gd = json.loads(txt)
+                  except Exception as e:
+                      print('   not json:', e); continue
+                  # recursively find interesting keys
+                  hits = {}
+                  KEYS = ('xg','expectedgoal','rating','lineup','statistic','chart','shot','possession','formation','player')
+                  def walk(o, path=''):
+                      if isinstance(o, dict):
+                          for k,v in o.items():
+                              lk = k.lower()
+                              if any(t in lk for t in KEYS):
+                                  s = json.dumps(v, ensure_ascii=False)
+                                  hits.setdefault(k, f'{path}/{k} = {s[:140]}')
+                              walk(v, f'{path}/{k}')
+                      elif isinstance(o, list):
+                          for i,v in enumerate(o[:3]):
+                              walk(v, f'{path}[{i}]')
+                  walk(gd)
+                  print(f'   FOUND {len(hits)} interesting keys:')
+                  for k,sample in list(hits.items())[:25]:
+                      print('    -', sample)
           print('PROBE DONE')
           PY
