@@ -61,6 +61,19 @@ jobs:
         run: |
           python threefivescores_sync.py
 
+      - name: 🎯 Daily Calibration Regression & Rolling Adjustment (15:00 Taiwan)
+        # 校正回歸 + 滾動式調整: re-fit the prediction parameters against the full
+        # international-results history (RPS coordinate descent) and refresh the
+        # data-driven Elo seeds, then regenerate predictions in a FRESH process so
+        # they adopt the freshly calibrated params/seeds. Gated to the 07:00 UTC
+        # trigger (15:00 Taiwan) and manual runs so it recalibrates once per day,
+        # not on every sync. Non-fatal so a calibration hiccup never breaks the sync.
+        if: github.event.schedule == '0 7 * * *' || github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        run: |
+          python backtest.py
+          python -c "import sync_fifa; sync_fifa.reset_and_recalculate_all_elo_and_predictions()"
+
       - name: Sync External Prediction Sources
         run: |
           python external_predictions.py
@@ -85,6 +98,9 @@ jobs:
           # Check if there are changes to commit
           if [ -n "$(git status --porcelain)" ]; then
             git add fifa_2026.db sync.log CHAMPION_TREND.md BET_TRACKING.md PRED_ACCURACY.md prediction_metrics_live.json docs
+            # Persist daily-calibration outputs so tuned params/seeds survive the
+            # ephemeral runner (no-op on runs where calibration didn't execute).
+            git add calibrated_params.json backtest_metrics.json team_ratings_seed.json 2>/dev/null || true
             git commit -m "chore: daily data, odds sync & static site rebuild [skip ci]"
             git push origin HEAD:${{ github.ref }}
           else
