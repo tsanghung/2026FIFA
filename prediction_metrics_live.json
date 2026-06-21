@@ -1,51 +1,51 @@
 {
-  "n": 32,
-  "generated_at": "2026-06-20 16:18:19",
-  "accuracy": 0.5625,
-  "rps": 0.16072206433919028,
-  "rps_uniform": 0.22569444444444434,
-  "brier": 0.5504173147939243,
-  "logloss": 0.9333232456080184,
-  "exact_score_acc": 0.03125,
-  "gd_mae": 1.625,
-  "tg_mae": 1.625,
+  "n": 36,
+  "generated_at": "2026-06-21 05:59:15",
+  "accuracy": 0.5833333333333334,
+  "rps": 0.15979898815350915,
+  "rps_uniform": 0.22685185185185175,
+  "brier": 0.5481225684705022,
+  "logloss": 0.9306828719336576,
+  "exact_score_acc": 0.05555555555555555,
+  "gd_mae": 1.6388888888888888,
+  "tg_mae": 1.6388888888888888,
   "calibration": {
     "30-40%": {
-      "n": 1,
+      "n": 2,
       "win_rate": 0.0,
-      "avg_pred": 0.3803826133243917
+      "avg_pred": 0.3855296559144691
     },
     "40-50%": {
       "n": 9,
-      "win_rate": 0.3333333333333333,
-      "avg_pred": 0.4523083084511918
+      "win_rate": 0.4444444444444444,
+      "avg_pred": 0.45674746357310586
     },
     "50-60%": {
-      "n": 6,
-      "win_rate": 0.6666666666666666,
-      "avg_pred": 0.5450996301385967
+      "n": 7,
+      "win_rate": 0.7142857142857143,
+      "avg_pred": 0.5488210092177048
     },
     "60-70%": {
       "n": 12,
       "win_rate": 0.75,
-      "avg_pred": 0.6511841257575822
+      "avg_pred": 0.6507141228249478
     },
     "70-80%": {
-      "n": 4,
+      "n": 6,
       "win_rate": 0.5,
-      "avg_pred": 0.7331042162695067
+      "avg_pred": 0.7301630099019282
     }
   },
   "acc_by_conf": {
     "high": {
-      "hit": 11,
-      "n": 16,
-      "rate": 0.6875
+      "hit": 12,
+      "n": 18,
+      "rate": 0.6666666666666666
     },
     "mid": {
-      "hit": 6,
-      "n": 10,
-      "rate": 0.6
+      "hit": 8,
+      "n": 12,
+      "rate": 0.6666666666666666
     },
     "low": {
       "hit": 1,
@@ -53,11 +53,11 @@
       "rate": 0.16666666666666666
     }
   },
-  "draws_actual": 10,
+  "draws_actual": 11,
   "draws_called": 0,
-  "draw_miss": 10,
-  "hits": 18,
-  "draw_rate": 0.3125,
+  "draw_miss": 11,
+  "hits": 21,
+  "draw_rate": 0.3055555555555556,
   "draw_rate_hist": 0.222,
   "details": [
     {
@@ -201,9 +201,9 @@
       "home": "Brazil",
       "away": "Morocco",
       "probs": [
-        0.403,
-        0.274,
-        0.323
+        0.398,
+        0.276,
+        0.326
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -211,7 +211,7 @@
       "actual_score": "1-1",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Brazil贏，最後雙方言和；模型其實也給了和局 27%；合理變異:三方接近(主40/和27/客32),模型信心本就低；兩隊實力接近(Elo 僅差 5)。"
+      "reason": "❌ 模型看好Brazil贏，最後雙方言和；模型其實也給了和局 28%；合理變異:三方接近(主40/和28/客33),模型信心本就低；兩隊實力接近(Elo 僅差 5)。"
     },
     {
       "match_num": 14,
@@ -219,8 +219,8 @@
       "away": "Scotland",
       "probs": [
         0.163,
-        0.193,
-        0.644
+        0.194,
+        0.643
       ],
       "pred_outcome": "away",
       "pred_score": "0-2",
@@ -235,8 +235,8 @@
       "home": "Scotland",
       "away": "Morocco",
       "probs": [
-        0.183,
-        0.227,
+        0.184,
+        0.228,
         0.589
       ],
       "pred_outcome": "away",
@@ -257,7 +257,7 @@
         0.131
       ],
       "pred_outcome": "home",
-      "pred_score": "6-0",
+      "pred_score": "5-0",
       "actual": "home",
       "actual_score": "3-0",
       "hit": true,
@@ -269,9 +269,9 @@
       "home": "USA",
       "away": "Paraguay",
       "probs": [
-        0.516,
-        0.266,
-        0.218
+        0.51,
+        0.269,
+        0.221
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -279,16 +279,16 @@
       "actual_score": "4-1",
       "hit": true,
       "exact": false,
-      "reason": "✅ 命中:模型賽前看好主勝（USA 52%，中信心），結果如預期。"
+      "reason": "✅ 命中:模型賽前看好主勝（USA 51%，中信心），結果如預期。"
     },
     {
       "match_num": 20,
       "home": "Australia",
       "away": "Türkiye",
       "probs": [
-        0.31,
-        0.31,
-        0.38
+        0.317,
+        0.311,
+        0.373
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -296,16 +296,16 @@
       "actual_score": "2-0",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Türkiye（38%），最後由Australia勝出；合理變異:三方接近(主31/和31/客38),模型信心本就低；兩隊實力接近(Elo 僅差 30)。"
+      "reason": "❌ 模型看好Türkiye（37%），最後由Australia勝出；合理變異:三方接近(主32/和31/客37),模型信心本就低；兩隊實力接近(Elo 僅差 30)。"
     },
     {
       "match_num": 21,
       "home": "USA",
       "away": "Australia",
       "probs": [
-        0.492,
-        0.258,
-        0.25
+        0.487,
+        0.26,
+        0.253
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -320,9 +320,9 @@
       "home": "Türkiye",
       "away": "Paraguay",
       "probs": [
-        0.421,
-        0.299,
-        0.28
+        0.41,
+        0.301,
+        0.288
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -330,14 +330,14 @@
       "actual_score": "0-1",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Türkiye（42%），最後由Paraguay勝出；合理變異:三方接近(主42/和30/客28),模型信心本就低；兩隊實力接近(Elo 僅差 16)。"
+      "reason": "❌ 模型看好Türkiye（41%），最後由Paraguay勝出；合理變異:三方接近(主41/和30/客29),模型信心本就低；兩隊實力接近(Elo 僅差 16)。"
     },
     {
       "match_num": 25,
       "home": "Germany",
       "away": "Curaçao",
       "probs": [
-        0.74,
+        0.741,
         0.124,
         0.135
       ],
@@ -355,8 +355,8 @@
       "away": "Ecuador",
       "probs": [
         0.281,
-        0.274,
-        0.445
+        0.275,
+        0.444
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -364,16 +364,50 @@
       "actual_score": "1-0",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Ecuador（45%），最後由Ivory Coast勝出；合理變異:三方接近(主28/和27/客45),模型信心本就低；兩隊實力接近(Elo 僅差 15)。"
+      "reason": "❌ 模型看好Ecuador（44%），最後由Ivory Coast勝出；合理變異:三方接近(主28/和27/客44),模型信心本就低；兩隊實力接近(Elo 僅差 15)。"
+    },
+    {
+      "match_num": 27,
+      "home": "Germany",
+      "away": "Ivory Coast",
+      "probs": [
+        0.581,
+        0.226,
+        0.194
+      ],
+      "pred_outcome": "home",
+      "pred_score": "2-1",
+      "actual": "home",
+      "actual_score": "2-1",
+      "hit": true,
+      "exact": true,
+      "reason": "✅ 命中:模型賽前看好主勝（Germany 58%，中信心），結果如預期。"
+    },
+    {
+      "match_num": 28,
+      "home": "Ecuador",
+      "away": "Curaçao",
+      "probs": [
+        0.742,
+        0.134,
+        0.125
+      ],
+      "pred_outcome": "home",
+      "pred_score": "4-0",
+      "actual": "draw",
+      "actual_score": "0-0",
+      "hit": false,
+      "exact": false,
+      "reason": "❌ 模型看好Ecuador贏，最後雙方言和；模型其實也給了和局 13%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。"
     },
     {
       "match_num": 31,
       "home": "Netherlands",
       "away": "Japan",
       "probs": [
-        0.434,
-        0.269,
-        0.298
+        0.428,
+        0.271,
+        0.302
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -399,6 +433,40 @@
       "hit": true,
       "exact": false,
       "reason": "✅ 命中:模型賽前看好主勝（Sweden 54%，中信心），結果如預期。"
+    },
+    {
+      "match_num": 33,
+      "home": "Netherlands",
+      "away": "Sweden",
+      "probs": [
+        0.466,
+        0.268,
+        0.266
+      ],
+      "pred_outcome": "home",
+      "pred_score": "2-1",
+      "actual": "home",
+      "actual_score": "5-1",
+      "hit": true,
+      "exact": false,
+      "reason": "✅ 命中:模型賽前看好主勝（Netherlands 47%，中信心），結果如預期。"
+    },
+    {
+      "match_num": 34,
+      "home": "Tunisia",
+      "away": "Japan",
+      "probs": [
+        0.137,
+        0.156,
+        0.708
+      ],
+      "pred_outcome": "away",
+      "pred_score": "0-3",
+      "actual": "away",
+      "actual_score": "0-4",
+      "hit": true,
+      "exact": false,
+      "reason": "✅ 命中:模型賽前看好客勝（Japan 71%，高信心），結果如預期。"
     },
     {
       "match_num": 37,
@@ -473,9 +541,9 @@
       "home": "France",
       "away": "Senegal",
       "probs": [
-        0.631,
-        0.196,
-        0.173
+        0.627,
+        0.198,
+        0.175
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -575,9 +643,9 @@
       "home": "England",
       "away": "Croatia",
       "probs": [
-        0.528,
-        0.244,
-        0.228
+        0.525,
+        0.246,
+        0.229
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
