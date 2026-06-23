@@ -1,0 +1,74 @@
+name: 🚀 Deploy (Supabase backend + Cloudflare Pages frontend)
+
+# Migration target: backend data -> Supabase (Postgres), static frontend -> Cloudflare
+# Pages. Runs after each daily sync (and on demand). Every step self-guards on its
+# secrets, so this is a safe no-op until the secrets/variables below are configured.
+#
+# Repo VARIABLES (Settings → Secrets and variables → Actions → Variables):
+#   SITE_URL            new public URL, e.g. https://2026fifa.pages.dev  (or custom domain)
+#   CF_PAGES_PROJECT    Cloudflare Pages project name (default: 2026fifa)
+# Repo SECRETS:
+#   SUPABASE_URL          https://<ref>.supabase.co
+#   SUPABASE_SERVICE_KEY  Supabase service_role key (server-side only)
+#   CLOUDFLARE_API_TOKEN  token with "Cloudflare Pages: Edit"
+#   CLOUDFLARE_ACCOUNT_ID Cloudflare account id
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["🏆 2026 FIFA Daily Data Sync"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔍 Checkout (latest main, with fresh data committed by the sync)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 📦 Install deps
+        run: pip install --quiet requests beautifulsoup4
+
+      - name: 🗄️ Push data to Supabase (no-op if secrets unset)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python supabase_sync.py
+
+      - name: 🏗️ Rebuild static site with the production URL
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          ADSENSE_CLIENT: ${{ vars.ADSENSE_CLIENT }}
+        run: python build_static.py
+
+      - name: 🔐 Detect Cloudflare credentials
+        id: cf
+        run: |
+          if [ -n "${{ secrets.CLOUDFLARE_API_TOKEN }}" ] && [ -n "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Cloudflare secrets not set — skipping Pages deploy."
+          fi
+
+      - name: ☁️ Deploy docs/ to Cloudflare Pages
+        if: steps.cf.outputs.ready == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy docs --project-name=${{ vars.CF_PAGES_PROJECT || '2026fifa' }} --branch=main
