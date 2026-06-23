@@ -89,7 +89,7 @@ jobs:
       - name: 🏗️ Build Static Site (for Cloudflare Pages)
         env:
           # Set the SITE_URL repo Variable to the production URL
-          # (e.g. https://worldcup2026.simonsynapse.net). Falls back to default if unset.
+          # (e.g. https://sfiimfoan.simonsynapse.net). Falls back to default if unset.
           SITE_URL: ${{ vars.SITE_URL }}
           ADSENSE_CLIENT: ${{ vars.ADSENSE_CLIENT }}
         run: |
