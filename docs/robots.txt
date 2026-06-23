@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://tsanghung.github.io/2026FIFA/sitemap.xml
+Sitemap: https://sfiimfoan.simonsynapse.net/sitemap.xml
