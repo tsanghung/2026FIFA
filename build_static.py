@@ -78,7 +78,7 @@ def load_data():
     matches = [dict(r) for r in cur.execute(f'''
         SELECT match_num, group_or_stage, date, time, home_team, away_team,
                pred_home_win_prob, pred_draw_prob, pred_away_win_prob, pred_score,
-               odds_home, odds_draw, odds_away, status, score,
+               odds_home, odds_draw, odds_away, status, score, home_goals, away_goals,
                odds_home_pinnacle, odds_home_williamhill, odds_home_draftkings,
                odds_source, odds_last_update, odds_bookmaker_keys{extra}
         FROM matches ORDER BY match_num ASC''')]
@@ -213,11 +213,43 @@ def outcome_label(row):
     return max(p, key=p.get)
 
 
-def match_row_html(m):
+def compute_team_records(matches):
+    """Each team's running W-D-L (勝-平-負) from completed matches, keyed by the raw
+    DB team name. Uses home_goals/away_goals (the score column uses an en-dash)."""
+    rec = {}
+    for m in matches:
+        if m.get('status') != 'Completed':
+            continue
+        hg, ag = m.get('home_goals'), m.get('away_goals')
+        if hg is None or ag is None:
+            continue
+        home, away = m['home_team'], m['away_team']
+        rec.setdefault(home, [0, 0, 0])
+        rec.setdefault(away, [0, 0, 0])
+        if hg > ag:
+            rec[home][0] += 1; rec[away][2] += 1
+        elif hg < ag:
+            rec[home][2] += 1; rec[away][0] += 1
+        else:
+            rec[home][1] += 1; rec[away][1] += 1
+    return rec
+
+
+def _record_html(team_name, records):
+    """'(勝-平-負)' suffix for a team, up to now. Empty if records unavailable."""
+    if records is None:
+        return ''
+    w, d, l = records.get(team_name, (0, 0, 0))
+    return f' <small class="muted">({w}-{d}-{l})</small>'
+
+
+def match_row_html(m, records=None):
     a = get_team_display_name(m['away_team'])
     h = get_team_display_name(m['home_team'])
     d, t = convert_to_taiwan_time(m['date'], m['time'])
     url = f"{site.SITE_URL}/match/{m['match_num']}.html"
+    a_rec = _record_html(m['away_team'], records)
+    h_rec = _record_html(m['home_team'], records)
     # Display scores as 客-主 (away-home) to match the 客 | 比分 | 主 column order.
     fs = flip_score(m['score'])
     score = esc(fs) if fs else 'VS'
@@ -226,9 +258,9 @@ def match_row_html(m):
     return f'''<tr data-twdate="{esc(d)}">
 <td class="muted">#{m['match_num']}</td>
 <td>{esc(d)} {esc(t)}</td>
-<td class="team"><a href="{url}">{esc(a)}</a></td>
+<td class="team"><a href="{url}">{esc(a)}</a>{a_rec}</td>
 <td class="vs">{score}</td>
-<td class="team"><a href="{url}">{esc(h)}</a></td>
+<td class="team"><a href="{url}">{esc(h)}</a>{h_rec}</td>
 <td>{pct(m['pred_away_win_prob'])}/{pct(m['pred_draw_prob'])}/{pct(m['pred_home_win_prob'])}</td>
 <td><b>{esc(outcome_label(m))}</b></td>
 <td>{pred_disp}</td>
@@ -342,8 +374,9 @@ def build_index(matches, teams, champs, metrics, external_sources=None, external
     parts.append('<div class="tablewrap"><table id="sched"><thead><tr>'
                  '<th>#</th><th class="sortable" onclick="sortTime(this)">時間(台)<span class="arr"></span></th><th>客</th><th>比分</th><th>主</th>'
                  '<th>客/和/主</th><th>預測</th><th>比分預測(客-主)</th></tr></thead><tbody>')
+    records = compute_team_records(matches)
     for m in matches:
-        parts.append(match_row_html(m))
+        parts.append(match_row_html(m, records))
     parts.append('</tbody></table></div></section>')
     parts.append(ad_unit())
 
