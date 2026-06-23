@@ -23,6 +23,7 @@ import os
 import re
 import json
 import html
+import hashlib
 import sqlite3
 from datetime import datetime, timezone, timedelta
 
@@ -168,7 +169,7 @@ def head(title, desc, canonical, og_extra=""):
 <meta name="robots" content="index,follow">
 {og_extra}
 {adsense}
-<link rel="stylesheet" href="{rel_assets(canonical)}assets/style.css">
+<link rel="stylesheet" href="{rel_assets(canonical)}assets/style.css?v={hashlib.md5(CSS.encode()).hexdigest()[:8]}">
 </head>
 <body>
 <header class="site-head">
@@ -273,9 +274,12 @@ def compute_team_stats(matches):
 
 
 def _form_html(form):
-    """Last-5 results as coloured circles (oldest->newest), padded with empty slots."""
+    """Last-5 results as coloured letter badges (oldest->newest), padded with empty
+    hollow slots. Letters (勝/和/負) stay visible even if the stylesheet is cached
+    or fails to load."""
     cls = {'W': 'w', 'D': 'd', 'L': 'l'}
-    cells = ''.join(f'<i class="{cls[r]}"></i>' for r in form)
+    lbl = {'W': '勝', 'D': '和', 'L': '負'}
+    cells = ''.join(f'<i class="{cls[r]}">{lbl[r]}</i>' for r in form)
     cells += '<i class="e"></i>' * (5 - len(form))
     return f'<span class="form">{cells}</span>'
 
@@ -817,8 +821,8 @@ th{background:#0d1426;color:var(--mut);position:sticky;top:0}td.muted,.muted{col
 .reasons{list-style:none;padding:0}.reasons li{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:12px 14px;margin:10px 0;line-height:1.7}
 .reasons li.ok{border-left-color:var(--acc)}.reasons li.miss{border-left-color:var(--a)}
 table.stats td,table.stats th{text-align:center}table.stats td.team,table.stats th.team{text-align:left}
-.form{display:inline-flex;gap:4px}.form i{width:13px;height:13px;border-radius:50%;display:inline-block;border:1px solid var(--line)}
-.form i.w{background:var(--acc)}.form i.d{background:var(--d)}.form i.l{background:var(--a)}.form i.e{background:#0d1426}
+.form{display:inline-flex;gap:4px}.form i{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:11px;font-weight:800;color:#06101d;border:1px solid var(--line)}
+.form i.w{background:var(--acc)}.form i.d{background:var(--d)}.form i.l{background:var(--a);color:#fff}.form i.e{background:transparent}
 .ad{margin:20px 0;min-height:1px}.site-foot{max-width:1080px;margin:30px auto;padding:18px;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
 @media(max-width:560px){.prob{grid-template-columns:110px 1fr 48px}.hero h1{font-size:24px}}
 '''
