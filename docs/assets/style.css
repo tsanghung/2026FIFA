@@ -32,5 +32,8 @@ th{background:#0d1426;color:var(--mut);position:sticky;top:0}td.muted,.muted{col
 .schedctl{display:flex;flex-wrap:wrap;gap:10px}.schedctl .filter{margin:8px 0;flex:1 1 240px}
 .reasons{list-style:none;padding:0}.reasons li{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:12px 14px;margin:10px 0;line-height:1.7}
 .reasons li.ok{border-left-color:var(--acc)}.reasons li.miss{border-left-color:var(--a)}
+table.stats td,table.stats th{text-align:center}table.stats td.team,table.stats th.team{text-align:left}
+.form{display:inline-flex;gap:4px}.form i{width:13px;height:13px;border-radius:50%;display:inline-block;border:1px solid var(--line)}
+.form i.w{background:var(--acc)}.form i.d{background:var(--d)}.form i.l{background:var(--a)}.form i.e{background:#0d1426}
 .ad{margin:20px 0;min-height:1px}.site-foot{max-width:1080px;margin:30px auto;padding:18px;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
 @media(max-width:560px){.prob{grid-template-columns:110px 1fr 48px}.hero h1{font-size:24px}}

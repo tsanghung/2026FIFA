@@ -243,6 +243,62 @@ def _record_html(team_name, records):
     return f' <small class="muted">({w}-{d}-{l})</small>'
 
 
+def compute_team_stats(matches):
+    """Per-team season stats (P/W/D/L/GF/GA/GD/Pts + last-5 form) from completed
+    matches, keyed by raw DB team name. Form is oldest->newest, capped at 5."""
+    st = {}
+
+    def ensure(n):
+        return st.setdefault(n, {'p': 0, 'w': 0, 'd': 0, 'l': 0, 'gf': 0, 'ga': 0, '_log': []})
+
+    rows = [m for m in matches if m.get('status') == 'Completed'
+            and m.get('home_goals') is not None and m.get('away_goals') is not None]
+    rows.sort(key=lambda m: (m.get('date') or '', m.get('match_num') or 0))
+    for m in rows:
+        hg, ag = m['home_goals'], m['away_goals']
+        H, A = ensure(m['home_team']), ensure(m['away_team'])
+        H['p'] += 1; A['p'] += 1
+        H['gf'] += hg; H['ga'] += ag; A['gf'] += ag; A['ga'] += hg
+        if hg > ag:
+            H['w'] += 1; A['l'] += 1; H['_log'].append('W'); A['_log'].append('L')
+        elif hg < ag:
+            H['l'] += 1; A['w'] += 1; H['_log'].append('L'); A['_log'].append('W')
+        else:
+            H['d'] += 1; A['d'] += 1; H['_log'].append('D'); A['_log'].append('D')
+    for s in st.values():
+        s['gd'] = s['gf'] - s['ga']
+        s['pts'] = 3 * s['w'] + s['d']
+        s['form'] = s.pop('_log')[-5:]
+    return st
+
+
+def _form_html(form):
+    """Last-5 results as coloured circles (oldest->newest), padded with empty slots."""
+    cls = {'W': 'w', 'D': 'd', 'L': 'l'}
+    cells = ''.join(f'<i class="{cls[r]}"></i>' for r in form)
+    cells += '<i class="e"></i>' * (5 - len(form))
+    return f'<span class="form">{cells}</span>'
+
+
+def team_stats_table(m, stats):
+    """Standings-style stats for the two teams of a fixture (away then home)."""
+    def row(team_name):
+        s = stats.get(team_name) or {'p': 0, 'w': 0, 'd': 0, 'l': 0, 'gf': 0,
+                                     'ga': 0, 'gd': 0, 'pts': 0, 'form': []}
+        gd = ('+' if s['gd'] > 0 else '') + str(s['gd'])
+        return (f'<tr><td class="team">{esc(get_team_display_name(team_name))}</td>'
+                f'<td>{s["p"]}</td><td>{s["w"]}</td><td>{s["d"]}</td><td>{s["l"]}</td>'
+                f'<td>{s["gf"]}</td><td>{s["ga"]}</td><td>{gd}</td><td><b>{s["pts"]}</b></td>'
+                f'<td>{_form_html(s["form"])}</td></tr>')
+    return ('<h2>📊 比賽結果統計分析</h2><div class="tablewrap">'
+            '<table class="stats"><thead><tr>'
+            '<th class="team">隊伍</th><th>場次</th><th>勝</th><th>平</th><th>負</th>'
+            '<th>進球</th><th>失球</th><th>淨勝</th><th>積分</th><th>最近 5 場</th>'
+            '</tr></thead><tbody>'
+            + row(m['away_team']) + row(m['home_team'])
+            + '</tbody></table></div>')
+
+
 def match_row_html(m, records=None):
     a = get_team_display_name(m['away_team'])
     h = get_team_display_name(m['home_team'])
@@ -592,6 +648,9 @@ def build_match(m, matches, live_details=None):
     pscore = flip_score(m['pred_score'])
     p.append(f'<p class="lead">模型預測最可能結果：<b>{esc(pred)}</b>，預測比分（{esc(a)}-{esc(h)}）<b>{esc(pscore or "—")}</b>。</p>')
 
+    # Standings-style stats for both teams (P/W/D/L/GF/GA/GD/Pts + last-5 form).
+    p.append(team_stats_table(m, compute_team_stats(matches)))
+
     # Odds table (research / value reference only — no betting channel)
     if m['odds_home']:
         source = esc(odds_source_label(m))
@@ -757,6 +816,9 @@ th{background:#0d1426;color:var(--mut);position:sticky;top:0}td.muted,.muted{col
 .schedctl{display:flex;flex-wrap:wrap;gap:10px}.schedctl .filter{margin:8px 0;flex:1 1 240px}
 .reasons{list-style:none;padding:0}.reasons li{background:var(--panel);border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:12px 14px;margin:10px 0;line-height:1.7}
 .reasons li.ok{border-left-color:var(--acc)}.reasons li.miss{border-left-color:var(--a)}
+table.stats td,table.stats th{text-align:center}table.stats td.team,table.stats th.team{text-align:left}
+.form{display:inline-flex;gap:4px}.form i{width:13px;height:13px;border-radius:50%;display:inline-block;border:1px solid var(--line)}
+.form i.w{background:var(--acc)}.form i.d{background:var(--d)}.form i.l{background:var(--a)}.form i.e{background:#0d1426}
 .ad{margin:20px 0;min-height:1px}.site-foot{max-width:1080px;margin:30px auto;padding:18px;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
 @media(max-width:560px){.prob{grid-template-columns:110px 1fr 48px}.hero h1{font-size:24px}}
 '''
