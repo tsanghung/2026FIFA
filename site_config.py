@@ -13,7 +13,7 @@ import os
 # e.g. "https://worldcup2026.simonsynapse.net" or your *.pages.dev URL.
 # Override via the SITE_URL env var (set this as a repo Variable for the Action).
 # `or` (not a default arg) so an empty env value falls back instead of blanking it.
-SITE_URL = (os.environ.get("SITE_URL") or "https://tsanghung.github.io/2026FIFA").rstrip("/")
+SITE_URL = (os.environ.get("SITE_URL") or "https://sfiimfoan.simonsynapse.net").rstrip("/")
 
 SITE_TITLE = os.environ.get("SITE_TITLE") or "2026 世界盃 AI 預測 ・ 賠率 ・ 比分"
 SITE_DESC = ("2026 FIFA 世界盃全 104 場 AI 勝負預測、來源標示賠率對比與期望值（EV）研究。"
