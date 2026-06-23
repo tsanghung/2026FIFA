@@ -318,9 +318,9 @@ def match_row_html(m, records=None):
     return f'''<tr data-twdate="{esc(d)}">
 <td class="muted">#{m['match_num']}</td>
 <td>{esc(d)} {esc(t)}</td>
-<td class="team"><a href="{url}">{esc(a)}</a>{a_rec}</td>
+<td class="team"><a href="{url}" target="_blank" rel="noopener">{esc(a)}</a>{a_rec}</td>
 <td class="vs">{score}</td>
-<td class="team"><a href="{url}">{esc(h)}</a>{h_rec}</td>
+<td class="team"><a href="{url}" target="_blank" rel="noopener">{esc(h)}</a>{h_rec}</td>
 <td>{pct(m['pred_away_win_prob'])}/{pct(m['pred_draw_prob'])}/{pct(m['pred_home_win_prob'])}</td>
 <td><b>{esc(outcome_label(m))}</b></td>
 <td>{pred_disp}</td>
