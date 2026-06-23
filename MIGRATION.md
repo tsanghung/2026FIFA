@@ -15,7 +15,10 @@
 1. Supabase → **SQL Editor**,貼上並執行 `supabase/schema.sql`(自動產生,鏡射 SQLite;含 RLS:
    公開表可匿名讀、`bets`/`bet_legs` 個人資料僅 service key 可存取)。
 2. Project Settings → API,取得:**Project URL**(`https://<ref>.supabase.co`)、**service_role key**、**anon key**。
-3. 之後由「運算端」(見 D 段)以 `supabase_sync.py` 冪等 upsert 全部資料表到 Supabase。
+3. 把以下加進 GitHub repo → Settings → Secrets and variables → Actions → **Secrets**
+   (D1:每日 sync 就在 GitHub Actions 跑,會自動 `supabase_sync.py` 把全部表冪等 upsert 到 Supabase):
+   - `SUPABASE_URL`、`SUPABASE_SERVICE_KEY`
+   - 手動測試:`SUPABASE_URL=... SUPABASE_SERVICE_KEY=... python supabase_sync.py`
    - schema 有變更:`python migrate/gen_supabase_schema.py` → 到 Supabase 重跑 SQL。
 
 ## B. 前端 → Cloudflare Pages(Git 整合,免 GitHub Action)
@@ -57,10 +60,10 @@
 | 項目 | 放哪 | 用途 |
 |---|---|---|
 | 執行 `supabase/schema.sql` | Supabase SQL Editor | 建表 |
-| `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` | 運算端密鑰(D 段) | 寫入 Supabase |
+| `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` | GitHub **Secret** | 每日 sync 寫入 Supabase |
 | Cloudflare Pages 專案(連 Git,output=`docs`) | Cloudflare 儀表板 | 前端代管 |
 | `worldcup2026.simonsynapse.net` | Cloudflare Custom domains | 自訂網域 |
-| `SITE_URL=https://worldcup2026.simonsynapse.net` | 運算端環境變數 | canonical/sitemap |
+| `SITE_URL=https://worldcup2026.simonsynapse.net` | GitHub **Variable** | canonical/sitemap |
 | 關閉 GitHub Pages | GitHub Settings → Pages | 收尾 |
 
 > 機密一律放各平台的 Secret/環境變數,**不要貼在對話裡**。

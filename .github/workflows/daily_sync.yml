@@ -86,9 +86,24 @@ jobs:
         run: |
           python prediction_eval.py
 
-      - name: 🏗️ Build Static Site (SEO/AdSense-ready, for GitHub Pages)
+      - name: 🏗️ Build Static Site (for Cloudflare Pages)
+        env:
+          # Set the SITE_URL repo Variable to the production URL
+          # (e.g. https://worldcup2026.simonsynapse.net). Falls back to default if unset.
+          SITE_URL: ${{ vars.SITE_URL }}
+          ADSENSE_CLIENT: ${{ vars.ADSENSE_CLIENT }}
         run: |
           python build_static.py
+
+      - name: 🗄️ Push data to Supabase (no-op if secrets unset)
+        # Backend on Supabase: idempotent upsert of every table. Self-guards when the
+        # secrets are absent, so it is harmless until Supabase is configured.
+        continue-on-error: true
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          python supabase_sync.py
 
       - name: 💾 Git Commit and Push Updates
         run: |
