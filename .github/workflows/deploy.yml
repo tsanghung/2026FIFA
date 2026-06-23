@@ -71,4 +71,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy docs --project-name=${{ vars.CF_PAGES_PROJECT || '2026fifa' }} --branch=main
+          command: pages deploy docs --project-name=${{ vars.CF_PAGES_PROJECT || 'worldcup2026' }} --branch=main
