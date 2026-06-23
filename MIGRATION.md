@@ -12,8 +12,14 @@
 ---
 
 ## A. 後端 → Supabase
-1. Supabase → **SQL Editor**,貼上並執行 `supabase/schema.sql`(自動產生,鏡射 SQLite;含 RLS:
-   公開表可匿名讀、`bets`/`bet_legs` 個人資料僅 service key 可存取)。
+> ✅ 已在本機用 **PostgreSQL 16** 實測:`schema.sql` 套用無誤(9 表 + RLS),且把**全部現有資料**
+> 載入並**重跑兩次 upsert**,行數完全一致(冪等)。你照下面做即可。
+
+1. 建表(二選一):
+   - **方式 a**:Supabase → **SQL Editor**,貼上並執行 `supabase/schema.sql`。
+   - **方式 b(一行指令)**:`pip install psycopg2-binary`,然後
+     `SUPABASE_DB_URL='postgresql://postgres:<pw>@db.<ref>.supabase.co:5432/postgres' python migrate/apply_schema.py`
+   - schema 鏡射 SQLite;含 RLS:公開表可匿名讀、`bets`/`bet_legs` 個人資料僅 service key 可存取。
 2. Project Settings → API,取得:**Project URL**(`https://<ref>.supabase.co`)、**service_role key**、**anon key**。
 3. 把以下加進 GitHub repo → Settings → Secrets and variables → Actions → **Secrets**
    (D1:每日 sync 就在 GitHub Actions 跑,會自動 `supabase_sync.py` 把全部表冪等 upsert 到 Supabase):
