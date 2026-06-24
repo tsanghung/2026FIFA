@@ -167,6 +167,7 @@ def head(title, desc, canonical, og_extra=""):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+{ga}
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
 <link rel="canonical" href="{esc(canonical)}">
@@ -176,7 +177,6 @@ def head(title, desc, canonical, og_extra=""):
 <meta property="og:url" content="{esc(canonical)}">
 <meta name="robots" content="index,follow">
 {og_extra}
-{ga}
 {adsense}
 <link rel="stylesheet" href="{rel_assets(canonical)}assets/style.css?v={hashlib.md5(CSS.encode()).hexdigest()[:8]}">
 </head>
