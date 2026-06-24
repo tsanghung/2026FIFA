@@ -22,7 +22,7 @@ SITE_LANG = "zh-Hant"
 
 # Google AdSense publisher id, e.g. "ca-pub-1234567890123456". Leave blank to omit
 # all AdSense markup (it cannot be verified on *.streamlit.app — needs this domain).
-ADSENSE_CLIENT = os.environ.get("ADSENSE_CLIENT") or ""
+ADSENSE_CLIENT = os.environ.get("ADSENSE_CLIENT") or "ca-pub-7384783799477371"
 
 # Optional custom domain. If set, a CNAME file is written for GitHub Pages.
 CUSTOM_DOMAIN = os.environ.get("CUSTOM_DOMAIN") or ""
