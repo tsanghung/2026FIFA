@@ -1,12 +1,12 @@
 # 🎯 本屆世界盃「正式預測」即時準確度
 
-_更新:2026-06-24 09:28:30　已評估場次:48_
+_更新:2026-06-24 10:23:55　已評估場次:48_
 
 ## 總指標
 
 - 1X2 命中率:**62%**（30/48）
 - RPS：**0.146**（越低越好;隨機基準 0.229）
-- Brier：0.508　Log-loss：0.875
+- Brier：0.507　Log-loss：0.872
 - 精確比分命中率：6%　進球差 MAE：1.60　總進球 MAE：1.73
 - 本屆和局率：**29%**（14/48） vs 歷史 22%
 
@@ -56,14 +56,14 @@ _更新:2026-06-24 09:28:30　已評估場次:48_
 | 56 | Austria vs Jordan | 64/20/17 | 2-0 | 3-1 | ✅ | — |
 | 57 | Argentina vs Austria | 63/20/17 | 2-0 | 2-0 | ✅ | ✅ |
 | 58 | Jordan vs Algeria | 20/23/57 | 0-2 | 1-2 | ✅ | — |
-| 61 | Portugal vs DR Congo | 66/18/16 | 3-0 | 1-1 | ❌ | — |
-| 62 | Uzbekistan vs Colombia | 15/16/69 | 0-3 | 1-3 | ✅ | — |
-| 63 | Portugal vs Uzbekistan | 68/17/14 | 3-0 | 5-0 | ✅ | — |
-| 64 | Colombia vs DR Congo | 67/18/15 | 3-0 | 1-0 | ✅ | — |
-| 67 | England vs Croatia | 52/25/23 | 2-1 | 4-2 | ✅ | — |
-| 68 | Ghana vs Panama | 25/29/47 | 1-2 | 1-0 | ❌ | — |
-| 69 | England vs Ghana | 72/14/14 | 4-0 | 0-0 | ❌ | — |
-| 70 | Panama vs Croatia | 18/21/60 | 0-2 | 0-1 | ✅ | — |
+| 61 | Portugal vs DR Congo | 67/18/15 | 3-0 | 1-1 | ❌ | — |
+| 62 | Uzbekistan vs Colombia | 15/16/70 | 0-3 | 1-3 | ✅ | — |
+| 63 | Portugal vs Uzbekistan | 70/16/14 | 3-0 | 5-0 | ✅ | — |
+| 64 | Colombia vs DR Congo | 68/18/15 | 3-0 | 1-0 | ✅ | — |
+| 67 | England vs Croatia | 49/26/25 | 2-1 | 4-2 | ✅ | — |
+| 68 | Ghana vs Panama | 27/30/43 | 1-2 | 1-0 | ❌ | — |
+| 69 | England vs Ghana | 71/15/14 | 4-0 | 0-0 | ❌ | — |
+| 70 | Panama vs Croatia | 18/21/61 | 0-2 | 0-1 | ✅ | — |
 
 ## 逐場差異與原因
 
@@ -108,11 +108,11 @@ _更新:2026-06-24 09:28:30　已評估場次:48_
 - **#57 Argentina vs Austria**：✅ 命中:模型賽前看好主勝（Argentina 63%，高信心），結果如預期。
 - **#58 Jordan vs Algeria**：✅ 命中:模型賽前看好客勝（Algeria 57%，中信心），結果如預期。
 - **#61 Portugal vs DR Congo**：❌ 模型看好Portugal贏，最後雙方言和；模型其實也給了和局 18%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
-- **#62 Uzbekistan vs Colombia**：✅ 命中:模型賽前看好客勝（Colombia 69%，高信心），結果如預期。
-- **#63 Portugal vs Uzbekistan**：✅ 命中:模型賽前看好主勝（Portugal 68%，高信心），結果如預期。
-- **#64 Colombia vs DR Congo**：✅ 命中:模型賽前看好主勝（Colombia 67%，高信心），結果如預期。
-- **#67 England vs Croatia**：✅ 命中:模型賽前看好主勝（England 52%，中信心），結果如預期。
-- **#68 Ghana vs Panama**：❌ 模型看好Panama（47%），最後由Ghana勝出；兩隊實力接近(Elo 僅差 59)。
-- **#69 England vs Ghana**：❌ 模型看好England贏，最後雙方言和；模型其實也給了和局 14%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
-- **#70 Panama vs Croatia**：✅ 命中:模型賽前看好客勝（Croatia 60%，高信心），結果如預期。
+- **#62 Uzbekistan vs Colombia**：✅ 命中:模型賽前看好客勝（Colombia 70%，高信心），結果如預期。
+- **#63 Portugal vs Uzbekistan**：✅ 命中:模型賽前看好主勝（Portugal 70%，高信心），結果如預期。
+- **#64 Colombia vs DR Congo**：✅ 命中:模型賽前看好主勝（Colombia 68%，高信心），結果如預期。
+- **#67 England vs Croatia**：✅ 命中:模型賽前看好主勝（England 49%，中信心），結果如預期。
+- **#68 Ghana vs Panama**：❌ 模型看好Panama（43%），最後由Ghana勝出；合理變異:三方接近(主27/和30/客43),模型信心本就低；兩隊實力接近(Elo 僅差 14)。
+- **#69 England vs Ghana**：❌ 模型看好England贏，最後雙方言和；模型其實也給了和局 15%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
+- **#70 Panama vs Croatia**：✅ 命中:模型賽前看好客勝（Croatia 61%，高信心），結果如預期。
 
