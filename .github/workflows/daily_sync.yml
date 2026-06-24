@@ -10,8 +10,10 @@ on:
     # step below is gated to it, so this guarantees one calibration run per day.
     - cron: '0 7 * * *'    # 15:00 Taiwan: daily calibration trigger
   push:
-    # Any push to main also refreshes data immediately (the sync's own commit uses
-    # [skip ci], so this does not loop). Lets a merge trigger an on-demand update.
+    # Any push to main also refreshes data immediately. The sync's own commit uses
+    # [skip actions] (not [skip ci]): GitHub Actions still skips it so this doesn't
+    # loop, but Cloudflare Pages does NOT recognise [skip actions], so it still
+    # deploys the commit — [skip ci] was making Cloudflare skip every main build.
     branches: [main]
   workflow_dispatch: # Allows manual execution from GitHub actions tab
 
@@ -121,7 +123,7 @@ jobs:
             # Persist daily-calibration outputs so tuned params/seeds survive the
             # ephemeral runner (no-op on runs where calibration didn't execute).
             git add calibrated_params.json backtest_metrics.json team_ratings_seed.json 2>/dev/null || true
-            git commit -m "chore: daily data, odds sync & static site rebuild [skip ci]"
+            git commit -m "chore: daily data, odds sync & static site rebuild [skip actions]"
             git push origin HEAD:${{ github.ref }}
           else
             echo "No database or log changes to commit."
