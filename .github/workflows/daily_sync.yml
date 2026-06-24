@@ -2,10 +2,10 @@ name: 🏆 2026 FIFA Daily Data Sync
 
 on:
   schedule:
-    # Scores now come from 365Scores in near-real-time (livescore_sync), so an
-    # hourly sync keeps the site within ~1h of live. GitHub cron is best-effort
-    # and often delayed, but at hourly cadence a delay just shifts a tick.
-    - cron: '0 * * * *'    # every hour: live scores + rebuild + deploy
+    # 365Scores gives near-real-time scores; a frequent sync keeps the site fresh.
+    # Cloudflare Pages free tier allows ~500 builds/month, so run every 2 hours
+    # (~360/month) rather than hourly (~720) to stay comfortably under the cap.
+    - cron: '0 */2 * * *'  # every 2 hours: live scores + rebuild + deploy
     # Keep the 07:00 UTC (15:00 Taiwan) schedule string too — the daily calibration
     # step below is gated to it, so this guarantees one calibration run per day.
     - cron: '0 7 * * *'    # 15:00 Taiwan: daily calibration trigger
@@ -118,6 +118,8 @@ jobs:
           python supabase_sync.py
 
       - name: 💾 Git Commit and Push Updates
+        env:
+          CF_DEPLOY_HOOK_URL: ${{ secrets.CF_DEPLOY_HOOK_URL }}
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -130,6 +132,15 @@ jobs:
             git add calibrated_params.json backtest_metrics.json team_ratings_seed.json 2>/dev/null || true
             git commit -m "chore: daily data, odds sync & static site rebuild"
             git push origin HEAD:${{ github.ref }}
+            # Cloudflare's Git auto-deploy is unreliable for this project, so trigger
+            # a Pages deployment explicitly via a Deploy Hook — but only when there
+            # were real changes, to stay under the free build cap. No-op until the
+            # CF_DEPLOY_HOOK_URL secret is set.
+            if [ -n "${CF_DEPLOY_HOOK_URL}" ]; then
+              curl -s -X POST "${CF_DEPLOY_HOOK_URL}" -o /dev/null -w "Cloudflare deploy hook -> HTTP %{http_code}\n"
+            else
+              echo "CF_DEPLOY_HOOK_URL not set; relying on Cloudflare Git auto-deploy."
+            fi
           else
             echo "No database or log changes to commit."
           fi
