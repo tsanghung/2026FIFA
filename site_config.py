@@ -24,6 +24,10 @@ SITE_LANG = "zh-Hant"
 # all AdSense markup (it cannot be verified on *.streamlit.app — needs this domain).
 ADSENSE_CLIENT = os.environ.get("ADSENSE_CLIENT") or "ca-pub-7384783799477371"
 
+# Google Analytics 4 measurement id, e.g. "G-XXXXXXXXXX". Leave blank to omit the
+# gtag.js snippet entirely. Not secret (visible in page source).
+GA_MEASUREMENT_ID = os.environ.get("GA_MEASUREMENT_ID") or "G-TMFR6VZLX5"
+
 # Optional custom domain. If set, a CNAME file is written for GitHub Pages.
 CUSTOM_DOMAIN = os.environ.get("CUSTOM_DOMAIN") or ""
 

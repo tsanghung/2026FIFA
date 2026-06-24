@@ -154,6 +154,14 @@ def head(title, desc, canonical, og_extra=""):
         adsense = (f'<script async '
                    f'src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={site.ADSENSE_CLIENT}" '
                    f'crossorigin="anonymous"></script>')
+    ga = ""
+    if site.GA_MEASUREMENT_ID:
+        gid = site.GA_MEASUREMENT_ID
+        ga = (f'<script async src="https://www.googletagmanager.com/gtag/js?id={gid}"></script>'
+              '<script>window.dataLayer=window.dataLayer||[];'
+              'function gtag(){dataLayer.push(arguments);}'
+              "gtag('js',new Date());"
+              f"gtag('config','{gid}');</script>")
     return f'''<!DOCTYPE html>
 <html lang="{site.SITE_LANG}">
 <head>
@@ -168,6 +176,7 @@ def head(title, desc, canonical, og_extra=""):
 <meta property="og:url" content="{esc(canonical)}">
 <meta name="robots" content="index,follow">
 {og_extra}
+{ga}
 {adsense}
 <link rel="stylesheet" href="{rel_assets(canonical)}assets/style.css?v={hashlib.md5(CSS.encode()).hexdigest()[:8]}">
 </head>
