@@ -29,3 +29,6 @@ CUSTOM_DOMAIN = os.environ.get("CUSTOM_DOMAIN") or ""
 
 # Link back to the interactive Streamlit tool (advanced features: Monte Carlo, etc.).
 STREAMLIT_APP_URL = os.environ.get("STREAMLIT_APP_URL") or "https://2026fifa.streamlit.app/"
+
+# Contact email shown on the privacy policy page (required for AdSense review).
+CONTACT_EMAIL = os.environ.get("CONTACT_EMAIL") or "tiger.simon@gmail.com"
