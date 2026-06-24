@@ -10,10 +10,12 @@ on:
     # step below is gated to it, so this guarantees one calibration run per day.
     - cron: '0 7 * * *'    # 15:00 Taiwan: daily calibration trigger
   push:
-    # Any push to main also refreshes data immediately. The sync's own commit uses
-    # [skip actions] (not [skip ci]): GitHub Actions still skips it so this doesn't
-    # loop, but Cloudflare Pages does NOT recognise [skip actions], so it still
-    # deploys the commit — [skip ci] was making Cloudflare skip every main build.
+    # Any push to main also refreshes data immediately. The sync's own commit is
+    # pushed with GITHUB_TOKEN, which by design does NOT trigger another workflow
+    # run, so there is no loop — and the job-level guard below is a second safety
+    # net. We deliberately do NOT put any [skip ...] token in the commit message,
+    # because Cloudflare Pages treats those as "skip build" and was freezing the
+    # live site by skipping every main deployment.
     branches: [main]
   workflow_dispatch: # Allows manual execution from GitHub actions tab
 
@@ -27,6 +29,9 @@ permissions:
 
 jobs:
   sync:
+    # Loop guard: never react to the bot's own data-sync commit (Cloudflare still
+    # deploys it because there is no skip token in the message).
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
 
     steps:
@@ -123,7 +128,7 @@ jobs:
             # Persist daily-calibration outputs so tuned params/seeds survive the
             # ephemeral runner (no-op on runs where calibration didn't execute).
             git add calibrated_params.json backtest_metrics.json team_ratings_seed.json 2>/dev/null || true
-            git commit -m "chore: daily data, odds sync & static site rebuild [skip actions]"
+            git commit -m "chore: daily data, odds sync & static site rebuild"
             git push origin HEAD:${{ github.ref }}
           else
             echo "No database or log changes to commit."
