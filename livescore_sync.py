@@ -3,47 +3,42 @@
 
 Why
 ---
-sync_fifa.py sources scores from Wikipedia, which is often hours behind on final
-scores, so the site shows "VS" long after a match has ended. 365Scores (already
-consumed for xG in threefivescores_sync.py) publishes finals much sooner. This
-module reuses that feed to fill in FINAL scores fast — status -> 'Completed',
-plus score / home_goals / away_goals — so ended matches stop showing "VS".
+sync_fifa.py sources scores from Wikipedia, which is often hours behind, so the
+site shows "VS" long after a match ends. 365Scores (already consumed for xG in
+threefivescores_sync.py) publishes finals much sooner. This module reuses the
+exact same finished-game discovery as the xG sync, then reads each game's score
+from the game-detail endpoint and writes it back (status -> 'Completed', score,
+home_goals, away_goals) so ended matches stop showing "VS".
 
-Only FINAL results are written. Live (in-progress) games are deliberately left
-untouched so an in-progress scoreline can never pollute Elo / accuracy /
+Only FINAL results are written, and live games (a running match clock in the
+status) are skipped, so an in-progress score can never pollute Elo / accuracy /
 predictions. Must run AFTER sync_fifa.py, which rebuilds `matches` from Wikipedia
 each run (otherwise the rebuild would wipe what we wrote).
 
 Run with --dry-run to print decisions without writing.
 """
+import re
 import sys
 import sqlite3
 
-# Reuse the 365Scores plumbing and the orientation-aware fixture matcher.
+# Reuse the proven 365Scores plumbing + the orientation-aware fixture matcher.
 from threefivescores_sync import (
-    fetch_json, is_world_cup, match_fixture, ROOT, BASE, COMMON,
+    fetch_json, scan_current_feed, find_all_wc_finished_games,
+    match_fixture, BASE, COMMON,
 )
 
 DB_PATH = 'fifa_2026.db'
 DASH = '–'  # en dash, matching the score format Wikipedia-sourced rows use
-
-# Text markers that unambiguously mean the match is over (covers ET / penalties).
-ENDED_MARKERS = ('end', 'final', 'full time', 'ft', 'aet', 'after extra',
-                 'pen', 'penalt')
+LIVE_CLOCK = re.compile(r"\d+\s*'")  # e.g. "47'" -> match is in progress
 
 
 def log(msg):
     print(f"[livescore] {msg}", flush=True)
 
 
-def is_final(g):
-    """True only when a game is genuinely OVER. We trust the status TEXT (which
-    carries End/Final/FT/AET/Pen for finished games) plus statusGroup==4, and
-    deliberately do NOT treat an ambiguous live group as final."""
+def looks_live(g):
     t = str(g.get('statusText', '')).lower()
-    if any(m in t for m in ENDED_MARKERS):
-        return True
-    return g.get('statusGroup') == 4
+    return bool(LIVE_CLOCK.search(t)) or 'half' in t or 'live' in t
 
 
 def score_of(comp):
@@ -55,84 +50,63 @@ def score_of(comp):
     return int(round(f)) if f >= 0 else None
 
 
-def collect_wc_games():
-    """{game_id: game_obj} for World Cup games, from the current feed plus each WC
-    competition's full game list (so finals that aged out of the rolling 'current'
-    window are still included). Every game object already carries the score."""
-    games, comp_ids = {}, set()
-    try:
-        data = fetch_json(f'{BASE}/games/current/?{COMMON}&sports=1')
-    except Exception as e:
-        log(f"current feed failed: {e}")
-        data = {}
-    for g in data.get('games', []) or []:
-        name = g.get('competitionDisplayName') or g.get('competitionName') or ''
-        if not is_world_cup(name):
-            continue
-        if g.get('competitionId'):
-            comp_ids.add(g['competitionId'])
-        if g.get('id'):
-            games[g['id']] = g
-    for cid in comp_ids:
-        url = f'{BASE}/games/?{COMMON}&competitions={cid}&showOdds=false'
-        pages = 0
-        while url and pages < 8:
-            try:
-                data = fetch_json(url)
-            except Exception as e:
-                log(f"  competition {cid} fetch failed: {e}")
-                break
-            for g in data.get('games', []) or []:
-                if g.get('id'):
-                    games[g['id']] = g
-            nxt = (data.get('paging') or {}).get('nextPage')
-            if nxt and nxt.startswith('/'):
-                url = ROOT + nxt
-            elif nxt and nxt.startswith('http'):
-                url = nxt
-            else:
-                url = None
-            pages += 1
-    return games
-
-
 def run(dry_run=False):
     from sync_fifa import normalize_team_name as N
 
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
-    games = collect_wc_games()
-    log(f"{len(games)} World Cup game(s) in feed.")
+    # Fixtures that still lack a final result -> candidates to fill.
+    need = {}
+    for mn, ht, at, status in cur.execute(
+            "SELECT match_num, home_team, away_team, status FROM matches"):
+        if status != 'Completed':
+            need[frozenset((N(ht), N(at)))] = mn
+
+    # Finished WC game ids: current window + competition-history backfill (same
+    # discovery the xG sync uses, so we get exactly the games it gets).
+    ids, comp_ids = scan_current_feed()
+    for bg in find_all_wc_finished_games(comp_ids):
+        if frozenset((N(bg['home']), N(bg['away']))) in need:
+            ids.add(bg['id'])
+    log(f"{len(ids)} candidate finished WC game(s): {sorted(ids)}")
+
     changed = 0
-    for gid, g in sorted(games.items()):
-        if not is_final(g):
+    for gid in sorted(ids):
+        try:
+            g = fetch_json(f'{BASE}/game/?{COMMON}&gameId={gid}').get('game', {})
+        except Exception as e:
+            log(f"  game {gid} fetch failed: {e}")
             continue
-        hc = g.get('homeCompetitor', {}) or {}
-        ac = g.get('awayCompetitor', {}) or {}
-        if not hc.get('name') or not ac.get('name'):
+        home = g.get('homeCompetitor', {}) or {}
+        away = g.get('awayCompetitor', {}) or {}
+        hn, an = home.get('name'), away.get('name')
+        hs, as_ = score_of(home), score_of(away)
+        # Diagnostic: always log what the feed actually returned for this game.
+        log(f"  game {gid}: {hn} {hs}-{as_} {an} "
+            f"status={g.get('statusText')!r} grp={g.get('statusGroup')}")
+        if not hn or not an or hs is None or as_ is None:
             continue
-        hs, as_ = score_of(hc), score_of(ac)
-        if hs is None or as_ is None:
+        if looks_live(g):
+            log("    -> in progress, skipping")
             continue
-        parsed = {'home_name': hc['name'], 'away_name': ac['name'],
+        parsed = {'home_name': hn, 'away_name': an,
                   'date': (g.get('startTime') or '')[:10]}
         m = match_fixture(cur, parsed, N)
         if m is None:
-            log(f"  {hc['name']} {hs}-{as_} {ac['name']}  -> NO DB FIXTURE MATCH")
+            log("    -> NO DB FIXTURE MATCH")
             continue
         mn, swapped = m
-        # Store in the fixture's own orientation (DB score is 'home-away').
         home_g, away_g = (as_, hs) if swapped else (hs, as_)
         new_score = f"{home_g}{DASH}{away_g}"
         row = cur.execute("SELECT score, home_goals, away_goals, status "
                           "FROM matches WHERE match_num=?", (mn,)).fetchone()
         if row and row[0] == new_score and row[1] == home_g \
                 and row[2] == away_g and row[3] == 'Completed':
-            continue  # already current
+            continue
         tag = 'DRY' if dry_run else 'SET'
-        log(f"  [{tag}] #{mn} {hc['name']} {hs}-{as_} {ac['name']}"
-            f"{' (swapped)' if swapped else ''} -> {new_score} Completed")
+        log(f"    -> [{tag}] #{mn} {new_score} Completed"
+            f"{' (swapped)' if swapped else ''}")
         changed += 1
         if not dry_run:
             cur.execute("UPDATE matches SET score=?, home_goals=?, away_goals=?, "
