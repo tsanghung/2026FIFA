@@ -177,7 +177,6 @@ def head(title, desc, canonical, og_extra=""):
 <meta property="og:url" content="{esc(canonical)}">
 <meta name="robots" content="index,follow">
 {og_extra}
-{ga}
 {adsense}
 <link rel="stylesheet" href="{rel_assets(canonical)}assets/style.css?v={hashlib.md5(CSS.encode()).hexdigest()[:8]}">
 </head>
