@@ -2,18 +2,13 @@ name: 🏆 2026 FIFA Daily Data Sync
 
 on:
   schedule:
-    # GitHub cron is best-effort and is frequently delayed by hours under load
-    # (a single 07:00 run was landing anywhere from 09:00–17:00 UTC). To reliably
-    # have results on the site by 15:00 Taiwan (07:00 UTC), fire several times in
-    # the morning window so at least one lands by the deadline despite delays,
-    # plus afternoon/evening runs to catch same-day late (Taiwan-evening) matches.
-    - cron: '0 1 * * *'    # 09:00 Taiwan
-    - cron: '0 3 * * *'    # 11:00 Taiwan
-    - cron: '0 5 * * *'    # 13:00 Taiwan
-    - cron: '0 6 * * *'    # 14:00 Taiwan
-    - cron: '0 7 * * *'    # 15:00 Taiwan  ← deadline
-    - cron: '0 11 * * *'   # 19:00 Taiwan
-    - cron: '0 15 * * *'   # 23:00 Taiwan
+    # Scores now come from 365Scores in near-real-time (livescore_sync), so an
+    # hourly sync keeps the site within ~1h of live. GitHub cron is best-effort
+    # and often delayed, but at hourly cadence a delay just shifts a tick.
+    - cron: '0 * * * *'    # every hour: live scores + rebuild + deploy
+    # Keep the 07:00 UTC (15:00 Taiwan) schedule string too — the daily calibration
+    # step below is gated to it, so this guarantees one calibration run per day.
+    - cron: '0 7 * * *'    # 15:00 Taiwan: daily calibration trigger
   push:
     # Any push to main also refreshes data immediately (the sync's own commit uses
     # [skip ci], so this does not loop). Lets a merge trigger an on-demand update.
@@ -52,6 +47,16 @@ jobs:
           THE_ODDS_API_KEY: ${{ secrets.THE_ODDS_API_KEY }}
         run: |
           python sync_fifa.py
+
+      - name: ⚽ Sync live/final scores (365Scores)
+        # Wikipedia lags hours behind on final scores; 365Scores publishes them
+        # sooner. Fill in FINAL scores fast so ended matches stop showing "VS".
+        # MUST run after sync_fifa (which rebuilds matches from Wikipedia each run).
+        # Live games are left untouched. Non-fatal: a source hiccup must not fail
+        # the sync.
+        continue-on-error: true
+        run: |
+          python livescore_sync.py
 
       - name: 📊 Sync 365Scores xG & blend into model
         # Pull post-match xG/possession/shots for finished World Cup games, store
