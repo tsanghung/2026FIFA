@@ -1,16 +1,16 @@
 # 🎯 本屆世界盃「正式預測」即時準確度
 
-_更新:2026-06-25 21:41:45　已評估場次:54_
+_更新:2026-06-25 23:17:29　已評估場次:56_
 
 ## 總指標
 
-- 1X2 命中率:**65%**（35/54）
-- RPS：**0.147**（越低越好;隨機基準 0.235）
-- Brier：0.490　Log-loss：0.851
-- 精確比分命中率：9%　進球差 MAE：1.63　總進球 MAE：1.63
-- 本屆和局率：**26%**（14/54） vs 歷史 22%
+- 1X2 命中率:**64%**（36/56）
+- RPS：**0.152**（越低越好;隨機基準 0.236）
+- Brier：0.495　Log-loss：0.859
+- 精確比分命中率：9%　進球差 MAE：1.66　總進球 MAE：1.62
+- 本屆和局率：**25%**（14/56） vs 歷史 22%
 
-> RPS 0.147 vs 隨機 0.235 → **優於隨機**。
+> RPS 0.152 vs 隨機 0.236 → **優於隨機**。
 
 ## 逐場
 
@@ -36,12 +36,14 @@ _更新:2026-06-25 21:41:45　已評估場次:54_
 | 18 | Morocco vs Haiti | 76/12/12 | 6-0 | 4-2 | ✅ | — |
 | 19 | USA vs Paraguay | 51/27/22 | 2-0 | 4-1 | ✅ | — |
 | 20 | Australia vs Türkiye | 32/31/37 | 1-2 | 2-0 | ❌ | — |
-| 21 | USA vs Australia | 48/27/26 | 2-1 | 2-0 | ✅ | — |
+| 21 | USA vs Australia | 47/27/26 | 2-1 | 2-0 | ✅ | — |
 | 22 | Türkiye vs Paraguay | 41/30/29 | 2-1 | 0-1 | ❌ | — |
 | 25 | Germany vs Curaçao | 74/12/14 | 6-0 | 7-1 | ✅ | — |
 | 26 | Ivory Coast vs Ecuador | 29/28/42 | 1-2 | 1-0 | ❌ | — |
 | 27 | Germany vs Ivory Coast | 58/23/19 | 2-0 | 2-1 | ✅ | — |
 | 28 | Ecuador vs Curaçao | 73/14/13 | 4-0 | 0-0 | ❌ | — |
+| 29 | Curaçao vs Ivory Coast | 12/14/73 | 0-4 | 0-2 | ✅ | — |
+| 30 | Ecuador vs Germany | 16/21/62 | 0-2 | 2-1 | ❌ | — |
 | 31 | Netherlands vs Japan | 42/28/30 | 2-1 | 2-2 | ❌ | — |
 | 32 | Sweden vs Tunisia | 52/26/21 | 2-0 | 5-1 | ✅ | — |
 | 33 | Netherlands vs Sweden | 50/25/25 | 2-1 | 5-1 | ✅ | — |
@@ -66,7 +68,7 @@ _更新:2026-06-25 21:41:45　已評估場次:54_
 | 62 | Uzbekistan vs Colombia | 15/16/69 | 0-3 | 1-3 | ✅ | — |
 | 63 | Portugal vs Uzbekistan | 69/16/14 | 3-0 | 5-0 | ✅ | — |
 | 64 | Colombia vs DR Congo | 68/18/15 | 3-0 | 1-0 | ✅ | — |
-| 67 | England vs Croatia | 48/26/25 | 2-1 | 4-2 | ✅ | — |
+| 67 | England vs Croatia | 48/27/25 | 2-1 | 4-2 | ✅ | — |
 | 68 | Ghana vs Panama | 27/30/43 | 1-2 | 1-0 | ❌ | — |
 | 69 | England vs Ghana | 71/15/14 | 4-0 | 0-0 | ❌ | — |
 | 70 | Panama vs Croatia | 18/21/61 | 0-2 | 0-1 | ✅ | — |
@@ -85,7 +87,7 @@ _更新:2026-06-25 21:41:45　已評估場次:54_
 - **#10 Canada vs Qatar**：✅ 命中:模型賽前看好主勝（Canada 62%，高信心），結果如預期。
 - **#11 Switzerland vs Canada**：✅ 命中:模型賽前看好主勝（Switzerland 48%，中信心），結果如預期。
 - **#12 Bosnia-Herzegovina vs Qatar**：✅ 命中:模型賽前看好主勝（Bosnia-Herzegovina 47%，中信心），結果如預期。
-- **#13 Brazil vs Morocco**：❌ 模型看好Brazil贏，最後雙方言和；模型其實也給了和局 28%；合理變異:三方接近(主39/和28/客32),模型信心本就低；兩隊實力接近(Elo 僅差 24)。
+- **#13 Brazil vs Morocco**：❌ 模型看好Brazil贏，最後雙方言和；模型其實也給了和局 29%；合理變異:三方接近(主39/和29/客32),模型信心本就低；兩隊實力接近(Elo 僅差 24)。
 - **#14 Haiti vs Scotland**：✅ 命中:模型賽前看好客勝（Scotland 63%，高信心），結果如預期。
 - **#15 Scotland vs Morocco**：✅ 命中:模型賽前看好客勝（Morocco 62%，高信心），結果如預期。
 - **#16 Brazil vs Haiti**：✅ 命中:模型賽前看好主勝（Brazil 74%，高信心），結果如預期。
@@ -93,12 +95,14 @@ _更新:2026-06-25 21:41:45　已評估場次:54_
 - **#18 Morocco vs Haiti**：✅ 命中:模型賽前看好主勝（Morocco 76%，高信心），結果如預期。
 - **#19 USA vs Paraguay**：✅ 命中:模型賽前看好主勝（USA 51%，中信心），結果如預期。
 - **#20 Australia vs Türkiye**：❌ 模型看好Türkiye（37%），最後由Australia勝出；合理變異:三方接近(主32/和31/客37),模型信心本就低；兩隊實力接近(Elo 僅差 30)。
-- **#21 USA vs Australia**：✅ 命中:模型賽前看好主勝（USA 48%，中信心），結果如預期。
+- **#21 USA vs Australia**：✅ 命中:模型賽前看好主勝（USA 47%，中信心），結果如預期。
 - **#22 Türkiye vs Paraguay**：❌ 模型看好Türkiye（41%），最後由Paraguay勝出；合理變異:三方接近(主41/和30/客29),模型信心本就低；兩隊實力接近(Elo 僅差 16)。
 - **#25 Germany vs Curaçao**：✅ 命中:模型賽前看好主勝（Germany 74%，高信心），結果如預期。
 - **#26 Ivory Coast vs Ecuador**：❌ 模型看好Ecuador（42%），最後由Ivory Coast勝出；合理變異:三方接近(主29/和28/客42),模型信心本就低；兩隊實力接近(Elo 僅差 2)。
 - **#27 Germany vs Ivory Coast**：✅ 命中:模型賽前看好主勝（Germany 58%，中信心），結果如預期。
 - **#28 Ecuador vs Curaçao**：❌ 模型看好Ecuador贏，最後雙方言和；模型其實也給了和局 14%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
+- **#29 Curaçao vs Ivory Coast**：✅ 命中:模型賽前看好客勝（Ivory Coast 73%，高信心），結果如預期。
+- **#30 Ecuador vs Germany**：❌ 模型看好Germany（63%），最後由Ecuador勝出；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
 - **#31 Netherlands vs Japan**：❌ 模型看好Netherlands贏，最後雙方言和；模型其實也給了和局 28%；合理變異:三方接近(主42/和28/客30),模型信心本就低；兩隊實力接近(Elo 僅差 13)。
 - **#32 Sweden vs Tunisia**：✅ 命中:模型賽前看好主勝（Sweden 52%，中信心），結果如預期。
 - **#33 Netherlands vs Sweden**：✅ 命中:模型賽前看好主勝（Netherlands 50%，中信心），結果如預期。
