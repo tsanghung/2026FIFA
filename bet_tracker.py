@@ -373,6 +373,28 @@ SEED_BETS = [
     },
 ]
 
+# 2026-06-26（台灣，當地賽日 06-25）複式包牌：美國/澳洲/德國/日本「不讓分」，每注 NTD 30。
+# 單場×4 + 兩關×6 + 三關×4 + 過關×1 = 15 注 = NTD 450。賠率取自投注單上的實際盤口；
+# model_prob 由 matches 表的當前預測自動快照。
+# 注意：settle() 把「和局」視為輸 —— 本追蹤器尚未模型化「不讓分」的和局退款，
+# 故若有比賽踢和，紀錄會顯示為輸（實際應為退款）。
+import itertools as _it
+
+_PICKS_0626 = [
+    ('美國', {'match_num': 23, 'pick_side': 'away', 'odds': 1.40}),  # 土耳其 vs 美國
+    ('澳洲', {'match_num': 24, 'pick_side': 'away', 'odds': 3.05}),  # 巴拉圭 vs 澳洲
+    ('德國', {'match_num': 30, 'pick_side': 'away', 'odds': 1.30}),  # 厄瓜多 vs 德國
+    ('日本', {'match_num': 35, 'pick_side': 'home', 'odds': 1.45}),  # 日本 vs 瑞典
+]
+for _k, _label in ((1, '單場'), (2, '兩關'), (3, '三關'), (4, '過關')):
+    for _combo in _it.combinations(_PICKS_0626, _k):
+        SEED_BETS.append({
+            'name': f"{_label}-{'+'.join(n for n, _ in _combo)} (0626)",
+            'stake': 30, 'placed_date': '2026-06-25',
+            'bet_type': 'single' if _k == 1 else 'parlay',
+            'legs': [dict(leg) for _, leg in _combo],
+        })
+
 
 def seed(conn):
     for b in SEED_BETS:
