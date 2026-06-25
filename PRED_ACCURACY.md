@@ -1,6 +1,6 @@
 # 🎯 本屆世界盃「正式預測」即時準確度
 
-_更新:2026-06-25 10:41:14　已評估場次:54_
+_更新:2026-06-25 14:31:44　已評估場次:54_
 
 ## 總指標
 
@@ -17,11 +17,11 @@ _更新:2026-06-25 10:41:14　已評估場次:54_
 | # | 對戰 | 預測(主/和/客) | 預測比分 | 實際 | 1X2 | 比分 |
 |---|---|---|---|---|---|---|
 | 1 | Mexico vs South Africa | 68/17/15 | 3-0 | 2-0 | ✅ | — |
-| 2 | South Korea vs Czechia | 42/30/27 | 2-1 | 2-1 | ✅ | ✅ |
+| 2 | South Korea vs Czechia | 42/30/28 | 2-1 | 2-1 | ✅ | ✅ |
 | 3 | Czechia vs South Africa | 42/30/28 | 2-1 | 1-1 | ❌ | — |
 | 4 | Mexico vs South Korea | 54/26/20 | 2-0 | 1-0 | ✅ | — |
-| 5 | Czechia vs Mexico | 13/17/69 | 0-3 | 0-3 | ✅ | ✅ |
-| 6 | South Africa vs South Korea | 18/24/57 | 0-2 | 1-0 | ❌ | — |
+| 5 | Czechia vs Mexico | 13/18/69 | 0-3 | 0-3 | ✅ | ✅ |
+| 6 | South Africa vs South Korea | 18/25/57 | 0-2 | 1-0 | ❌ | — |
 | 7 | Canada vs Bosnia-Herzegovina | 55/25/20 | 2-0 | 1-1 | ❌ | — |
 | 8 | Qatar vs Switzerland | 14/14/72 | 0-5 | 1-1 | ❌ | — |
 | 9 | Switzerland vs Bosnia-Herzegovina | 66/18/16 | 2-0 | 4-1 | ✅ | — |
@@ -74,8 +74,8 @@ _更新:2026-06-25 10:41:14　已評估場次:54_
 ## 逐場差異與原因
 
 - **#1 Mexico vs South Africa**：✅ 命中:模型賽前看好主勝（Mexico 68%，高信心），結果如預期。
-- **#2 South Korea vs Czechia**：✅ 命中:模型賽前看好主勝（South Korea 43%，低信心），結果如預期。
-- **#3 Czechia vs South Africa**：❌ 模型看好Czechia贏，最後雙方言和；模型其實也給了和局 30%；合理變異:三方接近(主42/和30/客27),模型信心本就低。
+- **#2 South Korea vs Czechia**：✅ 命中:模型賽前看好主勝（South Korea 42%，低信心），結果如預期。
+- **#3 Czechia vs South Africa**：❌ 模型看好Czechia贏，最後雙方言和；模型其實也給了和局 30%；合理變異:三方接近(主42/和30/客28),模型信心本就低。
 - **#4 Mexico vs South Korea**：✅ 命中:模型賽前看好主勝（Mexico 54%，中信心），結果如預期。
 - **#5 Czechia vs Mexico**：✅ 命中:模型賽前看好客勝（Mexico 69%，高信心），結果如預期。
 - **#6 South Africa vs South Korea**：❌ 模型看好South Korea（57%），最後由South Africa勝出。
