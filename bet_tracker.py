@@ -395,6 +395,25 @@ for _k, _label in ((1, '單場'), (2, '兩關'), (3, '三關'), (4, '過關')):
             'legs': [dict(leg) for _, leg in _combo],
         })
 
+# 2026-06-27（台灣，當地賽日 06-26）複式包牌：埃及/維德角/西班牙/法國「不讓分」。
+# 每注金額：單場 30、兩關 20、三關 30、過關 20 → 4×30 + 6×20 + 4×30 + 1×20 = NTD 380。
+# 過關總賠率 2.00×2.05×1.30×1.35 ≈ 7.20。
+_PICKS_0627 = [
+    ('埃及', {'match_num': 41, 'pick_side': 'home', 'odds': 2.00}),   # 伊朗 @ 埃及
+    ('維德角', {'match_num': 47, 'pick_side': 'home', 'odds': 2.05}),  # 沙烏地阿拉伯 @ 維德角
+    ('西班牙', {'match_num': 48, 'pick_side': 'away', 'odds': 1.30}),  # 西班牙 @ 烏拉圭
+    ('法國', {'match_num': 53, 'pick_side': 'away', 'odds': 1.35}),    # 法國 @ 挪威
+]
+_STAKES_0627 = {1: 30, 2: 20, 3: 30, 4: 20}
+for _k, _label in ((1, '單場'), (2, '兩關'), (3, '三關'), (4, '過關')):
+    for _combo in _it.combinations(_PICKS_0627, _k):
+        SEED_BETS.append({
+            'name': f"{_label}-{'+'.join(n for n, _ in _combo)} (0627)",
+            'stake': _STAKES_0627[_k], 'placed_date': '2026-06-26',
+            'bet_type': 'single' if _k == 1 else 'parlay',
+            'legs': [dict(leg) for _, leg in _combo],
+        })
+
 
 def seed(conn):
     for b in SEED_BETS:
