@@ -13,6 +13,7 @@ th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--txt)}.
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
 table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 th{background:#0d1426;color:var(--mut);position:sticky;top:0}td.muted,.muted{color:var(--mut)}.team a{color:var(--txt)}.vs{color:var(--mut);text-align:center}
+tr.hit td{background:rgba(46,204,113,.30)}tr.hit:hover td{background:rgba(46,204,113,.42)}tr.hit td:first-child{box-shadow:inset 4px 0 0 #2ecc71}tr.hit .vs{color:#2ecc71;font-weight:800}
 .btn{display:inline-block;background:var(--acc);color:#04240f;font-weight:700;padding:10px 16px;border-radius:8px;cursor:pointer;border:0}
 .match h1{font-size:26px}.match .vs{color:var(--mut);font-size:18px}
 .probs{margin:18px 0}.prob{display:grid;grid-template-columns:160px 1fr 56px;align-items:center;gap:10px;margin:8px 0}
