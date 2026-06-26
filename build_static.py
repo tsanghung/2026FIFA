@@ -325,7 +325,14 @@ def match_row_html(m, records=None):
     score = esc(fs) if fs else 'VS'
     pred = flip_score(m['pred_score'])
     pred_disp = esc(pred) if pred else ''
-    return f'''<tr data-twdate="{esc(d)}">
+    # Highlight rows where the model's predicted 1X2 outcome matched the real result.
+    hit = ''
+    hg, ag = m.get('home_goals'), m.get('away_goals')
+    if m.get('status') == 'Completed' and hg is not None and ag is not None:
+        actual = '主勝' if hg > ag else ('客勝' if hg < ag else '和局')
+        if actual == outcome_label(m):
+            hit = ' class="hit"'
+    return f'''<tr{hit} data-twdate="{esc(d)}">
 <td class="muted">#{m['match_num']}</td>
 <td>{esc(d)} {esc(t)}</td>
 <td class="team"><a href="{url}" target="_blank" rel="noopener">{esc(a)}</a>{a_rec}</td>
@@ -811,6 +818,7 @@ th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--txt)}.
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
 table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 th{background:#0d1426;color:var(--mut);position:sticky;top:0}td.muted,.muted{color:var(--mut)}.team a{color:var(--txt)}.vs{color:var(--mut);text-align:center}
+tr.hit td{background:rgba(46,204,113,.15)}tr.hit td:first-child{box-shadow:inset 3px 0 0 var(--acc)}tr.hit .vs{color:var(--acc);font-weight:700}
 .btn{display:inline-block;background:var(--acc);color:#04240f;font-weight:700;padding:10px 16px;border-radius:8px;cursor:pointer;border:0}
 .match h1{font-size:26px}.match .vs{color:var(--mut);font-size:18px}
 .probs{margin:18px 0}.prob{display:grid;grid-template-columns:160px 1fr 56px;align-items:center;gap:10px;margin:8px 0}
