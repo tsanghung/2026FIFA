@@ -1,46 +1,46 @@
 {
-  "n": 64,
-  "generated_at": "2026-06-27 03:22:47",
-  "accuracy": 0.625,
-  "rps": 0.15566431712933684,
-  "rps_uniform": 0.2335069444444446,
-  "brier": 0.5062608401438997,
-  "logloss": 0.8749870287791348,
-  "exact_score_acc": 0.09375,
-  "gd_mae": 1.65625,
-  "tg_mae": 1.59375,
+  "n": 66,
+  "generated_at": "2026-06-27 06:52:06",
+  "accuracy": 0.6212121212121212,
+  "rps": 0.15356174965530428,
+  "rps_uniform": 0.23232323232323246,
+  "brier": 0.5038459981508107,
+  "logloss": 0.8715452518996885,
+  "exact_score_acc": 0.09090909090909091,
+  "gd_mae": 1.6363636363636365,
+  "tg_mae": 1.5757575757575757,
   "calibration": {
     "30-40%": {
-      "n": 2,
+      "n": 3,
       "win_rate": 0.0,
-      "avg_pred": 0.37793383388138235
+      "avg_pred": 0.37039014291614886
     },
     "40-50%": {
-      "n": 17,
-      "win_rate": 0.47058823529411764,
-      "avg_pred": 0.4548549593458261
+      "n": 16,
+      "win_rate": 0.5,
+      "avg_pred": 0.452331538929061
     },
     "50-60%": {
-      "n": 12,
-      "win_rate": 0.5,
-      "avg_pred": 0.5600174484657354
+      "n": 13,
+      "win_rate": 0.46153846153846156,
+      "avg_pred": 0.5554707159573418
     },
     "60-70%": {
       "n": 21,
       "win_rate": 0.8571428571428571,
-      "avg_pred": 0.6497615858805543
+      "avg_pred": 0.6501079222877663
     },
     "70-80%": {
-      "n": 12,
-      "win_rate": 0.6666666666666666,
-      "avg_pred": 0.7362438911939376
+      "n": 13,
+      "win_rate": 0.6923076923076923,
+      "avg_pred": 0.7361009844519052
     }
   },
   "acc_by_conf": {
     "high": {
-      "hit": 26,
-      "n": 33,
-      "rate": 0.7878787878787878
+      "hit": 27,
+      "n": 34,
+      "rate": 0.7941176470588235
     },
     "mid": {
       "hit": 12,
@@ -49,15 +49,15 @@
     },
     "low": {
       "hit": 2,
-      "n": 11,
-      "rate": 0.18181818181818182
+      "n": 12,
+      "rate": 0.16666666666666666
     }
   },
-  "draws_actual": 17,
+  "draws_actual": 18,
   "draws_called": 0,
-  "draw_miss": 17,
-  "hits": 40,
-  "draw_rate": 0.265625,
+  "draw_miss": 18,
+  "hits": 41,
+  "draw_rate": 0.2727272727272727,
   "draw_rate_hist": 0.222,
   "details": [
     {
@@ -269,8 +269,8 @@
       "home": "Brazil",
       "away": "Morocco",
       "probs": [
-        0.383,
-        0.289,
+        0.381,
+        0.29,
         0.329
       ],
       "pred_outcome": "home",
@@ -405,8 +405,8 @@
       "home": "USA",
       "away": "Australia",
       "probs": [
-        0.444,
-        0.278,
+        0.443,
+        0.279,
         0.278
       ],
       "pred_outcome": "home",
@@ -491,8 +491,8 @@
       "away": "Ecuador",
       "probs": [
         0.277,
-        0.282,
-        0.441
+        0.283,
+        0.439
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -507,9 +507,9 @@
       "home": "Germany",
       "away": "Ivory Coast",
       "probs": [
-        0.538,
-        0.248,
-        0.214
+        0.535,
+        0.25,
+        0.215
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -559,8 +559,8 @@
       "away": "Germany",
       "probs": [
         0.182,
-        0.236,
-        0.582
+        0.237,
+        0.581
       ],
       "pred_outcome": "away",
       "pred_score": "0-2",
@@ -575,9 +575,9 @@
       "home": "Netherlands",
       "away": "Japan",
       "probs": [
-        0.429,
-        0.282,
-        0.289
+        0.427,
+        0.283,
+        0.29
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -677,9 +677,9 @@
       "home": "Belgium",
       "away": "Egypt",
       "probs": [
-        0.497,
-        0.275,
-        0.229
+        0.506,
+        0.271,
+        0.223
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -694,9 +694,9 @@
       "home": "Iran",
       "away": "New Zealand",
       "probs": [
-        0.676,
-        0.172,
-        0.152
+        0.681,
+        0.168,
+        0.151
       ],
       "pred_outcome": "home",
       "pred_score": "3-0",
@@ -711,9 +711,9 @@
       "home": "Belgium",
       "away": "Iran",
       "probs": [
-        0.458,
-        0.288,
-        0.254
+        0.466,
+        0.285,
+        0.249
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -728,9 +728,9 @@
       "home": "New Zealand",
       "away": "Egypt",
       "probs": [
-        0.159,
-        0.183,
-        0.658
+        0.158,
+        0.18,
+        0.662
       ],
       "pred_outcome": "away",
       "pred_score": "0-3",
@@ -739,6 +739,40 @@
       "hit": true,
       "exact": false,
       "reason": "✅ 命中:模型賽前看好客勝（Egypt 66%，高信心），結果如預期。"
+    },
+    {
+      "match_num": 41,
+      "home": "Egypt",
+      "away": "Iran",
+      "probs": [
+        0.331,
+        0.311,
+        0.357
+      ],
+      "pred_outcome": "away",
+      "pred_score": "1-2",
+      "actual": "draw",
+      "actual_score": "1-1",
+      "hit": false,
+      "exact": false,
+      "reason": "❌ 模型看好Iran贏，最後雙方言和；模型其實也給了和局 31%；合理變異:三方接近(主33/和31/客36),模型信心本就低；兩隊實力接近(Elo 僅差 41)。"
+    },
+    {
+      "match_num": 42,
+      "home": "New Zealand",
+      "away": "Belgium",
+      "probs": [
+        0.131,
+        0.135,
+        0.734
+      ],
+      "pred_outcome": "away",
+      "pred_score": "0-5",
+      "actual": "away",
+      "actual_score": "1-5",
+      "hit": true,
+      "exact": false,
+      "reason": "✅ 命中:模型賽前看好客勝（Belgium 73%，高信心），結果如預期。"
     },
     {
       "match_num": 43,
@@ -847,9 +881,9 @@
       "home": "France",
       "away": "Senegal",
       "probs": [
-        0.599,
-        0.213,
-        0.188
+        0.597,
+        0.214,
+        0.189
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -983,9 +1017,9 @@
       "home": "Argentina",
       "away": "Austria",
       "probs": [
-        0.613,
-        0.206,
-        0.181
+        0.611,
+        0.208,
+        0.182
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -1085,9 +1119,9 @@
       "home": "England",
       "away": "Croatia",
       "probs": [
-        0.475,
-        0.27,
-        0.255
+        0.473,
+        0.271,
+        0.256
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
