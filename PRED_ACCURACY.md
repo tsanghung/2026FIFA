@@ -1,16 +1,16 @@
 # 🎯 本屆世界盃「正式預測」即時準確度
 
-_更新:2026-06-28 03:43:05　已評估場次:70_
+_更新:2026-06-28 07:50:56　已評估場次:72_
 
 ## 總指標
 
-- 1X2 命中率:**63%**（44/70）
-- RPS：**0.151**（越低越好;隨機基準 0.233）
-- Brier：0.497　Log-loss：0.862
-- 精確比分命中率：9%　進球差 MAE：1.60　總進球 MAE：1.60
-- 本屆和局率：**27%**（19/70） vs 歷史 22%
+- 1X2 命中率:**62%**（45/72）
+- RPS：**0.149**（越低越好;隨機基準 0.231）
+- Brier：0.495　Log-loss：0.859
+- 精確比分命中率：8%　進球差 MAE：1.64　總進球 MAE：1.64
+- 本屆和局率：**28%**（20/72） vs 歷史 22%
 
-> RPS 0.151 vs 隨機 0.233 → **優於隨機**。
+> RPS 0.149 vs 隨機 0.231 → **優於隨機**。
 
 ## 逐場
 
@@ -46,7 +46,7 @@ _更新:2026-06-28 03:43:05　已評估場次:70_
 | 28 | Ecuador vs Curaçao | 74/14/13 | 4-0 | 0-0 | ❌ | — |
 | 29 | Curaçao vs Ivory Coast | 12/14/74 | 0-4 | 0-2 | ✅ | — |
 | 30 | Ecuador vs Germany | 18/24/58 | 0-2 | 2-1 | ❌ | — |
-| 31 | Netherlands vs Japan | 42/28/29 | 2-1 | 2-2 | ❌ | — |
+| 31 | Netherlands vs Japan | 42/29/29 | 2-1 | 2-2 | ❌ | — |
 | 32 | Sweden vs Tunisia | 54/25/20 | 2-0 | 5-1 | ✅ | — |
 | 33 | Netherlands vs Sweden | 49/26/25 | 2-1 | 5-1 | ✅ | — |
 | 34 | Tunisia vs Japan | 14/16/71 | 0-3 | 0-4 | ✅ | — |
@@ -73,12 +73,14 @@ _更新:2026-06-28 03:43:05　已評估場次:70_
 | 55 | Argentina vs Algeria | 64/19/16 | 2-0 | 3-0 | ✅ | — |
 | 56 | Austria vs Jordan | 64/20/16 | 2-0 | 3-1 | ✅ | — |
 | 57 | Argentina vs Austria | 61/21/18 | 2-0 | 2-0 | ✅ | ✅ |
-| 58 | Jordan vs Algeria | 20/23/57 | 0-2 | 1-2 | ✅ | — |
+| 58 | Jordan vs Algeria | 20/23/58 | 0-2 | 1-2 | ✅ | — |
+| 59 | Algeria vs Austria | 25/29/46 | 1-2 | 3-3 | ❌ | — |
+| 60 | Jordan vs Argentina | 11/12/78 | 0-7 | 1-3 | ✅ | — |
 | 61 | Portugal vs DR Congo | 66/18/16 | 3-0 | 1-1 | ❌ | — |
 | 62 | Uzbekistan vs Colombia | 15/16/70 | 0-3 | 1-3 | ✅ | — |
 | 63 | Portugal vs Uzbekistan | 69/16/14 | 3-0 | 5-0 | ✅ | — |
 | 64 | Colombia vs DR Congo | 67/18/15 | 3-0 | 1-0 | ✅ | — |
-| 65 | Colombia vs Portugal | 34/29/37 | 1-2 | 0-0 | ❌ | — |
+| 65 | Colombia vs Portugal | 34/30/37 | 1-2 | 0-0 | ❌ | — |
 | 66 | DR Congo vs Uzbekistan | 46/30/25 | 2-1 | 3-1 | ✅ | — |
 | 67 | England vs Croatia | 47/27/26 | 2-1 | 4-2 | ✅ | — |
 | 68 | Ghana vs Panama | 27/30/43 | 1-2 | 1-0 | ❌ | — |
@@ -114,7 +116,7 @@ _更新:2026-06-28 03:43:05　已評估場次:70_
 - **#23 Türkiye vs USA**：❌ 模型看好USA（59%），最後由Türkiye勝出。
 - **#24 Paraguay vs Australia**：❌ 模型看好Australia贏，最後雙方言和；模型其實也給了和局 30%；合理變異:三方接近(主25/和30/客45),模型信心本就低；兩隊實力接近(Elo 僅差 24)。
 - **#25 Germany vs Curaçao**：✅ 命中:模型賽前看好主勝（Germany 74%，高信心），結果如預期。
-- **#26 Ivory Coast vs Ecuador**：❌ 模型看好Ecuador（44%），最後由Ivory Coast勝出；合理變異:三方接近(主28/和28/客44),模型信心本就低；兩隊實力接近(Elo 僅差 40)。
+- **#26 Ivory Coast vs Ecuador**：❌ 模型看好Ecuador（44%），最後由Ivory Coast勝出；合理變異:三方接近(主28/和29/客44),模型信心本就低；兩隊實力接近(Elo 僅差 40)。
 - **#27 Germany vs Ivory Coast**：✅ 命中:模型賽前看好主勝（Germany 53%，中信心），結果如預期。
 - **#28 Ecuador vs Curaçao**：❌ 模型看好Ecuador贏，最後雙方言和；模型其實也給了和局 14%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
 - **#29 Curaçao vs Ivory Coast**：✅ 命中:模型賽前看好客勝（Ivory Coast 74%，高信心），結果如預期。
@@ -137,7 +139,7 @@ _更新:2026-06-28 03:43:05　已評估場次:70_
 - **#46 Uruguay vs Cape Verde**：❌ 模型看好Uruguay贏，最後雙方言和；模型其實也給了和局 23%。
 - **#47 Cape Verde vs Saudi Arabia**：❌ 模型看好Cape Verde贏，最後雙方言和；模型其實也給了和局 31%；合理變異:三方接近(主37/和31/客32),模型信心本就低；兩隊實力接近(Elo 僅差 32)。
 - **#48 Uruguay vs Spain**：✅ 命中:模型賽前看好客勝（Spain 62%，高信心），結果如預期。
-- **#49 France vs Senegal**：✅ 命中:模型賽前看好主勝（France 60%，高信心），結果如預期。
+- **#49 France vs Senegal**：✅ 命中:模型賽前看好主勝（France 60%，中信心），結果如預期。
 - **#50 Iraq vs Norway**：✅ 命中:模型賽前看好客勝（Norway 68%，高信心），結果如預期。
 - **#51 France vs Iraq**：✅ 命中:模型賽前看好主勝（France 75%，高信心），結果如預期。
 - **#52 Norway vs Senegal**：✅ 命中:模型賽前看好主勝（Norway 52%，中信心），結果如預期。
@@ -146,7 +148,9 @@ _更新:2026-06-28 03:43:05　已評估場次:70_
 - **#55 Argentina vs Algeria**：✅ 命中:模型賽前看好主勝（Argentina 64%，高信心），結果如預期。
 - **#56 Austria vs Jordan**：✅ 命中:模型賽前看好主勝（Austria 64%，高信心），結果如預期。
 - **#57 Argentina vs Austria**：✅ 命中:模型賽前看好主勝（Argentina 61%，高信心），結果如預期。
-- **#58 Jordan vs Algeria**：✅ 命中:模型賽前看好客勝（Algeria 57%，中信心），結果如預期。
+- **#58 Jordan vs Algeria**：✅ 命中:模型賽前看好客勝（Algeria 58%，中信心），結果如預期。
+- **#59 Algeria vs Austria**：❌ 模型看好Austria贏，最後雙方言和；模型其實也給了和局 29%；兩隊實力接近(Elo 僅差 21)。
+- **#60 Jordan vs Argentina**：✅ 命中:模型賽前看好客勝（Argentina 78%，高信心），結果如預期。
 - **#61 Portugal vs DR Congo**：❌ 模型看好Portugal贏，最後雙方言和；模型其實也給了和局 18%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
 - **#62 Uzbekistan vs Colombia**：✅ 命中:模型賽前看好客勝（Colombia 70%，高信心），結果如預期。
 - **#63 Portugal vs Uzbekistan**：✅ 命中:模型賽前看好主勝（Portugal 69%，高信心），結果如預期。
