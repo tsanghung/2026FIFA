@@ -1,46 +1,46 @@
 {
-  "n": 68,
-  "generated_at": "2026-06-27 23:01:57",
-  "accuracy": 0.6323529411764706,
-  "rps": 0.15116005199333443,
-  "rps_uniform": 0.23366013071895442,
-  "brier": 0.49433020432987196,
-  "logloss": 0.8582691599052455,
-  "exact_score_acc": 0.08823529411764706,
-  "gd_mae": 1.6176470588235294,
-  "tg_mae": 1.5588235294117647,
+  "n": 70,
+  "generated_at": "2026-06-28 03:43:05",
+  "accuracy": 0.6285714285714286,
+  "rps": 0.1510680983830389,
+  "rps_uniform": 0.2325396825396827,
+  "brier": 0.496816810713584,
+  "logloss": 0.8618609146447322,
+  "exact_score_acc": 0.08571428571428572,
+  "gd_mae": 1.6,
+  "tg_mae": 1.6,
   "calibration": {
     "30-40%": {
-      "n": 3,
+      "n": 4,
       "win_rate": 0.0,
-      "avg_pred": 0.36951253427018466
+      "avg_pred": 0.3654826901444013
     },
     "40-50%": {
-      "n": 16,
+      "n": 18,
       "win_rate": 0.5,
-      "avg_pred": 0.4518467012390993
+      "avg_pred": 0.4541635641995263
     },
     "50-60%": {
-      "n": 14,
+      "n": 12,
       "win_rate": 0.5,
-      "avg_pred": 0.5578178048324037
+      "avg_pred": 0.560067187172366
     },
     "60-70%": {
-      "n": 21,
-      "win_rate": 0.8571428571428571,
-      "avg_pred": 0.6499710812136211
+      "n": 22,
+      "win_rate": 0.8636363636363636,
+      "avg_pred": 0.6461076341589072
     },
     "70-80%": {
       "n": 14,
       "win_rate": 0.7142857142857143,
-      "avg_pred": 0.7350155069709977
+      "avg_pred": 0.73470650622195
     }
   },
   "acc_by_conf": {
     "high": {
-      "hit": 28,
-      "n": 35,
-      "rate": 0.8
+      "hit": 29,
+      "n": 36,
+      "rate": 0.8055555555555556
     },
     "mid": {
       "hit": 13,
@@ -49,15 +49,15 @@
     },
     "low": {
       "hit": 2,
-      "n": 12,
-      "rate": 0.16666666666666666
+      "n": 13,
+      "rate": 0.15384615384615385
     }
   },
-  "draws_actual": 18,
+  "draws_actual": 19,
   "draws_called": 0,
-  "draw_miss": 18,
-  "hits": 43,
-  "draw_rate": 0.2647058823529412,
+  "draw_miss": 19,
+  "hits": 44,
+  "draw_rate": 0.2714285714285714,
   "draw_rate_hist": 0.222,
   "details": [
     {
@@ -269,9 +269,9 @@
       "home": "Brazil",
       "away": "Morocco",
       "probs": [
-        0.379,
-        0.291,
-        0.33
+        0.377,
+        0.292,
+        0.331
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -405,8 +405,8 @@
       "home": "USA",
       "away": "Australia",
       "probs": [
-        0.441,
-        0.28,
+        0.44,
+        0.281,
         0.279
       ],
       "pred_outcome": "home",
@@ -491,8 +491,8 @@
       "away": "Ecuador",
       "probs": [
         0.278,
-        0.284,
-        0.438
+        0.285,
+        0.437
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -507,9 +507,9 @@
       "home": "Germany",
       "away": "Ivory Coast",
       "probs": [
-        0.533,
-        0.251,
-        0.216
+        0.531,
+        0.252,
+        0.217
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -559,8 +559,8 @@
       "away": "Germany",
       "probs": [
         0.182,
-        0.238,
-        0.58
+        0.239,
+        0.579
       ],
       "pred_outcome": "away",
       "pred_score": "0-2",
@@ -575,9 +575,9 @@
       "home": "Netherlands",
       "away": "Japan",
       "probs": [
-        0.425,
-        0.284,
-        0.291
+        0.423,
+        0.285,
+        0.292
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -585,7 +585,7 @@
       "actual_score": "2-2",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Netherlands贏，最後雙方言和；模型其實也給了和局 28%；合理變異:三方接近(主42/和28/客29),模型信心本就低；兩隊實力接近(Elo 僅差 38)。"
+      "reason": "❌ 模型看好Netherlands贏，最後雙方言和；模型其實也給了和局 29%；合理變異:三方接近(主42/和29/客29),模型信心本就低；兩隊實力接近(Elo 僅差 38)。"
     },
     {
       "match_num": 32,
@@ -677,9 +677,9 @@
       "home": "Belgium",
       "away": "Egypt",
       "probs": [
-        0.506,
-        0.271,
-        0.223
+        0.495,
+        0.275,
+        0.229
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -687,16 +687,16 @@
       "actual_score": "1-1",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Belgium贏，最後雙方言和；模型其實也給了和局 27%。"
+      "reason": "❌ 模型看好Belgium贏，最後雙方言和；模型其實也給了和局 28%。"
     },
     {
       "match_num": 38,
       "home": "Iran",
       "away": "New Zealand",
       "probs": [
-        0.681,
-        0.168,
-        0.151
+        0.674,
+        0.173,
+        0.153
       ],
       "pred_outcome": "home",
       "pred_score": "3-0",
@@ -711,9 +711,9 @@
       "home": "Belgium",
       "away": "Iran",
       "probs": [
-        0.466,
-        0.285,
-        0.249
+        0.462,
+        0.287,
+        0.251
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -728,9 +728,9 @@
       "home": "New Zealand",
       "away": "Egypt",
       "probs": [
-        0.158,
-        0.18,
-        0.662
+        0.159,
+        0.182,
+        0.659
       ],
       "pred_outcome": "away",
       "pred_score": "0-3",
@@ -745,9 +745,9 @@
       "home": "Egypt",
       "away": "Iran",
       "probs": [
-        0.332,
-        0.311,
-        0.357
+        0.338,
+        0.312,
+        0.35
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -755,19 +755,19 @@
       "actual_score": "1-1",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Iran贏，最後雙方言和；模型其實也給了和局 31%；合理變異:三方接近(主33/和31/客36),模型信心本就低；兩隊實力接近(Elo 僅差 41)。"
+      "reason": "❌ 模型看好Iran贏，最後雙方言和；模型其實也給了和局 31%；合理變異:三方接近(主34/和31/客35),模型信心本就低；兩隊實力接近(Elo 僅差 41)。"
     },
     {
       "match_num": 42,
       "home": "New Zealand",
       "away": "Belgium",
       "probs": [
-        0.131,
-        0.135,
-        0.734
+        0.132,
+        0.138,
+        0.731
       ],
       "pred_outcome": "away",
-      "pred_score": "0-5",
+      "pred_score": "0-4",
       "actual": "away",
       "actual_score": "1-5",
       "hit": true,
@@ -779,8 +779,8 @@
       "home": "Spain",
       "away": "Cape Verde",
       "probs": [
-        0.732,
-        0.131,
+        0.733,
+        0.13,
         0.137
       ],
       "pred_outcome": "home",
@@ -797,8 +797,8 @@
       "away": "Uruguay",
       "probs": [
         0.176,
-        0.216,
-        0.608
+        0.215,
+        0.609
       ],
       "pred_outcome": "away",
       "pred_score": "0-2",
@@ -830,9 +830,9 @@
       "home": "Uruguay",
       "away": "Cape Verde",
       "probs": [
-        0.582,
-        0.236,
-        0.182
+        0.589,
+        0.232,
+        0.179
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -840,16 +840,16 @@
       "actual_score": "2-2",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Uruguay贏，最後雙方言和；模型其實也給了和局 24%。"
+      "reason": "❌ 模型看好Uruguay贏，最後雙方言和；模型其實也給了和局 23%。"
     },
     {
       "match_num": 47,
       "home": "Cape Verde",
       "away": "Saudi Arabia",
       "probs": [
-        0.373,
+        0.367,
         0.309,
-        0.318
+        0.324
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -865,8 +865,8 @@
       "away": "Spain",
       "probs": [
         0.171,
-        0.203,
-        0.626
+        0.205,
+        0.624
       ],
       "pred_outcome": "away",
       "pred_score": "0-2",
@@ -874,16 +874,16 @@
       "actual_score": "0-1",
       "hit": true,
       "exact": false,
-      "reason": "✅ 命中:模型賽前看好客勝（Spain 63%，高信心），結果如預期。"
+      "reason": "✅ 命中:模型賽前看好客勝（Spain 62%，高信心），結果如預期。"
     },
     {
       "match_num": 49,
       "home": "France",
       "away": "Senegal",
       "probs": [
-        0.595,
-        0.216,
-        0.189
+        0.601,
+        0.212,
+        0.187
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -891,16 +891,16 @@
       "actual_score": "3-1",
       "hit": true,
       "exact": false,
-      "reason": "✅ 命中:模型賽前看好主勝（France 59%，中信心），結果如預期。"
+      "reason": "✅ 命中:模型賽前看好主勝（France 60%，高信心），結果如預期。"
     },
     {
       "match_num": 50,
       "home": "Iraq",
       "away": "Norway",
       "probs": [
-        0.15,
-        0.166,
-        0.684
+        0.151,
+        0.169,
+        0.68
       ],
       "pred_outcome": "away",
       "pred_score": "0-3",
@@ -915,9 +915,9 @@
       "home": "France",
       "away": "Iraq",
       "probs": [
-        0.751,
+        0.75,
         0.128,
-        0.121
+        0.122
       ],
       "pred_outcome": "home",
       "pred_score": "5-0",
@@ -932,12 +932,12 @@
       "home": "Norway",
       "away": "Senegal",
       "probs": [
-        0.515,
-        0.269,
-        0.215
+        0.523,
+        0.266,
+        0.211
       ],
       "pred_outcome": "home",
-      "pred_score": "2-1",
+      "pred_score": "2-0",
       "actual": "home",
       "actual_score": "3-2",
       "hit": true,
@@ -949,9 +949,9 @@
       "home": "Norway",
       "away": "France",
       "probs": [
-        0.238,
-        0.27,
-        0.493
+        0.235,
+        0.268,
+        0.497
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -959,16 +959,16 @@
       "actual_score": "1-4",
       "hit": true,
       "exact": false,
-      "reason": "✅ 命中:模型賽前看好客勝（France 49%，中信心），結果如預期。"
+      "reason": "✅ 命中:模型賽前看好客勝（France 50%，中信心），結果如預期。"
     },
     {
       "match_num": 54,
       "home": "Senegal",
       "away": "Iraq",
       "probs": [
-        0.615,
-        0.213,
-        0.172
+        0.602,
+        0.22,
+        0.177
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -976,14 +976,14 @@
       "actual_score": "5-0",
       "hit": true,
       "exact": false,
-      "reason": "✅ 命中:模型賽前看好主勝（Senegal 62%，高信心），結果如預期。"
+      "reason": "✅ 命中:模型賽前看好主勝（Senegal 60%，高信心），結果如預期。"
     },
     {
       "match_num": 55,
       "home": "Argentina",
       "away": "Algeria",
       "probs": [
-        0.645,
+        0.644,
         0.193,
         0.163
       ],
@@ -1000,9 +1000,9 @@
       "home": "Austria",
       "away": "Jordan",
       "probs": [
-        0.636,
+        0.637,
         0.198,
-        0.166
+        0.165
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -1017,9 +1017,9 @@
       "home": "Argentina",
       "away": "Austria",
       "probs": [
-        0.609,
-        0.209,
-        0.182
+        0.607,
+        0.21,
+        0.183
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -1034,9 +1034,9 @@
       "home": "Jordan",
       "away": "Algeria",
       "probs": [
-        0.197,
-        0.23,
-        0.573
+        0.196,
+        0.229,
+        0.575
       ],
       "pred_outcome": "away",
       "pred_score": "0-2",
@@ -1051,9 +1051,9 @@
       "home": "Portugal",
       "away": "DR Congo",
       "probs": [
-        0.668,
-        0.177,
-        0.155
+        0.661,
+        0.182,
+        0.157
       ],
       "pred_outcome": "home",
       "pred_score": "3-0",
@@ -1068,9 +1068,9 @@
       "home": "Uzbekistan",
       "away": "Colombia",
       "probs": [
-        0.147,
-        0.159,
-        0.694
+        0.146,
+        0.157,
+        0.697
       ],
       "pred_outcome": "away",
       "pred_score": "0-3",
@@ -1078,7 +1078,7 @@
       "actual_score": "1-3",
       "hit": true,
       "exact": false,
-      "reason": "✅ 命中:模型賽前看好客勝（Colombia 69%，高信心），結果如預期。"
+      "reason": "✅ 命中:模型賽前看好客勝（Colombia 70%，高信心），結果如預期。"
     },
     {
       "match_num": 63,
@@ -1102,9 +1102,9 @@
       "home": "Colombia",
       "away": "DR Congo",
       "probs": [
-        0.677,
-        0.176,
-        0.148
+        0.673,
+        0.178,
+        0.149
       ],
       "pred_outcome": "home",
       "pred_score": "3-0",
@@ -1112,16 +1112,50 @@
       "actual_score": "1-0",
       "hit": true,
       "exact": false,
-      "reason": "✅ 命中:模型賽前看好主勝（Colombia 68%，高信心），結果如預期。"
+      "reason": "✅ 命中:模型賽前看好主勝（Colombia 67%，高信心），結果如預期。"
+    },
+    {
+      "match_num": 65,
+      "home": "Colombia",
+      "away": "Portugal",
+      "probs": [
+        0.338,
+        0.294,
+        0.368
+      ],
+      "pred_outcome": "away",
+      "pred_score": "1-2",
+      "actual": "draw",
+      "actual_score": "0-0",
+      "hit": false,
+      "exact": false,
+      "reason": "❌ 模型看好Portugal贏，最後雙方言和；模型其實也給了和局 29%；合理變異:三方接近(主34/和29/客37),模型信心本就低；兩隊實力接近(Elo 僅差 38)。"
+    },
+    {
+      "match_num": 66,
+      "home": "DR Congo",
+      "away": "Uzbekistan",
+      "probs": [
+        0.456,
+        0.295,
+        0.249
+      ],
+      "pred_outcome": "home",
+      "pred_score": "2-1",
+      "actual": "home",
+      "actual_score": "3-1",
+      "hit": true,
+      "exact": false,
+      "reason": "✅ 命中:模型賽前看好主勝（DR Congo 46%，中信心），結果如預期。"
     },
     {
       "match_num": 67,
       "home": "England",
       "away": "Croatia",
       "probs": [
-        0.473,
-        0.272,
-        0.255
+        0.472,
+        0.273,
+        0.256
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -1171,7 +1205,7 @@
       "away": "Croatia",
       "probs": [
         0.18,
-        0.21,
+        0.211,
         0.609
       ],
       "pred_outcome": "away",
@@ -1188,8 +1222,8 @@
       "away": "England",
       "probs": [
         0.126,
-        0.152,
-        0.722
+        0.153,
+        0.721
       ],
       "pred_outcome": "away",
       "pred_score": "0-3",
