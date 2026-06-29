@@ -34,7 +34,7 @@ jobs:
       - name: Install wrangler
         run: npm install --no-save wrangler@3
 
-      - name: Set Worker secret (GH_PAT) + deploy
+      - name: Deploy Worker + set its GH_PAT secret
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           WORKER_GH_PAT: ${{ secrets.WORKER_GH_PAT }}
@@ -43,5 +43,9 @@ jobs:
             echo "::error::Add the CLOUDFLARE_API_TOKEN and WORKER_GH_PAT repo secrets first (see this file's header)."
             exit 1
           fi
-          printf '%s' "$WORKER_GH_PAT" | npx wrangler secret put GH_PAT
+          # Deploy FIRST so the Worker exists, then attach the secret (a secret put
+          # on a not-yet-created Worker can fail). The secret is picked up at runtime
+          # with no redeploy needed; the cron only fires every 2h so the few seconds
+          # between deploy and secret-put never coincide with a run.
           npx wrangler deploy
+          printf '%s' "$WORKER_GH_PAT" | npx wrangler secret put GH_PAT
