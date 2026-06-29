@@ -313,7 +313,25 @@ def team_stats_table(m, stats):
             + '</tbody></table></div>')
 
 
-def match_row_html(m, records=None):
+def phase_of(stage):
+    """Map a fixture's group_or_stage to a (key, 中文標籤, english) tournament phase.
+    All group-stage matches collapse into one 小組賽 phase; knockout rounds each
+    get their own."""
+    s = stage or ''
+    if s.startswith('Group'):
+        return ('groups', '小組賽（預賽）', 'Group Stage')
+    table = {
+        'Round of 32': ('r32', '32 強', 'Round of 32'),
+        'Round of 16': ('r16', '16 強', 'Round of 16'),
+        'Quarter-finals': ('qf', '8 強', 'Quarter-finals'),
+        'Semi-finals': ('sf', '4 強', 'Semi-finals'),
+        'Third-place play-off': ('tp', '季軍戰', 'Third-place play-off'),
+        'Final': ('final', '決賽', 'Final'),
+    }
+    return table.get(s, ('other', s, s))
+
+
+def match_row_html(m, records=None, phase=''):
     a = get_team_display_name(m['away_team'])
     h = get_team_display_name(m['home_team'])
     d, t = convert_to_taiwan_time(m['date'], m['time'])
@@ -332,7 +350,7 @@ def match_row_html(m, records=None):
         actual = '主勝' if hg > ag else ('客勝' if hg < ag else '和局')
         if actual == outcome_label(m):
             hit = ' class="hit"'
-    return f'''<tr{hit} data-twdate="{esc(d)}">
+    return f'''<tr{hit} data-twdate="{esc(d)}" data-phase="{esc(phase)}">
 <td class="muted">#{m['match_num']}</td>
 <td>{esc(d)} {esc(t)}</td>
 <td class="team"><a href="{url}" target="_blank" rel="noopener">{esc(a)}</a>{a_rec}</td>
@@ -452,8 +470,39 @@ def build_index(matches, teams, champs, metrics, external_sources=None, external
                  '<th>#</th><th class="sortable" onclick="sortTime(this)">時間(台)<span class="arr"></span></th><th>客</th><th>比分</th><th>主</th>'
                  '<th>客/和/主</th><th>預測</th><th>比分預測(客-主)</th></tr></thead><tbody>')
     records = compute_team_records(matches)
+    # Current phase = the phase containing the first not-yet-completed fixture.
+    cur_key = ''
     for m in matches:
-        parts.append(match_row_html(m, records))
+        if m.get('status') != 'Completed':
+            cur_key = phase_of(m['group_or_stage'])[0]
+            break
+    # Per-phase progress (completed / total) for the section headers.
+    pstats = {}
+    for m in matches:
+        k = phase_of(m['group_or_stage'])[0]
+        st = pstats.setdefault(k, [0, 0])
+        st[1] += 1
+        if m.get('status') == 'Completed':
+            st[0] += 1
+    last_key = None
+    for m in matches:
+        key, zh, en = phase_of(m['group_or_stage'])
+        if key != last_key:
+            done, total = pstats[key]
+            if key == cur_key:
+                meta, cls = f'🔴 進行中　{done}/{total}', 'stage cur'
+            elif done >= total:
+                meta, cls = '✓ 已完成', 'stage'
+            elif done == 0:
+                meta, cls = '尚未開始', 'stage'
+            else:
+                meta, cls = f'{done}/{total}', 'stage'
+            parts.append(
+                f'<tr class="{cls}"><td colspan="8">'
+                f'<span class="stage-name">{esc(zh)}</span>'
+                f'<span class="stage-meta">{esc(meta)}</span></td></tr>')
+            last_key = key
+        parts.append(match_row_html(m, records, phase=f'{zh} {en}'))
     parts.append('</tbody></table></div></section>')
     parts.append(ad_unit())
 
@@ -516,19 +565,34 @@ def build_index(matches, teams, champs, metrics, external_sources=None, external
     parts.append('''<script>
 function filt(){var q=document.getElementById('q').value.toLowerCase();
 var ds=document.getElementById('datesel').value;
-document.querySelectorAll('#sched tbody tr').forEach(function(r){
-var okText=r.innerText.toLowerCase().indexOf(q)>-1;
-var okDate=!ds||r.getAttribute('data-twdate')===ds;
-r.style.display=(okText&&okDate)?'':'none';});}
+var rows=document.querySelectorAll('#sched tbody tr');
+rows.forEach(function(r){
+ if(r.classList.contains('stage'))return;            // stage headers handled below
+ var hay=(r.innerText+' '+(r.getAttribute('data-phase')||'')).toLowerCase();
+ var okText=hay.indexOf(q)>-1;
+ var okDate=!ds||r.getAttribute('data-twdate')===ds;
+ r.style.display=(okText&&okDate)?'':'none';});
+// show a stage header only when its group still has a visible match
+var hdr=null,vis=false;
+function flush(){if(hdr)hdr.style.display=vis?'':'none';}
+rows.forEach(function(r){
+ if(r.classList.contains('stage')){flush();hdr=r;vis=false;}
+ else if(r.style.display!=='none')vis=true;});
+flush();}
 function sortTime(th){
  var tb=document.querySelector('#sched tbody');
- var rows=[].slice.call(tb.querySelectorAll('tr'));
  var asc=th.getAttribute('data-asc')!=='1';
  th.setAttribute('data-asc',asc?'1':'0');
- rows.sort(function(a,b){
-  var x=a.cells[1].innerText.trim(), y=b.cells[1].innerText.trim();
-  return asc?(x>y?1:x<y?-1:0):(x<y?1:x>y?-1:0);});
- rows.forEach(function(r){tb.appendChild(r);});
+ // Sort by time WITHIN each stage so the section grouping is preserved.
+ var groups=[],cur=null;
+ [].slice.call(tb.children).forEach(function(r){
+  if(r.classList.contains('stage')){cur={h:r,rows:[]};groups.push(cur);}
+  else if(cur){cur.rows.push(r);}
+  else{groups.push({h:null,rows:[r]});}});
+ groups.forEach(function(g){g.rows.sort(function(a,b){
+  var x=a.cells[1].innerText.trim(),y=b.cells[1].innerText.trim();
+  return asc?(x>y?1:x<y?-1:0):(x<y?1:x>y?-1:0);});});
+ groups.forEach(function(g){if(g.h)tb.appendChild(g.h);g.rows.forEach(function(r){tb.appendChild(r);});});
  th.querySelector('.arr').textContent=asc?' ▲':' ▼';}
 </script>''')
     parts.append(foot())
@@ -819,6 +883,11 @@ th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--txt)}.
 table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 th{background:#0d1426;color:var(--mut);position:sticky;top:0}td.muted,.muted{color:var(--mut)}.team a{color:var(--txt)}.vs{color:var(--mut);text-align:center}
 tr.hit td{background:rgba(46,204,113,.30)}tr.hit:hover td{background:rgba(46,204,113,.42)}tr.hit td:first-child{box-shadow:inset 4px 0 0 #2ecc71}tr.hit .vs{color:#2ecc71;font-weight:800}
+#sched tr.stage td{background:#0b1322;border-top:2px solid var(--line);padding:11px 12px;white-space:normal}
+#sched tr.stage .stage-name{font-weight:800;font-size:15px;color:var(--txt);letter-spacing:.5px}
+#sched tr.stage .stage-meta{margin-left:12px;font-size:12px;color:var(--mut)}
+#sched tr.stage.cur td{background:linear-gradient(90deg,rgba(56,189,248,.20),rgba(56,189,248,.04));box-shadow:inset 5px 0 0 #38bdf8}
+#sched tr.stage.cur .stage-name{color:#7dd3fc}#sched tr.stage.cur .stage-meta{color:#38bdf8;font-weight:800}
 .btn{display:inline-block;background:var(--acc);color:#04240f;font-weight:700;padding:10px 16px;border-radius:8px;cursor:pointer;border:0}
 .match h1{font-size:26px}.match .vs{color:var(--mut);font-size:18px}
 .probs{margin:18px 0}.prob{display:grid;grid-template-columns:160px 1fr 56px;align-items:center;gap:10px;margin:8px 0}
