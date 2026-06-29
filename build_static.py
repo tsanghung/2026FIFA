@@ -184,6 +184,7 @@ def head(title, desc, canonical, og_extra=""):
 <header class="site-head">
   <a class="brand" href="{site.SITE_URL}/">⚽ {esc(site.SITE_TITLE)}</a>
   <nav><a href="{site.SITE_URL}/#schedule">賽程</a><a href="{site.SITE_URL}/#title">奪冠</a>
+  <a href="{site.SITE_URL}/#power">戰力評比</a>
   <a href="{site.SITE_URL}/#sources">來源</a>
   <a href="{site.SITE_URL}/#ratings">評級</a><a href="{site.SITE_URL}/monte.html">模擬器</a>
   <a href="{site.SITE_URL}/bets.html">投注實測</a>
@@ -433,6 +434,78 @@ def build_source_board(external_sources, external_consensus):
     return ''.join(parts)
 
 
+def build_power_ranking(matches, teams):
+    """戰力評比 of the teams in the CURRENT knockout round, ranked by model champion
+    probability + Elo + this tournament's record. Auto-advances R32→R16→… as rounds
+    complete (it always shows the earliest knockout phase that still has unplayed,
+    real-team fixtures). Returns '' before the knockout stage or once it's over."""
+    team_set = {t['name'] for t in teams}
+    elo = {t['name']: t['elo_rating'] for t in teams}
+    # Latest champion-probability snapshot for ALL teams.
+    champ = {}
+    try:
+        con = sqlite3.connect(DB_PATH); con.row_factory = sqlite3.Row
+        d = con.execute('SELECT MAX(snapshot_date) m FROM champion_predictions').fetchone()['m']
+        if d:
+            for r in con.execute('SELECT team, blended_ewma FROM champion_predictions '
+                                  'WHERE snapshot_date=?', (d,)):
+                champ[r['team']] = r['blended_ewma'] or 0
+        con.close()
+    except Exception:
+        pass
+    # Group fixtures by knockout phase, in bracket order.
+    by_key = {}
+    for m in matches:
+        by_key.setdefault(phase_of(m['group_or_stage'])[0], []).append(m)
+    cur = None
+    for k in ('r32', 'r16', 'qf', 'sf', 'tp', 'final'):
+        ms = by_key.get(k, [])
+        real = {t for m in ms for t in (m['home_team'], m['away_team']) if t in team_set}
+        if real and any(m.get('status') != 'Completed' for m in ms):
+            cur = (ms, real); break
+    if not cur:
+        return ''
+    ms, real = cur
+    zh = phase_of(ms[0]['group_or_stage'])[1]
+    # This tournament's record so far (all completed matches), for the live teams.
+    rec = {t: [0, 0, 0, 0, 0] for t in real}  # W, D, L, GF, GA
+    for m in matches:
+        if m.get('status') != 'Completed':
+            continue
+        hg, ag = m.get('home_goals'), m.get('away_goals')
+        if hg is None or ag is None:
+            continue
+        for team, gf, ga in ((m['home_team'], hg, ag), (m['away_team'], ag, hg)):
+            if team not in rec:
+                continue
+            r = rec[team]; r[3] += gf; r[4] += ga
+            r[0 if gf > ga else 1 if gf == ga else 2] += 1
+    ranked = sorted(real, key=lambda t: (-(champ.get(t, 0)), -elo.get(t, 0)))
+
+    def tier(p):
+        return 1 if p >= 0.09 else 2 if p >= 0.02 else 3 if p >= 0.005 else 4
+
+    tier_name = {1: '🥇 奪冠熱門', 2: '🥈 爭四強', 3: '🥉 黑馬', 4: '晉級即賺'}
+    out = [f'<section id="power"><h2>🔥 {esc(zh)}戰力評比</h2>',
+           '<p class="muted">依模型奪冠機率(融合賭盤／Opta／模型蒙地卡羅)、Elo 與本屆戰績排序;'
+           '隨賽事每日自動更新、滾動推進到下一輪。</p>',
+           '<div class="tablewrap"><table><thead><tr>'
+           '<th>#</th><th>隊伍</th><th>分級</th><th>Elo</th><th>奪冠%</th>'
+           '<th>本屆 勝-和-負</th><th>進-失</th></tr></thead><tbody>']
+    for i, t in enumerate(ranked, 1):
+        w, dd, l, gf, ga = rec[t]
+        p = champ.get(t, 0)
+        tn = tier(p)
+        out.append(
+            f'<tr class="pw{tn}"><td class="muted">{i}</td>'
+            f'<td class="team">{esc(get_team_display_name(t))}</td>'
+            f'<td class="muted">{tier_name[tn]}</td>'
+            f'<td>{elo.get(t, 0):.0f}</td><td><b>{p * 100:.1f}%</b></td>'
+            f'<td>{w}-{dd}-{l}</td><td>{gf}-{ga}</td></tr>')
+    out.append('</tbody></table></div></section>')
+    return ''.join(out)
+
+
 def build_index(matches, teams, champs, metrics, external_sources=None, external_consensus=None):
     external_sources = external_sources or []
     external_consensus = external_consensus or []
@@ -453,6 +526,7 @@ def build_index(matches, teams, champs, metrics, external_sources=None, external
                          f'<b>{c["blended_ewma"]*100:.1f}%</b></div>')
         parts.append('</div></section>')
 
+    parts.append(build_power_ranking(matches, teams))
     parts.append(build_source_board(external_sources, external_consensus))
 
     # Schedule
@@ -888,6 +962,10 @@ tr.hit td{background:rgba(46,204,113,.30)}tr.hit:hover td{background:rgba(46,204
 #sched tr.stage .stage-meta{margin-left:12px;font-size:12px;color:var(--mut)}
 #sched tr.stage.cur td{background:linear-gradient(90deg,rgba(56,189,248,.20),rgba(56,189,248,.04));box-shadow:inset 5px 0 0 #38bdf8}
 #sched tr.stage.cur .stage-name{color:#7dd3fc}#sched tr.stage.cur .stage-meta{color:#38bdf8;font-weight:800}
+#power tr.pw1 td:first-child{box-shadow:inset 4px 0 0 #f1c40f}#power tr.pw1 td:nth-child(5){color:#f1c40f;font-weight:800}
+#power tr.pw2 td:first-child{box-shadow:inset 4px 0 0 #cbd5e1}
+#power tr.pw3 td:first-child{box-shadow:inset 4px 0 0 #cd7f32}
+#power tr.pw4 td:first-child{box-shadow:inset 4px 0 0 var(--line)}
 .btn{display:inline-block;background:var(--acc);color:#04240f;font-weight:700;padding:10px 16px;border-radius:8px;cursor:pointer;border:0}
 .match h1{font-size:26px}.match .vs{color:var(--mut);font-size:18px}
 .probs{margin:18px 0}.prob{display:grid;grid-template-columns:160px 1fr 56px;align-items:center;gap:10px;margin:8px 0}
