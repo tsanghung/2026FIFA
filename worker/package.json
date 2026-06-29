@@ -1,0 +1,13 @@
+{
+  "name": "fifa2026-sync-cron",
+  "private": true,
+  "description": "Cloudflare Worker cron that punctually triggers the GitHub Actions data sync",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^3"
+  }
+}

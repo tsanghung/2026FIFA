@@ -2,13 +2,13 @@ name: 🏆 2026 FIFA Daily Data Sync
 
 on:
   schedule:
-    # 365Scores gives near-real-time scores; a frequent sync keeps the site fresh.
-    # Cloudflare Pages free tier allows ~500 builds/month, so run every 2 hours
-    # (~360/month) rather than hourly (~720) to stay comfortably under the cap.
-    - cron: '0 */2 * * *'  # every 2 hours: live scores + rebuild + deploy
-    # Keep the 07:00 UTC (15:00 Taiwan) schedule string too — the daily calibration
-    # step below is gated to it, so this guarantees one calibration run per day.
-    - cron: '0 7 * * *'    # 15:00 Taiwan: daily calibration trigger
+    # The frequent (every-2h) score sync is now triggered PUNCTUALLY by a Cloudflare
+    # Worker cron hitting workflow_dispatch (see worker/), because GitHub's own cron
+    # is best-effort and was lagging by hours. GitHub keeps just one daily schedule:
+    # the 07:00 UTC run that runs calibration AND acts as a safety net if the Worker
+    # ever stops. (Cloudflare Pages free tier ~500 builds/month; 2h cadence stays
+    # well under it.)
+    - cron: '0 7 * * *'    # 15:00 Taiwan: daily calibration + safety-net sync
   push:
     # Any push to main also refreshes data immediately. The sync's own commit is
     # pushed with GITHUB_TOKEN, which by design does NOT trigger another workflow
@@ -17,7 +17,12 @@ on:
     # because Cloudflare Pages treats those as "skip build" and was freezing the
     # live site by skipping every main deployment.
     branches: [main]
-  workflow_dispatch: # Allows manual execution from GitHub actions tab
+  workflow_dispatch: # Manual / external trigger (the Cloudflare Worker uses this).
+    inputs:
+      force_calibrate:
+        description: 'Also run the heavy daily calibration (default: no)'
+        type: boolean
+        default: false
 
 # Never let two syncs run at once (they both commit to main and would race).
 concurrency:
@@ -80,7 +85,7 @@ jobs:
         # they adopt the freshly calibrated params/seeds. Gated to the 07:00 UTC
         # trigger (15:00 Taiwan) and manual runs so it recalibrates once per day,
         # not on every sync. Non-fatal so a calibration hiccup never breaks the sync.
-        if: github.event.schedule == '0 7 * * *' || github.event_name == 'workflow_dispatch'
+        if: github.event.schedule == '0 7 * * *' || github.event.inputs.force_calibrate == 'true'
         continue-on-error: true
         run: |
           python backtest.py

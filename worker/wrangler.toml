@@ -1,0 +1,17 @@
+name = "fifa2026-sync-cron"
+main = "src/index.js"
+compatibility_date = "2026-06-29"
+
+# Your Cloudflare Account ID (not a secret; from the dashboard URL). Override here
+# if needed, or remove this line and `export CLOUDFLARE_ACCOUNT_ID=...` before deploy.
+account_id = "2ac67f1796e804e7513462db42a18303"
+
+# Punctual every-2-hours trigger (UTC). Cloudflare Cron Triggers fire on time,
+# unlike GitHub's best-effort schedule. Keep at 2h to stay under Cloudflare Pages'
+# free ~500 builds/month. To change cadence, edit this cron expression.
+[triggers]
+crons = ["0 */2 * * *"]
+
+# Secrets are NOT stored here — set them once with:
+#   wrangler secret put GH_PAT        (required)
+#   wrangler secret put TRIGGER_KEY   (optional, enables the manual test endpoint)
