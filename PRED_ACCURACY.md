@@ -1,6 +1,6 @@
 # 🎯 本屆世界盃「正式預測」即時準確度
 
-_更新:2026-06-29 10:00:23　已評估場次:73_
+_更新:2026-06-29 12:00:28　已評估場次:73_
 
 ## 總指標
 
@@ -16,17 +16,17 @@ _更新:2026-06-29 10:00:23　已評估場次:73_
 
 | # | 對戰 | 預測(主/和/客) | 預測比分 | 實際 | 1X2 | 比分 |
 |---|---|---|---|---|---|---|
-| 1 | Mexico vs South Africa | 68/17/15 | 3-0 | 2-0 | ✅ | — |
+| 1 | Mexico vs South Africa | 69/16/15 | 3-0 | 2-0 | ✅ | — |
 | 2 | South Korea vs Czechia | 42/30/28 | 2-1 | 2-1 | ✅ | ✅ |
-| 3 | Czechia vs South Africa | 43/30/27 | 2-1 | 1-1 | ❌ | — |
+| 3 | Czechia vs South Africa | 44/30/26 | 2-1 | 1-1 | ❌ | — |
 | 4 | Mexico vs South Korea | 53/26/21 | 2-0 | 1-0 | ✅ | — |
 | 5 | Czechia vs Mexico | 14/18/69 | 0-3 | 0-3 | ✅ | ✅ |
-| 6 | South Africa vs South Korea | 18/24/58 | 0-2 | 1-0 | ❌ | — |
-| 7 | Canada vs Bosnia-Herzegovina | 55/25/20 | 2-0 | 1-1 | ❌ | — |
+| 6 | South Africa vs South Korea | 18/24/59 | 0-2 | 1-0 | ❌ | — |
+| 7 | Canada vs Bosnia-Herzegovina | 56/24/20 | 2-0 | 1-1 | ❌ | — |
 | 8 | Qatar vs Switzerland | 14/14/73 | 0-5 | 1-1 | ❌ | — |
 | 9 | Switzerland vs Bosnia-Herzegovina | 66/18/16 | 3-0 | 4-1 | ✅ | — |
-| 10 | Canada vs Qatar | 63/21/17 | 2-0 | 6-0 | ✅ | — |
-| 11 | Switzerland vs Canada | 48/27/25 | 2-1 | 2-1 | ✅ | ✅ |
+| 10 | Canada vs Qatar | 63/20/16 | 2-0 | 6-0 | ✅ | — |
+| 11 | Switzerland vs Canada | 47/27/26 | 2-1 | 2-1 | ✅ | ✅ |
 | 12 | Bosnia-Herzegovina vs Qatar | 47/28/25 | 2-1 | 3-1 | ✅ | — |
 | 13 | Brazil vs Morocco | 37/29/33 | 2-1 | 1-1 | ❌ | — |
 | 14 | Haiti vs Scotland | 17/20/63 | 0-2 | 0-1 | ✅ | — |
@@ -88,21 +88,21 @@ _更新:2026-06-29 10:00:23　已評估場次:73_
 | 70 | Panama vs Croatia | 18/20/62 | 0-2 | 0-1 | ✅ | — |
 | 71 | Panama vs England | 12/15/72 | 0-3 | 0-2 | ✅ | — |
 | 72 | Croatia vs Ghana | 61/21/18 | 2-0 | 2-1 | ✅ | — |
-| 73 | South Africa vs Canada | 18/25/56 | 0-2 | 0-1 | ✅ | — |
+| 73 | South Africa vs Canada | 18/25/58 | 0-2 | 0-1 | ✅ | — |
 
 ## 逐場差異與原因
 
-- **#1 Mexico vs South Africa**：✅ 命中:模型賽前看好主勝（Mexico 68%，高信心），結果如預期。
+- **#1 Mexico vs South Africa**：✅ 命中:模型賽前看好主勝（Mexico 69%，高信心），結果如預期。
 - **#2 South Korea vs Czechia**：✅ 命中:模型賽前看好主勝（South Korea 42%，低信心），結果如預期。
-- **#3 Czechia vs South Africa**：❌ 模型看好Czechia贏，最後雙方言和；模型其實也給了和局 30%；合理變異:三方接近(主43/和30/客27),模型信心本就低。
+- **#3 Czechia vs South Africa**：❌ 模型看好Czechia贏，最後雙方言和；模型其實也給了和局 30%；合理變異:三方接近(主44/和30/客26),模型信心本就低。
 - **#4 Mexico vs South Korea**：✅ 命中:模型賽前看好主勝（Mexico 53%，中信心），結果如預期。
 - **#5 Czechia vs Mexico**：✅ 命中:模型賽前看好客勝（Mexico 69%，高信心），結果如預期。
-- **#6 South Africa vs South Korea**：❌ 模型看好South Korea（58%），最後由South Africa勝出。
-- **#7 Canada vs Bosnia-Herzegovina**：❌ 模型看好Canada贏，最後雙方言和；模型其實也給了和局 25%。
+- **#6 South Africa vs South Korea**：❌ 模型看好South Korea（59%），最後由South Africa勝出。
+- **#7 Canada vs Bosnia-Herzegovina**：❌ 模型看好Canada贏，最後雙方言和；模型其實也給了和局 24%。
 - **#8 Qatar vs Switzerland**：❌ 模型看好Switzerland贏，最後雙方言和；模型其實也給了和局 14%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
 - **#9 Switzerland vs Bosnia-Herzegovina**：✅ 命中:模型賽前看好主勝（Switzerland 66%，高信心），結果如預期。
 - **#10 Canada vs Qatar**：✅ 命中:模型賽前看好主勝（Canada 63%，高信心），結果如預期。
-- **#11 Switzerland vs Canada**：✅ 命中:模型賽前看好主勝（Switzerland 48%，中信心），結果如預期。
+- **#11 Switzerland vs Canada**：✅ 命中:模型賽前看好主勝（Switzerland 47%，中信心），結果如預期。
 - **#12 Bosnia-Herzegovina vs Qatar**：✅ 命中:模型賽前看好主勝（Bosnia-Herzegovina 47%，中信心），結果如預期。
 - **#13 Brazil vs Morocco**：❌ 模型看好Brazil贏，最後雙方言和；模型其實也給了和局 29%；合理變異:三方接近(主37/和29/客33),模型信心本就低；兩隊實力接近(Elo 僅差 24)。
 - **#14 Haiti vs Scotland**：✅ 命中:模型賽前看好客勝（Scotland 63%，高信心），結果如預期。
@@ -164,5 +164,5 @@ _更新:2026-06-29 10:00:23　已評估場次:73_
 - **#70 Panama vs Croatia**：✅ 命中:模型賽前看好客勝（Croatia 62%，高信心），結果如預期。
 - **#71 Panama vs England**：✅ 命中:模型賽前看好客勝（England 73%，高信心），結果如預期。
 - **#72 Croatia vs Ghana**：✅ 命中:模型賽前看好主勝（Croatia 61%，高信心），結果如預期。
-- **#73 South Africa vs Canada**：✅ 命中:模型賽前看好客勝（Canada 56%，中信心），結果如預期。
+- **#73 South Africa vs Canada**：✅ 命中:模型賽前看好客勝（Canada 58%，中信心），結果如預期。
 

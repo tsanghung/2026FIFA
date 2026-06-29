@@ -1,11 +1,11 @@
 {
   "n": 73,
-  "generated_at": "2026-06-29 10:00:23",
+  "generated_at": "2026-06-29 12:00:28",
   "accuracy": 0.6301369863013698,
-  "rps": 0.14798425427301093,
+  "rps": 0.1480972035457055,
   "rps_uniform": 0.23211567732115695,
-  "brier": 0.4901969918372048,
-  "logloss": 0.8521033919847201,
+  "brier": 0.49049006562687286,
+  "logloss": 0.85244614673267,
   "exact_score_acc": 0.0821917808219178,
   "gd_mae": 1.6164383561643836,
   "tg_mae": 1.5890410958904109,
@@ -18,17 +18,17 @@
     "40-50%": {
       "n": 17,
       "win_rate": 0.47058823529411764,
-      "avg_pred": 0.450405411177647
+      "avg_pred": 0.45050228994473557
     },
     "50-60%": {
       "n": 14,
       "win_rate": 0.5,
-      "avg_pred": 0.551476505362608
+      "avg_pred": 0.5538751436822947
     },
     "60-70%": {
       "n": 21,
       "win_rate": 0.8571428571428571,
-      "avg_pred": 0.641314346143731
+      "avg_pred": 0.6418856734510495
     },
     "70-80%": {
       "n": 17,
@@ -65,9 +65,9 @@
       "home": "Mexico",
       "away": "South Africa",
       "probs": [
-        0.681,
-        0.168,
-        0.151
+        0.686,
+        0.165,
+        0.149
       ],
       "pred_outcome": "home",
       "pred_score": "3-0",
@@ -75,7 +75,7 @@
       "actual_score": "2-0",
       "hit": true,
       "exact": false,
-      "reason": "✅ 命中:模型賽前看好主勝（Mexico 68%，高信心），結果如預期。"
+      "reason": "✅ 命中:模型賽前看好主勝（Mexico 69%，高信心），結果如預期。"
     },
     {
       "match_num": 2,
@@ -99,9 +99,9 @@
       "home": "Czechia",
       "away": "South Africa",
       "probs": [
-        0.43,
-        0.301,
-        0.269
+        0.441,
+        0.298,
+        0.261
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -109,7 +109,7 @@
       "actual_score": "1-1",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Czechia贏，最後雙方言和；模型其實也給了和局 30%；合理變異:三方接近(主43/和30/客27),模型信心本就低。"
+      "reason": "❌ 模型看好Czechia贏，最後雙方言和；模型其實也給了和局 30%；合理變異:三方接近(主44/和30/客26),模型信心本就低。"
     },
     {
       "match_num": 4,
@@ -135,7 +135,7 @@
       "probs": [
         0.135,
         0.177,
-        0.687
+        0.688
       ],
       "pred_outcome": "away",
       "pred_score": "0-3",
@@ -150,9 +150,9 @@
       "home": "South Africa",
       "away": "South Korea",
       "probs": [
-        0.18,
-        0.242,
-        0.578
+        0.176,
+        0.238,
+        0.586
       ],
       "pred_outcome": "away",
       "pred_score": "0-2",
@@ -160,16 +160,16 @@
       "actual_score": "1-0",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好South Korea（58%），最後由South Africa勝出。"
+      "reason": "❌ 模型看好South Korea（59%），最後由South Africa勝出。"
     },
     {
       "match_num": 7,
       "home": "Canada",
       "away": "Bosnia-Herzegovina",
       "probs": [
-        0.554,
-        0.247,
-        0.199
+        0.563,
+        0.242,
+        0.195
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -177,7 +177,7 @@
       "actual_score": "1-1",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Canada贏，最後雙方言和；模型其實也給了和局 25%。"
+      "reason": "❌ 模型看好Canada贏，最後雙方言和；模型其實也給了和局 24%。"
     },
     {
       "match_num": 8,
@@ -201,8 +201,8 @@
       "home": "Switzerland",
       "away": "Bosnia-Herzegovina",
       "probs": [
-        0.661,
-        0.183,
+        0.66,
+        0.184,
         0.156
       ],
       "pred_outcome": "home",
@@ -218,9 +218,9 @@
       "home": "Canada",
       "away": "Qatar",
       "probs": [
-        0.627,
-        0.206,
-        0.168
+        0.634,
+        0.201,
+        0.165
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -235,9 +235,9 @@
       "home": "Switzerland",
       "away": "Canada",
       "probs": [
-        0.48,
-        0.266,
-        0.254
+        0.47,
+        0.27,
+        0.26
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -245,7 +245,7 @@
       "actual_score": "2-1",
       "hit": true,
       "exact": true,
-      "reason": "✅ 命中:模型賽前看好主勝（Switzerland 48%，中信心），結果如預期。"
+      "reason": "✅ 命中:模型賽前看好主勝（Switzerland 47%，中信心），結果如預期。"
     },
     {
       "match_num": 12,
@@ -1289,9 +1289,9 @@
       "home": "South Africa",
       "away": "Canada",
       "probs": [
-        0.185,
-        0.254,
-        0.561
+        0.177,
+        0.246,
+        0.577
       ],
       "pred_outcome": "away",
       "pred_score": "0-2",
@@ -1299,7 +1299,7 @@
       "actual_score": "0-1",
       "hit": true,
       "exact": false,
-      "reason": "✅ 命中:模型賽前看好客勝（Canada 56%，中信心），結果如預期。"
+      "reason": "✅ 命中:模型賽前看好客勝（Canada 58%，中信心），結果如預期。"
     }
   ]
 }
