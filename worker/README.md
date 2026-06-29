@@ -10,7 +10,24 @@ Cloudflare Worker (cron, 每2h) ──POST──▶ GitHub workflow_dispatch
                                               └─▶ daily_sync.yml 跑完整同步 + Deploy Hook 部署
 ```
 
-## 一次性部署步驟
+## 部署方式 A — 用 GitHub Actions(推薦,免本機裝任何東西)⭐
+
+deploy 已自動化在 `.github/workflows/deploy-worker.yml`,在 GitHub 的 runner 上跑
+`wrangler deploy`(runner 連得到 Cloudflare)。你只要加兩個 repo secret,再按一次執行:
+
+1. **建 Cloudflare API Token**:Cloudflare → My Profile → API Tokens → Create Token →
+   權限 **Account › Workers Scripts › Edit**(account 設你的帳號)。複製 token。
+2. **建 GitHub Fine-grained PAT**(Worker 用來觸發同步):repo `tsanghung/2026FIFA`、
+   Permissions → **Actions: Read and write**。複製 token。
+3. GitHub → repo **Settings → Secrets and variables → Actions** 新增兩個 secret:
+   - `CLOUDFLARE_API_TOKEN` = 步驟 1 的 token
+   - `WORKER_GH_PAT` = 步驟 2 的 PAT
+4. GitHub → **Actions → 🚀 Deploy sync-cron Worker → Run workflow**。
+   跑完即部署完成;之後只要 `worker/` 有變更會自動重新部署。
+
+---
+
+## 部署方式 B — 本機 wrangler(手動)
 
 > 需要:Node.js（本機已有即可）。所有指令在 `worker/` 目錄下執行。
 

@@ -1,0 +1,47 @@
+name: 🚀 Deploy sync-cron Worker
+
+# Deploys the Cloudflare Worker in worker/ (the punctual cron that triggers the
+# data sync). Runs on GitHub's runners, which CAN reach the Cloudflare API.
+#
+# One-time setup — add two repo secrets (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN  Cloudflare token with "Workers Scripts: Edit" (+ account read)
+#   WORKER_GH_PAT         GitHub fine-grained PAT (repo 2026FIFA, Actions: Read/Write)
+#                         — this is the token the Worker uses to trigger the sync.
+# Then run this workflow once (Actions → Deploy sync-cron Worker → Run workflow).
+# After that it auto-redeploys whenever worker/ changes.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['worker/**']
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install wrangler
+        run: npm install --no-save wrangler@3
+
+      - name: Set Worker secret (GH_PAT) + deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          WORKER_GH_PAT: ${{ secrets.WORKER_GH_PAT }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$WORKER_GH_PAT" ]; then
+            echo "::error::Add the CLOUDFLARE_API_TOKEN and WORKER_GH_PAT repo secrets first (see this file's header)."
+            exit 1
+          fi
+          printf '%s' "$WORKER_GH_PAT" | npx wrangler secret put GH_PAT
+          npx wrangler deploy
