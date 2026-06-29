@@ -14,6 +14,11 @@ th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--txt)}.
 table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 th{background:#0d1426;color:var(--mut);position:sticky;top:0}td.muted,.muted{color:var(--mut)}.team a{color:var(--txt)}.vs{color:var(--mut);text-align:center}
 tr.hit td{background:rgba(46,204,113,.30)}tr.hit:hover td{background:rgba(46,204,113,.42)}tr.hit td:first-child{box-shadow:inset 4px 0 0 #2ecc71}tr.hit .vs{color:#2ecc71;font-weight:800}
+#sched tr.stage td{background:#0b1322;border-top:2px solid var(--line);padding:11px 12px;white-space:normal}
+#sched tr.stage .stage-name{font-weight:800;font-size:15px;color:var(--txt);letter-spacing:.5px}
+#sched tr.stage .stage-meta{margin-left:12px;font-size:12px;color:var(--mut)}
+#sched tr.stage.cur td{background:linear-gradient(90deg,rgba(56,189,248,.20),rgba(56,189,248,.04));box-shadow:inset 5px 0 0 #38bdf8}
+#sched tr.stage.cur .stage-name{color:#7dd3fc}#sched tr.stage.cur .stage-meta{color:#38bdf8;font-weight:800}
 .btn{display:inline-block;background:var(--acc);color:#04240f;font-weight:700;padding:10px 16px;border-radius:8px;cursor:pointer;border:0}
 .match h1{font-size:26px}.match .vs{color:var(--mut);font-size:18px}
 .probs{margin:18px 0}.prob{display:grid;grid-template-columns:160px 1fr 56px;align-items:center;gap:10px;margin:8px 0}
