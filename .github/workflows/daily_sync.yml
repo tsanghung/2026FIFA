@@ -136,7 +136,19 @@ jobs:
             # ephemeral runner (no-op on runs where calibration didn't execute).
             git add calibrated_params.json backtest_metrics.json team_ratings_seed.json 2>/dev/null || true
             git commit -m "chore: daily data, odds sync & static site rebuild"
-            git push origin HEAD:${{ github.ref }}
+            # `main` may advance during the run (a PR merge, the Cloudflare Worker
+            # firing, an overlapping trigger), which made a plain push fail as
+            # non-fast-forward. Rebase our generated-file commit onto the latest
+            # main (prefer our freshly-computed files on any clash) and retry.
+            pushed=0
+            for i in 1 2 3 4 5; do
+              if git push origin HEAD:main; then pushed=1; break; fi
+              echo "push attempt $i rejected — rebasing onto latest main…"
+              git fetch -q origin main
+              git rebase -X ours origin/main || git rebase --abort || true
+              sleep $((i * 2))
+            done
+            if [ "$pushed" != 1 ]; then echo "::error::could not push after retries"; exit 1; fi
             # Cloudflare's Git auto-deploy is unreliable for this project, so trigger
             # a Pages deployment explicitly via a Deploy Hook — but only when there
             # were real changes, to stay under the free build cap. No-op until the
