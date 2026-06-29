@@ -414,6 +414,25 @@ for _k, _label in ((1, '單場'), (2, '兩關'), (3, '三關'), (4, '過關')):
             'legs': [dict(leg) for _, leg in _combo],
         })
 
+# 2026-06-30（台灣）R32「和局(不讓分)」投注:荷蘭-摩洛哥、德國-巴拉圭、巴西-日本 全押和局。
+# 下注日 2026-06-29。三關 ×1(NTD 30)+ 兩關 ×3(每注 NTD 30 = 90)= NTD 120。
+_DRAWS_0630 = [
+    ('荷蘭', {'match_num': 76, 'pick_side': 'draw', 'odds': 2.70}),  # 摩洛哥 @ 荷蘭
+    ('德國', {'match_num': 75, 'pick_side': 'draw', 'odds': 3.65}),  # 巴拉圭 @ 德國
+    ('巴西', {'match_num': 74, 'pick_side': 'draw', 'odds': 3.35}),  # 日本 @ 巴西
+]
+SEED_BETS.append({  # 三關:3 場全和局
+    'name': '三關-和局 荷+德+巴西 (0630)',
+    'stake': 30, 'placed_date': '2026-06-29', 'bet_type': 'parlay',
+    'legs': [dict(leg) for _, leg in _DRAWS_0630],
+})
+for _combo in _it.combinations(_DRAWS_0630, 2):  # 兩關:任 2 場和局,共 3 注
+    SEED_BETS.append({
+        'name': f"兩關-和局 {'+'.join(n for n, _ in _combo)} (0630)",
+        'stake': 30, 'placed_date': '2026-06-29', 'bet_type': 'parlay',
+        'legs': [dict(leg) for _, leg in _combo],
+    })
+
 
 def seed(conn):
     for b in SEED_BETS:
