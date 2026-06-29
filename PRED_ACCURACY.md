@@ -1,6 +1,6 @@
 # 🎯 本屆世界盃「正式預測」即時準確度
 
-_更新:2026-06-29 20:00:25　已評估場次:74_
+_更新:2026-06-29 22:00:24　已評估場次:74_
 
 ## 總指標
 
@@ -42,7 +42,7 @@ _更新:2026-06-29 20:00:25　已評估場次:74_
 | 24 | Paraguay vs Australia | 25/30/45 | 0-1 | 0-0 | ❌ | — |
 | 25 | Germany vs Curaçao | 74/13/14 | 6-0 | 7-1 | ✅ | — |
 | 26 | Ivory Coast vs Ecuador | 28/29/44 | 1-2 | 1-0 | ❌ | — |
-| 27 | Germany vs Ivory Coast | 53/26/22 | 2-1 | 2-1 | ✅ | ✅ |
+| 27 | Germany vs Ivory Coast | 52/26/22 | 2-1 | 2-1 | ✅ | ✅ |
 | 28 | Ecuador vs Curaçao | 74/14/13 | 4-0 | 0-0 | ❌ | — |
 | 29 | Curaçao vs Ivory Coast | 12/14/74 | 0-4 | 0-2 | ✅ | — |
 | 30 | Ecuador vs Germany | 18/24/58 | 0-2 | 2-1 | ❌ | — |
@@ -119,7 +119,7 @@ _更新:2026-06-29 20:00:25　已評估場次:74_
 - **#24 Paraguay vs Australia**：❌ 模型看好Australia贏，最後雙方言和；模型其實也給了和局 30%；合理變異:三方接近(主25/和30/客45),模型信心本就低；兩隊實力接近(Elo 僅差 24)。
 - **#25 Germany vs Curaçao**：✅ 命中:模型賽前看好主勝（Germany 74%，高信心），結果如預期。
 - **#26 Ivory Coast vs Ecuador**：❌ 模型看好Ecuador（43%），最後由Ivory Coast勝出；合理變異:三方接近(主28/和29/客43),模型信心本就低；兩隊實力接近(Elo 僅差 40)。
-- **#27 Germany vs Ivory Coast**：✅ 命中:模型賽前看好主勝（Germany 53%，中信心），結果如預期。
+- **#27 Germany vs Ivory Coast**：✅ 命中:模型賽前看好主勝（Germany 52%，中信心），結果如預期。
 - **#28 Ecuador vs Curaçao**：❌ 模型看好Ecuador贏，最後雙方言和；模型其實也給了和局 14%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
 - **#29 Curaçao vs Ivory Coast**：✅ 命中:模型賽前看好客勝（Ivory Coast 74%，高信心），結果如預期。
 - **#30 Ecuador vs Germany**：❌ 模型看好Germany（58%），最後由Ecuador勝出。
