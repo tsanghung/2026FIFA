@@ -413,23 +413,6 @@ def build_source_board(external_sources, external_consensus):
             '</article>'
         )
     parts.append('</div>')
-
-    if external_consensus:
-        parts.append('<h3>跨模型奪冠共識 Top 12</h3>')
-        parts.append('<div class="tablewrap"><table><thead><tr>'
-                     '<th>#</th><th>隊伍</th><th>平均奪冠率</th><th>來源數</th><th>來源</th>'
-                     '</tr></thead><tbody>')
-        for idx, row in enumerate(external_consensus, 1):
-            parts.append(
-                '<tr>'
-                f'<td class="muted">{idx}</td>'
-                f'<td>{esc(get_team_display_name(row.get("team", "")))}</td>'
-                f'<td><b>{float(row.get("avg_prob") or 0) * 100:.1f}%</b></td>'
-                f'<td>{esc(row.get("source_count", 0))}</td>'
-                f'<td class="muted">{esc(row.get("sources", ""))}</td>'
-                '</tr>'
-            )
-        parts.append('</tbody></table></div>')
     parts.append('</section>')
     return ''.join(parts)
 
