@@ -433,6 +433,23 @@ for _combo in _it.combinations(_DRAWS_0630, 2):  # 兩關:任 2 場和局,共 3 
         'legs': [dict(leg) for _, leg in _combo],
     })
 
+# 2026-07-01（台灣）R32 系統投注:瑞典(客,逆模型冷門)、墨西哥(主)、象牙海岸-挪威 和局。
+# 下注日 2026-06-30。一關 ×3(每注 50)+ 兩關 ×3(每注 40)+ 三關 ×1(10)= NTD 280。
+_PICKS_0701 = [
+    ('瑞典', {'match_num': 78, 'pick_side': 'away', 'odds': 6.50}),   # 瑞典 @ 法國
+    ('墨西哥', {'match_num': 79, 'pick_side': 'home', 'odds': 1.70}),  # 厄瓜多 @ 墨西哥
+    ('和局', {'match_num': 77, 'pick_side': 'draw', 'odds': 3.30}),    # 挪威 @ 象牙海岸
+]
+_STAKE_0701 = {1: 50, 2: 40, 3: 10}
+for _k, _label in ((1, '一關'), (2, '兩關'), (3, '三關')):
+    for _combo in _it.combinations(_PICKS_0701, _k):
+        SEED_BETS.append({
+            'name': f"{_label}-{'+'.join(n for n, _ in _combo)} (0701)",
+            'stake': _STAKE_0701[_k], 'placed_date': '2026-06-30',
+            'bet_type': 'single' if _k == 1 else 'parlay',
+            'legs': [dict(leg) for _, leg in _combo],
+        })
+
 
 def seed(conn):
     for b in SEED_BETS:
