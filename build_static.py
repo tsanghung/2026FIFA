@@ -188,7 +188,8 @@ def head(title, desc, canonical, og_extra=""):
   <a href="{site.SITE_URL}/#sources">來源</a>
   <a href="{site.SITE_URL}/#ratings">評級</a><a href="{site.SITE_URL}/monte.html">模擬器</a>
   <a href="{site.SITE_URL}/bets.html">投注實測</a>
-  <a href="{site.SITE_URL}/#accuracy">準確度</a><a href="{site.SITE_URL}/#live-accuracy">即時準確度</a></nav>
+  <a href="{site.SITE_URL}/#accuracy">準確度</a><a href="{site.SITE_URL}/#live-accuracy">即時準確度</a>
+  <a href="{site.SITE_URL}/about.html">關於</a></nav>
 </header>
 <main>'''
 
@@ -213,6 +214,7 @@ def foot():
 <footer class="site-foot">
   <p>資料每日更新・模型經 ~5 萬場歷史回測校準。本站僅提供研究與數據分析，不提供任何投注服務；賠率僅作價值研究參考，並標示 API、手動、模擬或未標示來源。</p>
   <p>進階互動工具（蒙地卡羅模擬器等）：<a href="{site.STREAMLIT_APP_URL}" rel="nofollow">開啟 App</a>
+   ｜ <a href="{site.SITE_URL}/about.html">關於・方法論</a>
    ｜ <a href="{site.SITE_URL}/privacy.html">隱私權政策</a>
    ｜ © {yr} {esc(site.SITE_TITLE)}</p>
 </footer>
@@ -496,9 +498,11 @@ def build_index(matches, teams, champs, metrics, external_sources=None, external
     parts = [head(site.SITE_TITLE, site.SITE_DESC, canonical)]
     parts.append(f'''<section class="hero">
 <h1>2026 FIFA 世界盃 AI 預測中心</h1>
-<p>全 104 場賽事的勝負機率、賠率對比與最佳投注價值（EV）。集成 Elo／Pi-Rating／Berrar／Dixon-Coles
-模型，並以約 5 萬場歷史國際賽回測校準。</p>
-<p><a class="btn" href="{site.SITE_URL}/bets.html">🎟️ 投注實測：照預測下注 vs 真實結果 →</a></p></section>''')
+<p>全 104 場賽事的勝負機率、預測比分、賠率對比與價值（EV）研究。預測來自 Elo／Pi-Rating／Berrar／
+Dixon-Coles 的<strong>集成模型</strong>＋蒙地卡羅模擬，並以約 5 萬場歷史國際賽回測校準、<strong>每日隨賽果滾動更新</strong>。
+每場都附賽前分析與賽後檢討；本站僅供研究，不提供投注服務。</p>
+<p><a class="btn" href="{site.SITE_URL}/bets.html">🎟️ 投注實測：照預測下注 vs 真實結果 →</a>
+　<a href="{site.SITE_URL}/about.html">📖 預測方法論與資料來源</a></p></section>''')
     parts.append(ad_unit())
 
     # Champion race
@@ -750,6 +754,121 @@ document.getElementById('run').onclick=run; run();
     return ''.join(p)
 
 
+def build_about():
+    canonical = f"{site.SITE_URL}/about.html"
+    title = f"關於本站・預測方法論 | {site.SITE_TITLE}"
+    desc = ("本站 2026 世界盃 AI 預測的方法論:Elo／Pi-rating／Berrar／Dixon-Coles 集成模型、"
+            "蒙地卡羅模擬、每日校準回測、資料來源與免責聲明。")
+    email = esc(getattr(site, 'CONTACT_EMAIL', '') or '')
+    p = [head(title, desc, canonical)]
+    p.append(f'''<article class="prose">
+<h1>關於本站與預測方法論</h1>
+<p>本站是一個聚焦 2026 FIFA 世界盃的<strong>資料分析與 AI 預測研究網站</strong>。我們用統計與機器學習模型，
+對全 104 場賽事做勝負機率、比分推估與市場賠率的價值（期望值）研究，並在每場賽後檢討模型與實際結果的落差。
+本站<strong>純為研究與教育用途，不提供任何投注服務</strong>。</p>
+
+<h2>預測模型如何運作</h2>
+<p>每場預測並非單一公式，而是多個成熟足球量化模型的<strong>集成（ensemble）</strong>：</p>
+<ul>
+<li><strong>動態 Elo（含淨勝分 MOV 調整）</strong>：依歷史與本屆賽果即時更新各隊實力評級。</li>
+<li><strong>Pi-rating</strong>：分別建模球隊的主、客場攻防傾向。</li>
+<li><strong>Berrar 攻防評級</strong>：以進失球率刻畫攻擊與防守強度。</li>
+<li><strong>Dixon-Coles／卜瓦松進球模型</strong>：估算雙方進球期望值，導出精確比分分佈與 1X2 機率。</li>
+<li><strong>蒙地卡羅模擬</strong>：對整屆賽程跑數萬次隨機模擬，估算各隊晉級與奪冠機率。</li>
+</ul>
+<p>各模型的權重不是憑感覺設定，而是<strong>經過歷史回測最佳化</strong>而來。</p>
+
+<h2>每日校準與滾動更新</h2>
+<p>模型不是設定一次就不動。系統每天會：(1) 對 2016 年以來約 <strong>1 萬場國際賽</strong>以 RPS（Ranked
+Probability Score）座標下降<strong>重新校準參數</strong>並更新資料驅動的 Elo 種子；(2) 每場賽後把實際
+<strong>xG（預期進球）</strong>以收縮方式融合進球隊評級，再重算所有未來場次的預測。換言之，模型會
+<strong>隨賽事進行持續自我修正</strong>，越到後期理論上越準。</p>
+
+<h2>資料來源</h2>
+<ul>
+<li>賽程與真實比分：維基百科 2026 FIFA World Cup 官方頁</li>
+<li>進階數據（xG／控球／射門）：365Scores</li>
+<li>市場賠率（多家博彩平台對比）：The Odds API</li>
+<li>歷史國際賽結果（回測校準）：martj42 international_results 公開資料集</li>
+<li>賽前外部模型對照：Opta Analyst、Goldman Sachs、Zeileis/Groll 學術預測等</li>
+</ul>
+
+<h2>準確度與透明度</h2>
+<p>我們<strong>公開模型表現</strong>而非只報喜：首頁的「即時準確度」即時計算本屆已完賽場次的命中率與 RPS
+（RPS 越低越好，低於隨機基準代表模型有效），「投注實測」則逐場比對「賽前模型怎麼說」與「球真的怎麼踢」，
+並分析每次落差的原因。</p>
+
+<h2>免責聲明</h2>
+<p>本站所有預測、機率與賠率資訊僅供<strong>研究與教育參考</strong>，<strong>不構成投注建議，也不提供任何賭博管道</strong>。
+運動賽事結果本質上具高度不確定性，任何模型都無法保證準確。請遵守你所在地區的法律，並理性、節制。</p>
+
+<h2>聯絡我們</h2>
+<p>對方法論或資料有任何疑問、指正，歡迎來信：{f'<a href="mailto:{email}">{email}</a>' if email else '（見頁尾）'}。</p>
+</article>''')
+    p.append(foot())
+    return ''.join(p)
+
+
+def match_preview(m, stats):
+    """Original, per-match analysis prose generated from the data. Each page reads
+    differently (favourite margin, form, stage, draw risk), turning a number-only
+    page into substantive content."""
+    a = get_team_display_name(m['away_team'])
+    h = get_team_display_name(m['home_team'])
+    ph = m.get('pred_home_win_prob') or 0
+    pdr = m.get('pred_draw_prob') or 0
+    pa = m.get('pred_away_win_prob') or 0
+    stage = m.get('group_or_stage') or ''
+    is_ko = not str(stage).startswith('Group')
+    stage_zh = phase_of(stage)[1] if is_ko else f'小組賽（{esc(stage)}）'
+    ranked = sorted([('home', h, ph), ('away', a, pa), ('draw', '和局', pdr)],
+                    key=lambda x: -x[2])
+    top, second = ranked[0], ranked[1]
+    margin = top[2] - second[2]
+
+    if top[0] == 'draw':
+        fav = '雙方勢均力敵，模型認為和局是最可能的結果'
+    else:
+        conf = '高' if top[2] >= 0.6 else ('中等' if top[2] >= 0.45 else '偏低')
+        fav = f'模型較看好 <b>{esc(top[1])}</b>（勝率 {top[2] * 100:.0f}%，信心{conf}）'
+
+    paras = []
+    p1 = (f'這是 2026 FIFA 世界盃{stage_zh}的對決：{esc(a)} 對 {esc(h)}。{fav}。'
+          f'三方勝率為 客勝 {pa * 100:.0f}%、和局 {pdr * 100:.0f}%、主勝 {ph * 100:.0f}%，'
+          f'模型推估最可能比分 {esc(flip_score(m.get("pred_score")) or "—")}（客-主）。')
+    if is_ko:
+        p1 += '淘汰賽一戰定生死，90 分鐘戰平將進入延長賽與 PK，變數比小組賽更大。'
+    paras.append(p1)
+
+    fm = {'W': '勝', 'D': '和', 'L': '負'}
+
+    def form_line(name, s):
+        if not s or s['p'] == 0:
+            return f'{esc(name)} 本屆尚無已完成的比賽數據。'
+        recent = ''.join(fm.get(x, '') for x in s.get('form', [])) or '—'
+        gd = s['gd']
+        return (f'{esc(name)} 本屆 {s["p"]} 戰 {s["w"]} 勝 {s["d"]} 和 {s["l"]} 負、'
+                f'進 {s["gf"]} 失 {s["ga"]}（淨{"+" if gd >= 0 else ""}{gd}），近況 {recent}。')
+
+    sa, sh = (stats or {}).get(m['away_team']), (stats or {}).get(m['home_team'])
+    if sa or sh:
+        paras.append('近況方面，' + form_line(a, sa) + form_line(h, sh))
+
+    if top[0] == 'draw' or margin < 0.12:
+        read = '三方機率接近，屬於難分高下的場次，任何結果都不令人意外，預測風險偏高。'
+    elif top[2] >= 0.6:
+        read = f'模型對 {esc(top[1])} 信心較高，但足球單場變異大，冷門仍有可能。'
+    else:
+        read = f'模型小幅傾向 {esc(top[1])}，領先幅度不大，和局與爆冷都需留意。'
+    if pdr >= 0.28:
+        read += f'尤其和局機率達 {pdr * 100:.0f}%，不可忽視。'
+    paras.append('模型解讀：' + read
+                 + '本頁數據每日隨賽事自動更新並重新校準；預測僅供研究參考，非投注建議。')
+
+    return ('<h2>賽前分析</h2><div class="preview">'
+            + ''.join(f'<p>{x}</p>' for x in paras) + '</div>')
+
+
 def build_match(m, matches, live_details=None):
     a = get_team_display_name(m['away_team'])
     h = get_team_display_name(m['home_team'])
@@ -790,8 +909,10 @@ def build_match(m, matches, live_details=None):
     pscore = flip_score(m['pred_score'])
     p.append(f'<p class="lead">模型預測最可能結果：<b>{esc(pred)}</b>，預測比分（{esc(a)}-{esc(h)}）<b>{esc(pscore or "—")}</b>。</p>')
 
+    stats = compute_team_stats(matches)
+    p.append(match_preview(m, stats))
     # Standings-style stats for both teams (P/W/D/L/GF/GA/GD/Pts + last-5 form).
-    p.append(team_stats_table(m, compute_team_stats(matches)))
+    p.append(team_stats_table(m, stats))
 
     # Odds table (research / value reference only — no betting channel)
     if m['odds_home']:
@@ -1059,6 +1180,7 @@ def main():
               build_match(m, matches, live_details))
     write(os.path.join(OUT, 'monte.html'), build_monte(sim_params()))
     write(os.path.join(OUT, 'bets.html'), build_bets(load_bets()))
+    write(os.path.join(OUT, 'about.html'), build_about())
     write(os.path.join(OUT, 'privacy.html'), build_privacy())
     write(os.path.join(OUT, 'assets', 'style.css'), CSS)
 
@@ -1069,8 +1191,8 @@ def main():
 
     # SEO: sitemap + robots
     now = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-    urls = ([f"{site.SITE_URL}/", f"{site.SITE_URL}/monte.html", f"{site.SITE_URL}/bets.html",
-             f"{site.SITE_URL}/privacy.html"]
+    urls = ([f"{site.SITE_URL}/", f"{site.SITE_URL}/about.html", f"{site.SITE_URL}/monte.html",
+             f"{site.SITE_URL}/bets.html", f"{site.SITE_URL}/privacy.html"]
             + [f"{site.SITE_URL}/match/{m['match_num']}.html" for m in matches])
     sm = ['<?xml version="1.0" encoding="UTF-8"?>',
           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
