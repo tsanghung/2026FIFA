@@ -83,7 +83,8 @@ def load_data():
     have = {r[1] for r in cur.execute('PRAGMA table_info(matches)')}
     XG_COLS = ('home_xg', 'away_xg', 'home_possession', 'away_possession',
                'home_shots', 'away_shots')
-    extra = ''.join(f', {c}' for c in XG_COLS if c in have)
+    OPTIONAL_COLS = XG_COLS + ('score_source',)
+    extra = ''.join(f', {c}' for c in OPTIONAL_COLS if c in have)
     matches = [dict(r) for r in cur.execute(f'''
         SELECT match_num, group_or_stage, date, time, home_team, away_team,
                pred_home_win_prob, pred_draw_prob, pred_away_win_prob, pred_score,
@@ -92,7 +93,7 @@ def load_data():
                odds_source, odds_last_update, odds_bookmaker_keys{extra}
         FROM matches ORDER BY match_num ASC''')]
     for mm in matches:
-        for c in XG_COLS:
+        for c in OPTIONAL_COLS:
             mm.setdefault(c, None)
     teams = [dict(r) for r in cur.execute(
         'SELECT name, elo_rating, fifa_rank FROM teams ORDER BY elo_rating DESC')]
@@ -936,6 +937,8 @@ def build_match(m, matches, live_details=None):
     if m.get('status') == 'Completed' and flip_score(m['score']):
         score_disp = flip_score(m['score'])   # 客-主 to match the "客 vs 主" header
         p.append(f'<h2>賽果 vs 預測</h2><p class="lead">實際比分（{esc(a)}-{esc(h)}）：<b>{esc(score_disp)}</b></p>')
+        if m.get('score_source') == '365scores':
+            p.append('<p class="muted">終場比分已由 365Scores 交叉驗證。</p>')
         # Post-match advanced stats from 365Scores (away-home order to match header).
         hx, ax = m.get('home_xg'), m.get('away_xg')
         if hx is not None and ax is not None:
