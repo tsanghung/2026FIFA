@@ -450,6 +450,16 @@ for _k, _label in ((1, '一關'), (2, '兩關'), (3, '三關')):
             'legs': [dict(leg) for _, leg in _combo],
         })
 
+# 2026-07-02（台灣）R32 兩關:美國、英格蘭 皆為主場強熱門(下注日 2026-07-01)。
+SEED_BETS.append({
+    'name': '兩關-美國+英格蘭 (0702)',
+    'stake': 100, 'placed_date': '2026-07-01', 'bet_type': 'parlay',
+    'legs': [
+        {'match_num': 82, 'pick_side': 'home', 'odds': 1.17},  # 波赫 @ 美國
+        {'match_num': 80, 'pick_side': 'home', 'odds': 1.13},  # 民主剛果 @ 英格蘭
+    ],
+})
+
 
 def seed(conn):
     for b in SEED_BETS:
