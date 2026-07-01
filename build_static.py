@@ -48,9 +48,17 @@ def pct(x):
 def flip_score(s):
     """DB stores scores as 'home-away'; the tables/pages list teams as 客(away) then
     主(home), so flip to 'away-home' for display. Returns None for non-scores
-    (e.g. 'Match 31', '', 'VS') so the caller can show a placeholder."""
-    m = re.match(r'^\s*(\d+)\s*[–\-−]\s*(\d+)\s*$', str(s or ''))
-    return f"{m.group(2)}-{m.group(1)}" if m else None
+    (e.g. 'Match 31', '', 'VS') so the caller can show a placeholder.
+
+    Knockout fixtures that go to extra time / penalties carry a trailing
+    annotation scraped verbatim from Wikipedia (e.g. '1–1 (a.e.t.)',
+    '2–2 (4–2 p)') — match just the leading 'N-N' and keep any such suffix
+    as-is so those results still render instead of falling back to a bare 'VS'."""
+    m = re.match(r'^\s*(\d+)\s*[–\-−]\s*(\d+)\s*(.*)$', str(s or ''))
+    if not m:
+        return None
+    suffix = f' {m.group(3).strip()}' if m.group(3).strip() else ''
+    return f"{m.group(2)}-{m.group(1)}{suffix}"
 
 
 def odds_source_label(row):
