@@ -1,6 +1,6 @@
 # 🎯 本屆世界盃「正式預測」即時準確度
 
-_更新:2026-07-02 18:00:28　已評估場次:82_
+_更新:2026-07-02 20:00:26　已評估場次:82_
 
 ## 總指標
 
@@ -71,8 +71,8 @@ _更新:2026-07-02 18:00:28　已評估場次:82_
 | 53 | Norway vs France | 21/24/55 | 1-2 | 1-4 | ✅ | — |
 | 54 | Senegal vs Iraq | 63/20/16 | 2-0 | 5-0 | ✅ | — |
 | 55 | Argentina vs Algeria | 65/19/16 | 2-0 | 3-0 | ✅ | — |
-| 56 | Austria vs Jordan | 64/20/16 | 2-0 | 3-1 | ✅ | — |
-| 57 | Argentina vs Austria | 60/22/19 | 2-0 | 2-0 | ✅ | ✅ |
+| 56 | Austria vs Jordan | 64/20/17 | 2-0 | 3-1 | ✅ | — |
+| 57 | Argentina vs Austria | 60/21/19 | 2-0 | 2-0 | ✅ | ✅ |
 | 58 | Jordan vs Algeria | 20/23/58 | 0-2 | 1-2 | ✅ | — |
 | 59 | Algeria vs Austria | 25/29/46 | 1-2 | 3-3 | ❌ | — |
 | 60 | Jordan vs Argentina | 11/12/78 | 0-7 | 1-3 | ✅ | — |
@@ -156,8 +156,8 @@ _更新:2026-07-02 18:00:28　已評估場次:82_
 - **#53 Norway vs France**：✅ 命中:模型賽前看好客勝（France 55%，中信心），結果如預期。
 - **#54 Senegal vs Iraq**：✅ 命中:模型賽前看好主勝（Senegal 63%，高信心），結果如預期。
 - **#55 Argentina vs Algeria**：✅ 命中:模型賽前看好主勝（Argentina 65%，高信心），結果如預期。
-- **#56 Austria vs Jordan**：✅ 命中:模型賽前看好主勝（Austria 64%，高信心），結果如預期。
-- **#57 Argentina vs Austria**：✅ 命中:模型賽前看好主勝（Argentina 60%，中信心），結果如預期。
+- **#56 Austria vs Jordan**：✅ 命中:模型賽前看好主勝（Austria 63%，高信心），結果如預期。
+- **#57 Argentina vs Austria**：✅ 命中:模型賽前看好主勝（Argentina 60%，高信心），結果如預期。
 - **#58 Jordan vs Algeria**：✅ 命中:模型賽前看好客勝（Algeria 58%，中信心），結果如預期。
 - **#59 Algeria vs Austria**：❌ 模型看好Austria贏，最後雙方言和；模型其實也給了和局 29%；兩隊實力接近(Elo 僅差 19)。
 - **#60 Jordan vs Argentina**：✅ 命中:模型賽前看好客勝（Argentina 78%，高信心），結果如預期。
