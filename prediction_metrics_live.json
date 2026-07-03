@@ -1,34 +1,34 @@
 {
-  "n": 85,
-  "generated_at": "2026-07-03 18:00:58",
-  "accuracy": 0.6588235294117647,
-  "rps": 0.14348392536542431,
-  "rps_uniform": 0.23464052287581721,
-  "brier": 0.4730556019901439,
-  "logloss": 0.8276732877473323,
-  "exact_score_acc": 0.1411764705882353,
-  "gd_mae": 1.4941176470588236,
-  "tg_mae": 1.4470588235294117,
+  "n": 86,
+  "generated_at": "2026-07-03 20:01:03",
+  "accuracy": 0.6511627906976745,
+  "rps": 0.14316761807364067,
+  "rps_uniform": 0.2332041343669253,
+  "brier": 0.4755937012084596,
+  "logloss": 0.8312746311966378,
+  "exact_score_acc": 0.13953488372093023,
+  "gd_mae": 1.4883720930232558,
+  "tg_mae": 1.441860465116279,
   "calibration": {
     "30-40%": {
-      "n": 5,
+      "n": 6,
       "win_rate": 0.0,
-      "avg_pred": 0.3684330133850679
+      "avg_pred": 0.363200779235241
     },
     "40-50%": {
       "n": 21,
       "win_rate": 0.5714285714285714,
-      "avg_pred": 0.45781787755892644
+      "avg_pred": 0.4576937200115489
     },
     "50-60%": {
       "n": 17,
       "win_rate": 0.5294117647058824,
-      "avg_pred": 0.5566766362489484
+      "avg_pred": 0.5564693938937388
     },
     "60-70%": {
       "n": 23,
       "win_rate": 0.8695652173913043,
-      "avg_pred": 0.6467450060142595
+      "avg_pred": 0.6466752100576112
     },
     "70-80%": {
       "n": 19,
@@ -49,15 +49,15 @@
     },
     "low": {
       "hit": 3,
-      "n": 15,
-      "rate": 0.2
+      "n": 16,
+      "rate": 0.1875
     }
   },
-  "draws_actual": 22,
+  "draws_actual": 23,
   "draws_called": 0,
-  "draw_miss": 22,
+  "draw_miss": 23,
   "hits": 56,
-  "draw_rate": 0.25882352941176473,
+  "draw_rate": 0.26744186046511625,
   "draw_rate_hist": 0.222,
   "details": [
     {
@@ -269,8 +269,8 @@
       "home": "Brazil",
       "away": "Morocco",
       "probs": [
-        0.379,
-        0.298,
+        0.378,
+        0.299,
         0.323
       ],
       "pred_outcome": "home",
@@ -388,9 +388,9 @@
       "home": "Australia",
       "away": "Türkiye",
       "probs": [
-        0.292,
+        0.291,
         0.306,
-        0.402
+        0.404
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -405,9 +405,9 @@
       "home": "USA",
       "away": "Australia",
       "probs": [
-        0.441,
+        0.442,
         0.284,
-        0.275
+        0.274
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -456,9 +456,9 @@
       "home": "Paraguay",
       "away": "Australia",
       "probs": [
-        0.26,
+        0.262,
         0.3,
-        0.44
+        0.438
       ],
       "pred_outcome": "away",
       "pred_score": "0-1",
@@ -507,9 +507,9 @@
       "home": "Germany",
       "away": "Ivory Coast",
       "probs": [
-        0.52,
-        0.259,
-        0.22
+        0.519,
+        0.26,
+        0.221
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -575,7 +575,7 @@
       "home": "Netherlands",
       "away": "Japan",
       "probs": [
-        0.425,
+        0.424,
         0.29,
         0.285
       ],
@@ -585,7 +585,7 @@
       "actual_score": "2-2",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Netherlands贏，最後雙方言和；模型其實也給了和局 29%；合理變異:三方接近(主43/和29/客28),模型信心本就低。"
+      "reason": "❌ 模型看好Netherlands贏，最後雙方言和；模型其實也給了和局 29%；合理變異:三方接近(主42/和29/客29),模型信心本就低。"
     },
     {
       "match_num": 32,
@@ -677,9 +677,9 @@
       "home": "Belgium",
       "away": "Egypt",
       "probs": [
-        0.518,
-        0.265,
-        0.217
+        0.516,
+        0.266,
+        0.218
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -729,8 +729,8 @@
       "away": "Egypt",
       "probs": [
         0.157,
-        0.179,
-        0.664
+        0.178,
+        0.665
       ],
       "pred_outcome": "away",
       "pred_score": "0-3",
@@ -738,16 +738,16 @@
       "actual_score": "1-3",
       "hit": true,
       "exact": false,
-      "reason": "✅ 命中:模型賽前看好客勝（Egypt 66%，高信心），結果如預期。"
+      "reason": "✅ 命中:模型賽前看好客勝（Egypt 67%，高信心），結果如預期。"
     },
     {
       "match_num": 41,
       "home": "Egypt",
       "away": "Iran",
       "probs": [
-        0.337,
+        0.339,
         0.312,
-        0.351
+        0.349
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -881,9 +881,9 @@
       "home": "France",
       "away": "Senegal",
       "probs": [
-        0.607,
+        0.606,
         0.208,
-        0.185
+        0.186
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -1017,7 +1017,7 @@
       "home": "Argentina",
       "away": "Austria",
       "probs": [
-        0.609,
+        0.608,
         0.208,
         0.183
       ],
@@ -1153,8 +1153,8 @@
       "home": "Colombia",
       "away": "Portugal",
       "probs": [
-        0.325,
-        0.298,
+        0.326,
+        0.299,
         0.376
       ],
       "pred_outcome": "away",
@@ -1187,9 +1187,9 @@
       "home": "England",
       "away": "Croatia",
       "probs": [
-        0.482,
+        0.481,
         0.272,
-        0.246
+        0.247
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -1306,8 +1306,8 @@
       "home": "Brazil",
       "away": "Japan",
       "probs": [
-        0.498,
-        0.268,
+        0.497,
+        0.269,
         0.234
       ],
       "pred_outcome": "home",
@@ -1459,7 +1459,7 @@
       "home": "Spain",
       "away": "Austria",
       "probs": [
-        0.632,
+        0.631,
         0.207,
         0.162
       ],
@@ -1476,9 +1476,9 @@
       "home": "Portugal",
       "away": "Croatia",
       "probs": [
-        0.491,
+        0.49,
         0.275,
-        0.234
+        0.235
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -1504,6 +1504,23 @@
       "hit": true,
       "exact": true,
       "reason": "✅ 命中:模型賽前看好主勝（Switzerland 62%，高信心），結果如預期。"
+    },
+    {
+      "match_num": 86,
+      "home": "Australia",
+      "away": "Egypt",
+      "probs": [
+        0.341,
+        0.321,
+        0.339
+      ],
+      "pred_outcome": "home",
+      "pred_score": "1-0",
+      "actual": "draw",
+      "actual_score": "1-1",
+      "hit": false,
+      "exact": false,
+      "reason": "❌ 模型看好Australia贏，最後雙方言和；模型其實也給了和局 32%；合理變異:三方接近(主34/和32/客34),模型信心本就低；兩隊實力接近(Elo 僅差 5)。"
     }
   ]
 }
