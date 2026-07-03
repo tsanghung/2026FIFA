@@ -1,16 +1,16 @@
 # 🎯 本屆世界盃「正式預測」即時準確度
 
-_更新:2026-07-03 04:00:28　已評估場次:84_
+_更新:2026-07-03 06:00:24　已評估場次:85_
 
 ## 總指標
 
-- 1X2 命中率:**65%**（55/84）
-- RPS：**0.145**（越低越好;隨機基準 0.234）
-- Brier：0.477　Log-loss：0.833
-- 精確比分命中率：13%　進球差 MAE：1.50　總進球 MAE：1.45
-- 本屆和局率：**26%**（22/84） vs 歷史 22%
+- 1X2 命中率:**66%**（56/85）
+- RPS：**0.144**（越低越好;隨機基準 0.235）
+- Brier：0.474　Log-loss：0.829
+- 精確比分命中率：14%　進球差 MAE：1.48　總進球 MAE：1.44
+- 本屆和局率：**26%**（22/85） vs 歷史 22%
 
-> RPS 0.145 vs 隨機 0.234 → **優於隨機**。
+> RPS 0.144 vs 隨機 0.235 → **優於隨機**。
 
 ## 逐場
 
@@ -46,7 +46,7 @@ _更新:2026-07-03 04:00:28　已評估場次:84_
 | 28 | Ecuador vs Curaçao | 73/14/13 | 4-0 | 0-0 | ❌ | — |
 | 29 | Curaçao vs Ivory Coast | 12/15/73 | 0-4 | 0-2 | ✅ | — |
 | 30 | Ecuador vs Germany | 18/24/58 | 0-2 | 2-1 | ❌ | — |
-| 31 | Netherlands vs Japan | 43/29/28 | 2-1 | 2-2 | ❌ | — |
+| 31 | Netherlands vs Japan | 42/29/28 | 2-1 | 2-2 | ❌ | — |
 | 32 | Sweden vs Tunisia | 53/26/21 | 2-0 | 5-1 | ✅ | — |
 | 33 | Netherlands vs Sweden | 50/25/25 | 2-1 | 5-1 | ✅ | — |
 | 34 | Tunisia vs Japan | 14/16/70 | 0-3 | 0-4 | ✅ | — |
@@ -100,6 +100,7 @@ _更新:2026-07-03 04:00:28　已評估場次:84_
 | 82 | USA vs Bosnia-Herzegovina | 70/16/14 | 3-0 | 2-0 | ✅ | — |
 | 83 | Spain vs Austria | 61/22/17 | 2-0 | 3-0 | ✅ | — |
 | 84 | Portugal vs Croatia | 47/28/25 | 2-1 | 2-1 | ✅ | ✅ |
+| 85 | Switzerland vs Algeria | 58/24/18 | 2-0 | 2-0 | ✅ | ✅ |
 
 ## 逐場差異與原因
 
@@ -110,10 +111,10 @@ _更新:2026-07-03 04:00:28　已評估場次:84_
 - **#5 Czechia vs Mexico**：✅ 命中:模型賽前看好客勝（Mexico 70%，高信心），結果如預期。
 - **#6 South Africa vs South Korea**：❌ 模型看好South Korea（58%），最後由South Africa勝出。
 - **#7 Canada vs Bosnia-Herzegovina**：❌ 模型看好Canada贏，最後雙方言和；模型其實也給了和局 24%。
-- **#8 Qatar vs Switzerland**：❌ 模型看好Switzerland贏，最後雙方言和；模型其實也給了和局 14%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
+- **#8 Qatar vs Switzerland**：❌ 模型看好Switzerland贏，最後雙方言和；模型其實也給了和局 13%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
 - **#9 Switzerland vs Bosnia-Herzegovina**：✅ 命中:模型賽前看好主勝（Switzerland 67%，高信心），結果如預期。
 - **#10 Canada vs Qatar**：✅ 命中:模型賽前看好主勝（Canada 63%，高信心），結果如預期。
-- **#11 Switzerland vs Canada**：✅ 命中:模型賽前看好主勝（Switzerland 47%，中信心），結果如預期。
+- **#11 Switzerland vs Canada**：✅ 命中:模型賽前看好主勝（Switzerland 48%，中信心），結果如預期。
 - **#12 Bosnia-Herzegovina vs Qatar**：✅ 命中:模型賽前看好主勝（Bosnia-Herzegovina 46%，中信心），結果如預期。
 - **#13 Brazil vs Morocco**：❌ 模型看好Brazil贏，最後雙方言和；模型其實也給了和局 30%；合理變異:三方接近(主38/和30/客32),模型信心本就低；兩隊實力接近(Elo 僅差 48)。
 - **#14 Haiti vs Scotland**：✅ 命中:模型賽前看好客勝（Scotland 63%，高信心），結果如預期。
@@ -160,14 +161,14 @@ _更新:2026-07-03 04:00:28　已評估場次:84_
 - **#55 Argentina vs Algeria**：✅ 命中:模型賽前看好主勝（Argentina 65%，高信心），結果如預期。
 - **#56 Austria vs Jordan**：✅ 命中:模型賽前看好主勝（Austria 63%，高信心），結果如預期。
 - **#57 Argentina vs Austria**：✅ 命中:模型賽前看好主勝（Argentina 60%，高信心），結果如預期。
-- **#58 Jordan vs Algeria**：✅ 命中:模型賽前看好客勝（Algeria 58%，中信心），結果如預期。
+- **#58 Jordan vs Algeria**：✅ 命中:模型賽前看好客勝（Algeria 57%，中信心），結果如預期。
 - **#59 Algeria vs Austria**：❌ 模型看好Austria贏，最後雙方言和；模型其實也給了和局 29%；兩隊實力接近(Elo 僅差 19)。
 - **#60 Jordan vs Argentina**：✅ 命中:模型賽前看好客勝（Argentina 78%，高信心），結果如預期。
 - **#61 Portugal vs DR Congo**：❌ 模型看好Portugal贏，最後雙方言和；模型其實也給了和局 19%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
 - **#62 Uzbekistan vs Colombia**：✅ 命中:模型賽前看好客勝（Colombia 71%，高信心），結果如預期。
 - **#63 Portugal vs Uzbekistan**：✅ 命中:模型賽前看好主勝（Portugal 71%，高信心），結果如預期。
 - **#64 Colombia vs DR Congo**：✅ 命中:模型賽前看好主勝（Colombia 66%，高信心），結果如預期。
-- **#65 Colombia vs Portugal**：❌ 模型看好Portugal贏，最後雙方言和；模型其實也給了和局 30%；合理變異:三方接近(主34/和30/客37),模型信心本就低；兩隊實力接近(Elo 僅差 36)。
+- **#65 Colombia vs Portugal**：❌ 模型看好Portugal贏，最後雙方言和；模型其實也給了和局 30%；合理變異:三方接近(主34/和30/客36),模型信心本就低；兩隊實力接近(Elo 僅差 36)。
 - **#66 DR Congo vs Uzbekistan**：✅ 命中:模型賽前看好主勝（DR Congo 49%，中信心），結果如預期。
 - **#67 England vs Croatia**：✅ 命中:模型賽前看好主勝（England 47%，中信心），結果如預期。
 - **#68 Ghana vs Panama**：❌ 模型看好Panama（43%），最後由Ghana勝出；合理變異:三方接近(主27/和30/客43),模型信心本就低；兩隊實力接近(Elo 僅差 16)。
@@ -187,4 +188,5 @@ _更新:2026-07-03 04:00:28　已評估場次:84_
 - **#82 USA vs Bosnia-Herzegovina**：✅ 命中:模型賽前看好主勝（USA 70%，高信心），結果如預期。
 - **#83 Spain vs Austria**：✅ 命中:模型賽前看好主勝（Spain 61%，高信心），結果如預期。
 - **#84 Portugal vs Croatia**：✅ 命中:模型賽前看好主勝（Portugal 47%，中信心），結果如預期。
+- **#85 Switzerland vs Algeria**：✅ 命中:模型賽前看好主勝（Switzerland 58%，中信心），結果如預期。
 
