@@ -1,39 +1,39 @@
 {
-  "n": 83,
-  "generated_at": "2026-07-03 00:00:24",
-  "accuracy": 0.6506024096385542,
-  "rps": 0.14417849021750498,
-  "rps_uniform": 0.23360107095046875,
-  "brier": 0.47730638426227706,
-  "logloss": 0.8333888085908736,
-  "exact_score_acc": 0.12048192771084337,
-  "gd_mae": 1.5180722891566265,
-  "tg_mae": 1.4698795180722892,
+  "n": 84,
+  "generated_at": "2026-07-03 02:00:27",
+  "accuracy": 0.6547619047619048,
+  "rps": 0.14454285136030298,
+  "rps_uniform": 0.23412698412698435,
+  "brier": 0.4767350537352407,
+  "logloss": 0.8325739656055626,
+  "exact_score_acc": 0.13095238095238096,
+  "gd_mae": 1.5,
+  "tg_mae": 1.4523809523809523,
   "calibration": {
     "30-40%": {
       "n": 5,
       "win_rate": 0.0,
-      "avg_pred": 0.3668705041745917
+      "avg_pred": 0.3665036338967664
     },
     "40-50%": {
-      "n": 20,
-      "win_rate": 0.55,
-      "avg_pred": 0.4539005935440663
+      "n": 21,
+      "win_rate": 0.5714285714285714,
+      "avg_pred": 0.4543916709478423
     },
     "50-60%": {
       "n": 16,
       "win_rate": 0.5,
-      "avg_pred": 0.5558548786650556
+      "avg_pred": 0.5557530685884157
     },
     "60-70%": {
       "n": 22,
       "win_rate": 0.8636363636363636,
-      "avg_pred": 0.6415674894250825
+      "avg_pred": 0.6414336026772008
     },
     "70-80%": {
       "n": 20,
       "win_rate": 0.8,
-      "avg_pred": 0.7300412604134123
+      "avg_pred": 0.7300442660404205
     }
   },
   "acc_by_conf": {
@@ -43,9 +43,9 @@
       "rate": 0.8333333333333334
     },
     "mid": {
-      "hit": 16,
-      "n": 26,
-      "rate": 0.6153846153846154
+      "hit": 17,
+      "n": 27,
+      "rate": 0.6296296296296297
     },
     "low": {
       "hit": 3,
@@ -56,8 +56,8 @@
   "draws_actual": 22,
   "draws_called": 0,
   "draw_miss": 22,
-  "hits": 54,
-  "draw_rate": 0.26506024096385544,
+  "hits": 55,
+  "draw_rate": 0.2619047619047619,
   "draw_rate_hist": 0.222,
   "details": [
     {
@@ -269,8 +269,8 @@
       "home": "Brazil",
       "away": "Morocco",
       "probs": [
-        0.381,
-        0.297,
+        0.38,
+        0.298,
         0.322
       ],
       "pred_outcome": "home",
@@ -405,9 +405,9 @@
       "home": "USA",
       "away": "Australia",
       "probs": [
-        0.442,
+        0.441,
         0.284,
-        0.274
+        0.275
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -491,8 +491,8 @@
       "away": "Ecuador",
       "probs": [
         0.289,
-        0.292,
-        0.419
+        0.293,
+        0.418
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -507,9 +507,9 @@
       "home": "Germany",
       "away": "Ivory Coast",
       "probs": [
-        0.523,
-        0.258,
-        0.219
+        0.522,
+        0.259,
+        0.22
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -575,7 +575,7 @@
       "home": "Netherlands",
       "away": "Japan",
       "probs": [
-        0.427,
+        0.426,
         0.289,
         0.284
       ],
@@ -881,8 +881,8 @@
       "home": "France",
       "away": "Senegal",
       "probs": [
-        0.609,
-        0.206,
+        0.608,
+        0.207,
         0.185
       ],
       "pred_outcome": "home",
@@ -1017,7 +1017,7 @@
       "home": "Argentina",
       "away": "Austria",
       "probs": [
-        0.603,
+        0.602,
         0.212,
         0.186
       ],
@@ -1086,7 +1086,7 @@
       "away": "DR Congo",
       "probs": [
         0.654,
-        0.187,
+        0.186,
         0.159
       ],
       "pred_outcome": "home",
@@ -1120,7 +1120,7 @@
       "away": "Uzbekistan",
       "probs": [
         0.707,
-        0.155,
+        0.154,
         0.139
       ],
       "pred_outcome": "home",
@@ -1153,9 +1153,9 @@
       "home": "Colombia",
       "away": "Portugal",
       "probs": [
-        0.336,
+        0.337,
         0.298,
-        0.366
+        0.365
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -1187,8 +1187,8 @@
       "home": "England",
       "away": "Croatia",
       "probs": [
-        0.469,
-        0.276,
+        0.468,
+        0.277,
         0.255
       ],
       "pred_outcome": "home",
@@ -1274,7 +1274,7 @@
       "probs": [
         0.605,
         0.216,
-        0.179
+        0.18
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -1306,8 +1306,8 @@
       "home": "Brazil",
       "away": "Japan",
       "probs": [
-        0.5,
-        0.267,
+        0.499,
+        0.268,
         0.233
       ],
       "pred_outcome": "home",
@@ -1459,8 +1459,8 @@
       "home": "Spain",
       "away": "Austria",
       "probs": [
-        0.613,
-        0.218,
+        0.612,
+        0.219,
         0.169
       ],
       "pred_outcome": "home",
@@ -1470,6 +1470,23 @@
       "hit": true,
       "exact": false,
       "reason": "✅ 命中:模型賽前看好主勝（Spain 61%，高信心），結果如預期。"
+    },
+    {
+      "match_num": 84,
+      "home": "Portugal",
+      "away": "Croatia",
+      "probs": [
+        0.468,
+        0.282,
+        0.25
+      ],
+      "pred_outcome": "home",
+      "pred_score": "2-1",
+      "actual": "home",
+      "actual_score": "2-1",
+      "hit": true,
+      "exact": true,
+      "reason": "✅ 命中:模型賽前看好主勝（Portugal 47%，中信心），結果如預期。"
     }
   ]
 }
