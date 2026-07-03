@@ -1,6 +1,6 @@
 # 🎯 本屆世界盃「正式預測」即時準確度
 
-_更新:2026-07-03 02:00:27　已評估場次:84_
+_更新:2026-07-03 04:00:28　已評估場次:84_
 
 ## 總指標
 
@@ -26,7 +26,7 @@ _更新:2026-07-03 02:00:27　已評估場次:84_
 | 8 | Qatar vs Switzerland | 14/14/73 | 0-5 | 1-1 | ❌ | — |
 | 9 | Switzerland vs Bosnia-Herzegovina | 67/18/15 | 3-0 | 4-1 | ✅ | — |
 | 10 | Canada vs Qatar | 63/20/17 | 2-0 | 6-0 | ✅ | — |
-| 11 | Switzerland vs Canada | 47/27/26 | 2-1 | 2-1 | ✅ | ✅ |
+| 11 | Switzerland vs Canada | 48/27/26 | 2-1 | 2-1 | ✅ | ✅ |
 | 12 | Bosnia-Herzegovina vs Qatar | 46/29/26 | 2-1 | 3-1 | ✅ | — |
 | 13 | Brazil vs Morocco | 38/30/32 | 2-1 | 1-1 | ❌ | — |
 | 14 | Haiti vs Scotland | 17/20/63 | 0-2 | 0-1 | ✅ | — |
@@ -73,7 +73,7 @@ _更新:2026-07-03 02:00:27　已評估場次:84_
 | 55 | Argentina vs Algeria | 65/19/16 | 2-0 | 3-0 | ✅ | — |
 | 56 | Austria vs Jordan | 63/20/17 | 2-0 | 3-1 | ✅ | — |
 | 57 | Argentina vs Austria | 60/21/19 | 2-0 | 2-0 | ✅ | ✅ |
-| 58 | Jordan vs Algeria | 20/23/58 | 0-2 | 1-2 | ✅ | — |
+| 58 | Jordan vs Algeria | 20/23/57 | 0-2 | 1-2 | ✅ | — |
 | 59 | Algeria vs Austria | 25/29/46 | 1-2 | 3-3 | ❌ | — |
 | 60 | Jordan vs Argentina | 11/12/78 | 0-7 | 1-3 | ✅ | — |
 | 61 | Portugal vs DR Congo | 65/19/16 | 2-0 | 1-1 | ❌ | — |
