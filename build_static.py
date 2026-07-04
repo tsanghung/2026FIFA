@@ -83,7 +83,10 @@ def load_data():
     have = {r[1] for r in cur.execute('PRAGMA table_info(matches)')}
     XG_COLS = ('home_xg', 'away_xg', 'home_possession', 'away_possession',
                'home_shots', 'away_shots')
-    OPTIONAL_COLS = XG_COLS + ('score_source',)
+    ADV_COLS = ('home_xgot', 'away_xgot', 'home_sot', 'away_sot',
+                'home_corners', 'away_corners',
+                'home_big_chances', 'away_big_chances')
+    OPTIONAL_COLS = XG_COLS + ADV_COLS + ('score_source',)
     extra = ''.join(f', {c}' for c in OPTIONAL_COLS if c in have)
     matches = [dict(r) for r in cur.execute(f'''
         SELECT match_num, group_or_stage, date, time, home_team, away_team,
@@ -193,7 +196,7 @@ def head(title, desc, canonical, og_extra=""):
 <header class="site-head">
   <a class="brand" href="{site.SITE_URL}/">⚽ {esc(site.SITE_TITLE)}</a>
   <nav><a href="{site.SITE_URL}/#schedule">賽程</a><a href="{site.SITE_URL}/#title">奪冠</a>
-  <a href="{site.SITE_URL}/#power">戰力評比</a>
+  <a href="{site.SITE_URL}/#power">戰力評比</a><a href="{site.SITE_URL}/teams.html">逐場分析</a>
   <a href="{site.SITE_URL}/#sources">來源</a>
   <a href="{site.SITE_URL}/#ratings">評級</a><a href="{site.SITE_URL}/monte.html">模擬器</a>
   <a href="{site.SITE_URL}/bets.html">投注實測</a>
@@ -498,6 +501,149 @@ def build_power_ranking(matches, teams):
             f'<td>{w}-{dd}-{l}</td><td>{gf}-{ga}</td></tr>')
     out.append('</tbody></table></div></section>')
     return ''.join(out)
+
+
+def _current_round_teams(matches, team_set):
+    """(中文輪次名, 存活隊伍列表) for the earliest knockout phase that still has
+    unplayed fixtures between real teams. None when knockouts are over/not set."""
+    by_key = {}
+    for m in matches:
+        by_key.setdefault(phase_of(m['group_or_stage'])[0], []).append(m)
+    for k in ('r32', 'r16', 'qf', 'sf', 'tp', 'final'):
+        ms = by_key.get(k, [])
+        real = {t for m in ms for t in (m['home_team'], m['away_team']) if t in team_set}
+        if real and any(m.get('status') != 'Completed' for m in ms):
+            return phase_of(ms[0]['group_or_stage'])[1], sorted(real)
+    return None
+
+
+def build_teams_analysis(matches, teams):
+    """逐場戰力分析 page for the current knockout round's teams: every played
+    match with 90'-result and advanced stats, aggregated into a transparent
+    strength index. All numbers use the 90-minute result (a.e.t. fixtures are
+    draws — goals are normalized at ingest)."""
+    team_set = {t['name'] for t in teams}
+    elo = {t['name']: t['elo_rating'] for t in teams}
+    cur = _current_round_teams(matches, team_set)
+    if not cur:
+        return None
+    round_zh, alive = cur
+
+    played = [m for m in matches if m.get('status') == 'Completed'
+              and m.get('home_goals') is not None and m.get('away_goals') is not None]
+    played.sort(key=lambda m: (m.get('date') or '', m.get('match_num') or 0))
+
+    def team_rows(t):
+        """Per-match log for team t, each row from t's perspective."""
+        rows = []
+        for m in played:
+            if t == m['home_team']:
+                us, them = 'home', 'away'
+            elif t == m['away_team']:
+                us, them = 'away', 'home'
+            else:
+                continue
+            gf, ga = m[f'{us}_goals'], m[f'{them}_goals']
+            res = '勝' if gf > ga else ('和' if gf == ga else '負')
+            def pair(base):
+                a, b = m.get(f'{us}_{base}'), m.get(f'{them}_{base}')
+                return (a, b) if a is not None and b is not None else (None, None)
+            # Score shown from t's perspective (gf–ga, 90'-normalized goals),
+            # keeping the a.e.t./pens annotation from the raw fixture text.
+            note = ''
+            mnote = re.search(r'\(([^)]*(?:a\.e\.t|p)[^)]*)\)',
+                              str(m.get('score') or ''), re.IGNORECASE)
+            if mnote:
+                note = f' ({mnote.group(1)})'
+            rows.append({
+                'opp': m['away_team'] if us == 'home' else m['home_team'],
+                'stage': m['group_or_stage'], 'score_txt': f'{gf}–{ga}{note}',
+                'gf': gf, 'ga': ga, 'res': res,
+                'xg': pair('xg'), 'xgot': pair('xgot'), 'sot': pair('sot'),
+                'poss': pair('possession'), 'corners': pair('corners'),
+                'bc': pair('big_chances'),
+            })
+        return rows
+
+    # Aggregates + a transparent strength index: z(Elo) + z(xG差/場) + z(淨勝/場).
+    agg = {}
+    for t in alive:
+        rows = team_rows(t)
+        n = len(rows) or 1
+        gd = sum(r['gf'] - r['ga'] for r in rows)
+        xgn = [r for r in rows if r['xg'][0] is not None]
+        xgd = (sum(r['xg'][0] - r['xg'][1] for r in xgn) / len(xgn)) if xgn else 0.0
+        agg[t] = {'rows': rows, 'p': len(rows),
+                  'w': sum(r['res'] == '勝' for r in rows),
+                  'd': sum(r['res'] == '和' for r in rows),
+                  'l': sum(r['res'] == '負' for r in rows),
+                  'gf': sum(r['gf'] for r in rows), 'ga': sum(r['ga'] for r in rows),
+                  'gdpg': gd / n, 'xgdpg': xgd, 'elo': elo.get(t, 1400)}
+
+    def zs(vals):
+        mu = sum(vals) / len(vals)
+        sd = (sum((v - mu) ** 2 for v in vals) / len(vals)) ** 0.5 or 1.0
+        return {i: (v - mu) / sd for i, v in enumerate(vals)}
+    z_elo = zs([agg[t]['elo'] for t in alive])
+    z_xgd = zs([agg[t]['xgdpg'] for t in alive])
+    z_gd = zs([agg[t]['gdpg'] for t in alive])
+    for i, t in enumerate(alive):
+        agg[t]['idx'] = z_elo[i] + z_xgd[i] + z_gd[i]
+    ranked = sorted(alive, key=lambda t: -agg[t]['idx'])
+
+    canonical = f"{site.SITE_URL}/teams.html"
+    title = f"{round_zh}逐場戰力分析 | {site.SITE_TITLE}"
+    desc = (f"2026 世界盃{round_zh} {len(alive)} 支晉級隊伍的逐場數據(90 分鐘結果、xG、xGOT、"
+            f"射正、控球、角球、大機會)與統整戰力指數排名,每日隨賽事更新。")
+    p = [head(title, desc, canonical)]
+    p.append(f'<section><h1>📈 {esc(round_zh)}逐場戰力分析</h1>'
+             '<p class="muted">所有結果以<b>正賽 90 分鐘</b>為準(踢入延長賽的比賽記為和局)。'
+             '戰力指數 = z(Elo) + z(場均 xG 差) + z(場均淨勝球),三項標準化後等權相加,'
+             '完全由下表數據推導。進階數據來源:365Scores;每日隨賽事自動更新。</p>')
+
+    # ---- 統整總表 ----
+    p.append('<h2>戰力指數統整</h2><div class="tablewrap"><table><thead><tr>'
+             '<th>#</th><th>隊伍</th><th>戰力指數</th><th>Elo</th>'
+             '<th>P</th><th>勝-和-負(90\')</th><th>進-失</th>'
+             '<th>場均淨勝</th><th>場均xG差</th></tr></thead><tbody>')
+    for i, t in enumerate(ranked, 1):
+        a = agg[t]
+        p.append(f'<tr><td class="muted">{i}</td>'
+                 f'<td class="team">{esc(get_team_display_name(t))}</td>'
+                 f'<td><b>{a["idx"]:+.2f}</b></td><td>{a["elo"]:.0f}</td>'
+                 f'<td>{a["p"]}</td><td>{a["w"]}-{a["d"]}-{a["l"]}</td>'
+                 f'<td>{a["gf"]}-{a["ga"]}</td>'
+                 f'<td>{a["gdpg"]:+.2f}</td><td>{a["xgdpg"]:+.2f}</td></tr>')
+    p.append('</tbody></table></div>')
+    p.append(ad_unit())
+
+    # ---- 每隊逐場明細 ----
+    def cell(pr, fmt='{:.0f}'):
+        a, b = pr
+        return f'{fmt.format(a)}-{fmt.format(b)}' if a is not None else '—'
+    p.append('<h2>逐場明細</h2>')
+    for t in ranked:
+        a = agg[t]
+        p.append(f'<h3>{esc(get_team_display_name(t))} '
+                 f'<small class="muted">戰力指數 {a["idx"]:+.2f}・'
+                 f'{a["w"]}勝{a["d"]}和{a["l"]}負</small></h3>')
+        p.append('<div class="tablewrap"><table><thead><tr>'
+                 '<th>階段</th><th>對手</th><th>90\'結果</th><th>比分</th>'
+                 '<th>xG</th><th>xGOT</th><th>射正</th><th>控球%</th>'
+                 '<th>角球</th><th>大機會</th></tr></thead><tbody>')
+        for r in a['rows']:
+            rc = {'勝': 'win', '和': 'draw', '負': 'loss'}[r['res']]
+            p.append(f'<tr><td class="muted">{esc(phase_of(r["stage"])[1] if not r["stage"].startswith("Group") else r["stage"])}</td>'
+                     f'<td class="team">{esc(get_team_display_name(r["opp"]))}</td>'
+                     f'<td class="res-{rc}"><b>{r["res"]}</b></td>'
+                     f'<td>{esc(r["score_txt"])}</td>'
+                     f'<td>{cell(r["xg"], "{:.2f}")}</td><td>{cell(r["xgot"], "{:.2f}")}</td>'
+                     f'<td>{cell(r["sot"])}</td><td>{cell(r["poss"])}</td>'
+                     f'<td>{cell(r["corners"])}</td><td>{cell(r["bc"])}</td></tr>')
+        p.append('</tbody></table></div>')
+    p.append('</section>')
+    p.append(foot())
+    return ''.join(p)
 
 
 def build_index(matches, teams, champs, metrics, external_sources=None, external_consensus=None):
@@ -1072,6 +1218,7 @@ th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--txt)}.
 table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 th{background:#0d1426;color:var(--mut);position:sticky;top:0}td.muted,.muted{color:var(--mut)}.team a{color:var(--txt)}.vs{color:var(--mut);text-align:center}
 tr.hit td{background:rgba(46,204,113,.30)}tr.hit:hover td{background:rgba(46,204,113,.42)}tr.hit td:first-child{box-shadow:inset 4px 0 0 #2ecc71}tr.hit .vs{color:#2ecc71;font-weight:800}
+.res-win{color:#2ecc71}.res-draw{color:#f1c40f}.res-loss{color:#e74c3c}
 #sched tr.stage td{background:#0b1322;border-top:2px solid var(--line);padding:11px 12px;white-space:normal}
 #sched tr.stage .stage-name{font-weight:800;font-size:15px;color:var(--txt);letter-spacing:.5px}
 #sched tr.stage .stage-meta{margin-left:12px;font-size:12px;color:var(--mut)}
@@ -1193,6 +1340,9 @@ def main():
     write(os.path.join(OUT, 'bets.html'), build_bets(load_bets()))
     write(os.path.join(OUT, 'about.html'), build_about())
     write(os.path.join(OUT, 'privacy.html'), build_privacy())
+    teams_page = build_teams_analysis(matches, teams)
+    if teams_page:
+        write(os.path.join(OUT, 'teams.html'), teams_page)
     write(os.path.join(OUT, 'assets', 'style.css'), CSS)
 
     # data.json (machine-readable)
@@ -1204,6 +1354,7 @@ def main():
     now = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     urls = ([f"{site.SITE_URL}/", f"{site.SITE_URL}/about.html", f"{site.SITE_URL}/monte.html",
              f"{site.SITE_URL}/bets.html", f"{site.SITE_URL}/privacy.html"]
+            + ([f"{site.SITE_URL}/teams.html"] if teams_page else [])
             + [f"{site.SITE_URL}/match/{m['match_num']}.html" for m in matches])
     sm = ['<?xml version="1.0" encoding="UTF-8"?>',
           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
