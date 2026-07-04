@@ -1,6 +1,6 @@
 # 🎯 本屆世界盃「正式預測」即時準確度
 
-_更新:2026-07-04 16:00:54　已評估場次:88_
+_更新:2026-07-04 18:00:56　已評估場次:88_
 
 ## 總指標
 
@@ -26,7 +26,7 @@ _更新:2026-07-04 16:00:54　已評估場次:88_
 | 8 | Qatar vs Switzerland | 14/13/73 | 0-5 | 1-1 | ❌ | — |
 | 9 | Switzerland vs Bosnia-Herzegovina | 68/17/15 | 3-0 | 4-1 | ✅ | — |
 | 10 | Canada vs Qatar | 63/20/17 | 2-0 | 6-0 | ✅ | — |
-| 11 | Switzerland vs Canada | 50/26/24 | 2-1 | 2-1 | ✅ | ✅ |
+| 11 | Switzerland vs Canada | 49/26/25 | 2-1 | 2-1 | ✅ | ✅ |
 | 12 | Bosnia-Herzegovina vs Qatar | 46/29/26 | 2-1 | 3-1 | ✅ | — |
 | 13 | Brazil vs Morocco | 38/30/32 | 2-1 | 1-1 | ❌ | — |
 | 14 | Haiti vs Scotland | 17/20/63 | 0-2 | 0-1 | ✅ | — |
@@ -117,7 +117,7 @@ _更新:2026-07-04 16:00:54　已評估場次:88_
 - **#8 Qatar vs Switzerland**：❌ 模型看好Switzerland贏，最後雙方言和；模型其實也給了和局 13%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
 - **#9 Switzerland vs Bosnia-Herzegovina**：✅ 命中:模型賽前看好主勝（Switzerland 68%，高信心），結果如預期。
 - **#10 Canada vs Qatar**：✅ 命中:模型賽前看好主勝（Canada 63%，高信心），結果如預期。
-- **#11 Switzerland vs Canada**：✅ 命中:模型賽前看好主勝（Switzerland 50%，中信心），結果如預期。
+- **#11 Switzerland vs Canada**：✅ 命中:模型賽前看好主勝（Switzerland 49%，中信心），結果如預期。
 - **#12 Bosnia-Herzegovina vs Qatar**：✅ 命中:模型賽前看好主勝（Bosnia-Herzegovina 46%，中信心），結果如預期。
 - **#13 Brazil vs Morocco**：❌ 模型看好Brazil贏，最後雙方言和；模型其實也給了和局 30%；合理變異:三方接近(主38/和30/客32),模型信心本就低；兩隊實力接近(Elo 僅差 48)。
 - **#14 Haiti vs Scotland**：✅ 命中:模型賽前看好客勝（Scotland 63%，高信心），結果如預期。
