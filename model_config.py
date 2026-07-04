@@ -50,6 +50,14 @@ class ModelConfig:
 
         # ---- Draw calibration (#2): multiplicative inflation of draw mass, then renormalise ----
         self.DRAW_INFLATION = 1.0      # 1.0 = no change; calibrated upward to fix 0/104 draws
+        # Knockout fixtures are systematically cagier over 90 minutes (the target
+        # is the 90' result; ET/pens are out of scope for the model): historical
+        # WC knockout 90' draw rates run ~27–31% (2018 ≈27%, 2022 ≈31%) and this
+        # tournament's R32 came in at 31% (5/16), vs the model's ~24% average
+        # knockout draw. Applied ON TOP of DRAW_INFLATION for knockout games only.
+        # Not fit by backtest.py (its dataset has no round labels) — a documented
+        # prior, validated live via the site's rolling accuracy tracking.
+        self.KO_DRAW_INFLATION = 1.15
 
         # ---- Ensemble fusion weights [elo, pi, berrar, dixon_coles, opta] ----
         self.W_ENSEMBLE_OPTA = [0.22, 0.22, 0.18, 0.28, 0.10]

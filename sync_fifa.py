@@ -490,7 +490,7 @@ def predict_match(home_elo, away_elo, home_pi_h, away_pi_a, home_att, away_def, 
                   home_xg_diff=0.0, home_injuries=0, home_sentiment=0.0,
                   away_xg_diff=0.0, away_injuries=0, away_sentiment=0.0,
                   home_adv=0, home_opta=0.0, away_opta=0.0,
-                  completion_ratio=0.0):
+                  completion_ratio=0.0, is_knockout=False):
     """
     Ensemble Predictive Brain: Combines Model A (Elo Poisson), Model B (Pi Normal CDF),
     Model C (Berrar Poisson), and Model D (Dixon-Coles Joint Model with Hybrid Lambda)
@@ -573,6 +573,10 @@ def predict_match(home_elo, away_elo, home_pi_h, away_pi_a, home_att, away_def, 
     # #2 Draw calibration: footballs draws (~25%) were systematically under-pointed
     # (0/104 fixtures had draw as argmax). Inflate draw mass then renormalise.
     final_d *= CFG.DRAW_INFLATION
+    # Knockout games are cagier over 90' (the prediction target) — see the
+    # KO_DRAW_INFLATION rationale in model_config.py.
+    if is_knockout:
+        final_d *= CFG.KO_DRAW_INFLATION
 
     final_sum = final_h + final_d + final_a
     if final_sum > 0:
@@ -755,7 +759,8 @@ def reset_and_recalculate_all_elo_and_predictions():
         pred = predict_match(home_elo, away_elo, home_pi_h, away_pi_a, home_att, away_def, away_att, home_def, home_rank, away_rank,
                              home_xg_diff, home_injuries, home_sentiment,
                              away_xg_diff, away_injuries, away_sentiment,
-                             home_adv, home_opta, away_opta, completion_ratio)
+                             home_adv, home_opta, away_opta, completion_ratio,
+                             is_knockout=not str(match.get('group_or_stage') or '').startswith('Group'))
         
         # Calculate EV and Kelly if odds exist in current record
         odds_h = match['odds_home']
