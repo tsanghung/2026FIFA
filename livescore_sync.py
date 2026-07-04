@@ -142,16 +142,33 @@ def run(dry_run=False):
             continue
         mn, swapped = m
         home_g, away_g = (as_, hs) if swapped else (hs, as_)
-        new_score = f"{home_g}{DASH}{away_g}"
         row = cur.execute("SELECT score, home_goals, away_goals, status, score_source "
                           "FROM matches WHERE match_num=?", (mn,)).fetchone()
+        # 預測標的是「正賽 90 分鐘」。365Scores 的 competitor.score 是含延長賽的
+        # 最終比分;若該場踢了延長賽(365 的 statusText 帶 AET/pen 標記,或維基已在
+        # score 文字標了 a.e.t.),90 分鐘必為平局 —— 進球數正規化成 min–min(理由
+        # 同 sync_fifa 的註解),score 文字保留/補上 (a.e.t.) 註記供顯示。
+        status_l = str(g.get('statusText', '')).lower()
+        went_et = (re.search(r'a\.?\s*e\.?\s*t|extra|pen', status_l)
+                   or (row and re.search(r'a\.?\s*e\.?\s*t|pen',
+                                         str(row[0] or ''), re.IGNORECASE)))
+        if went_et:
+            g90 = min(home_g, away_g)
+            home_g = away_g = g90
+            # keep wiki's annotated text when it already has one; else synthesize
+            if row and re.search(r'a\.?\s*e\.?\s*t|pen', str(row[0] or ''), re.IGNORECASE):
+                new_score = row[0]
+            else:
+                new_score = f"{home_g}{DASH}{away_g} (a.e.t.)"
+        else:
+            new_score = f"{home_g}{DASH}{away_g}"
         if row and row[0] == new_score and row[1] == home_g \
                 and row[2] == away_g and row[3] == 'Completed' \
                 and row[4] == '365scores':
             continue
         tag = 'DRY' if dry_run else 'SET'
         log(f"    -> [{tag}] #{mn} {new_score} Completed (365scores-verified)"
-            f"{' (swapped)' if swapped else ''}")
+            f"{' (swapped)' if swapped else ''}{' [90min=draw]' if went_et else ''}")
         changed += 1
         if not dry_run:
             cur.execute("UPDATE matches SET score=?, home_goals=?, away_goals=?, "
