@@ -1,13 +1,13 @@
 {
   "n": 88,
-  "generated_at": "2026-07-04 09:23:28",
-  "accuracy": 0.6590909090909091,
-  "rps": 0.1410804295856292,
-  "rps_uniform": 0.23421717171717196,
-  "brier": 0.4676825403082214,
-  "logloss": 0.8200152265651244,
+  "generated_at": "2026-07-04 09:50:55",
+  "accuracy": 0.6363636363636364,
+  "rps": 0.14377580272357293,
+  "rps_uniform": 0.23042929292929315,
+  "brier": 0.48663181867346206,
+  "logloss": 0.8466102911875532,
   "exact_score_acc": 0.14772727272727273,
-  "gd_mae": 1.5340909090909092,
+  "gd_mae": 1.5568181818181819,
   "tg_mae": 1.4431818181818181,
   "calibration": {
     "30-40%": {
@@ -17,7 +17,7 @@
     },
     "40-50%": {
       "n": 21,
-      "win_rate": 0.5714285714285714,
+      "win_rate": 0.5238095238095238,
       "avg_pred": 0.4570445722891657
     },
     "50-60%": {
@@ -32,20 +32,20 @@
     },
     "70-80%": {
       "n": 21,
-      "win_rate": 0.8095238095238095,
+      "win_rate": 0.7619047619047619,
       "avg_pred": 0.7329568913572755
     }
   },
   "acc_by_conf": {
     "high": {
-      "hit": 38,
+      "hit": 37,
       "n": 45,
-      "rate": 0.8444444444444444
+      "rate": 0.8222222222222222
     },
     "mid": {
-      "hit": 17,
+      "hit": 16,
       "n": 27,
-      "rate": 0.6296296296296297
+      "rate": 0.5925925925925926
     },
     "low": {
       "hit": 3,
@@ -53,11 +53,11 @@
       "rate": 0.1875
     }
   },
-  "draws_actual": 23,
+  "draws_actual": 25,
   "draws_called": 0,
-  "draw_miss": 23,
-  "hits": 58,
-  "draw_rate": 0.26136363636363635,
+  "draw_miss": 25,
+  "hits": 56,
+  "draw_rate": 0.2840909090909091,
   "draw_rate_hist": 0.222,
   "details": [
     {
@@ -1431,11 +1431,11 @@
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
-      "actual": "home",
-      "actual_score": "3-2",
-      "hit": true,
+      "actual": "draw",
+      "actual_score": "2-2",
+      "hit": false,
       "exact": false,
-      "reason": "✅ 命中:模型賽前看好主勝（Belgium 47%，中信心），結果如預期。"
+      "reason": "❌ 模型看好Belgium贏，最後雙方言和；模型其實也給了和局 28%。"
     },
     {
       "match_num": 82,
@@ -1533,11 +1533,11 @@
       ],
       "pred_outcome": "home",
       "pred_score": "6-0",
-      "actual": "home",
-      "actual_score": "3-2",
-      "hit": true,
+      "actual": "draw",
+      "actual_score": "2-2",
+      "hit": false,
       "exact": false,
-      "reason": "✅ 命中:模型賽前看好主勝（Argentina 76%，高信心），結果如預期。"
+      "reason": "❌ 模型看好Argentina贏，最後雙方言和；模型其實也給了和局 13%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。"
     },
     {
       "match_num": 88,
