@@ -114,8 +114,17 @@ def _num(x):
         return None
 
 
-def fetch_game_stats(game_id):
-    """Pull per-team xG/possession/shots for one finished game. Returns dict or None."""
+def fetch_game_stats(game_id, discover=False):
+    """Pull per-team advanced stats for one finished game. Returns dict or None.
+
+    Free-data optimization: the two endpoints we already hit for xG expose more
+    predictively useful numbers at zero extra cost — per-shot xGOT (xG-on-target:
+    shot-placement quality, only defined for on-target shots), shots on target,
+    corners and big chances. All are parsed defensively by name pattern and left
+    NULL when a feed variant omits them, so nothing breaks if 365Scores renames
+    or hides a stat. With `discover=True` (dry-run) every stat name the API
+    actually returned is logged, so the daily probe workflow doubles as a
+    discovery tool for further free fields."""
     g = fetch_json(f'{BASE}/game/?{COMMON}&gameId={game_id}').get('game', {})
     home = g.get('homeCompetitor', {}) or {}
     away = g.get('awayCompetitor', {}) or {}
@@ -126,17 +135,26 @@ def fetch_game_stats(game_id):
     # competitorNum: 1 = home, 2 = away (365Scores convention). competitorId is a
     # fallback when a feed variant omits competitorNum.
     home_xg = away_xg = 0.0
+    home_xgot = away_xgot = 0.0
     n_shots_h = n_shots_a = 0
+    n_sot_h = n_sot_a = 0
     for ev in (g.get('chartEvents', {}) or {}).get('events', []) or []:
         xg = _num(ev.get('xg')) or 0.0
+        xgot = _num(ev.get('xgot'))
         num = ev.get('competitorNum')
         cid = ev.get('competitorId')
         if num == 1 or (num is None and cid == hid):
             home_xg += xg
             n_shots_h += 1
+            if xgot is not None:
+                home_xgot += xgot
+                n_sot_h += 1
         elif num == 2 or (num is None and cid == aid):
             away_xg += xg
             n_shots_a += 1
+            if xgot is not None:
+                away_xgot += xgot
+                n_sot_a += 1
 
     res = {
         'game_id': game_id,
@@ -144,16 +162,22 @@ def fetch_game_stats(game_id):
         'home_id': hid, 'away_id': aid,
         'date': (g.get('startTime') or '')[:10],
         'home_xg': round(home_xg, 2), 'away_xg': round(away_xg, 2),
+        'home_xgot': round(home_xgot, 2) or None, 'away_xgot': round(away_xgot, 2) or None,
         'home_shots': n_shots_h or None, 'away_shots': n_shots_a or None,
+        'home_sot': n_sot_h or None, 'away_sot': n_sot_a or None,
         'home_possession': None, 'away_possession': None,
+        'home_corners': None, 'away_corners': None,
+        'home_big_chances': None, 'away_big_chances': None,
         'has_chart': bool((g.get('chartEvents', {}) or {}).get('events')),
     }
 
-    # Possession (and a shots fallback) from the dedicated stats endpoint.
+    # Possession / corners / big chances (and shots fallbacks) from the stats endpoint.
     try:
         st = fetch_json(f'{BASE}/game/stats/?{COMMON}&games={game_id}')
+        seen_names = set()
         for s in st.get('statistics', []) or []:
             name = str(s.get('name', '')).lower()
+            seen_names.add(name)
             cid = s.get('competitorId')
             side = 'home' if cid == hid else ('away' if cid == aid else None)
             if side is None:
@@ -164,16 +188,31 @@ def fetch_game_stats(game_id):
                 res[f'{side}_possession'] = val
             elif name in ('shots', 'total shots') and not res.get(f'{side}_shots'):
                 res[f'{side}_shots'] = _num(s.get('value'))
+            elif 'on target' in name and not res.get(f'{side}_sot'):
+                res[f'{side}_sot'] = _num(s.get('value'))
+            elif 'corner' in name:
+                res[f'{side}_corners'] = _num(s.get('value'))
+            elif 'big chance' in name:
+                res[f'{side}_big_chances'] = _num(s.get('value'))
+        if discover and seen_names:
+            log(f"  [discover] game {game_id} stat names: {sorted(seen_names)}")
     except Exception as e:
         log(f"  stats endpoint failed for {game_id}: {e}")
 
     return res
 
 
+# All per-match advanced-stat columns synced from 365Scores. Single source of
+# truth shared by the schema migration and the UPDATE below.
+STAT_COLS = ('home_xg', 'away_xg', 'home_possession', 'away_possession',
+             'home_shots', 'away_shots', 'home_xgot', 'away_xgot',
+             'home_sot', 'away_sot', 'home_corners', 'away_corners',
+             'home_big_chances', 'away_big_chances')
+
+
 def ensure_schema(cur):
     cols = {r[1] for r in cur.execute('PRAGMA table_info(matches)')}
-    for col in ('home_xg', 'away_xg', 'home_possession', 'away_possession',
-                'home_shots', 'away_shots'):
+    for col in STAT_COLS:
         if col not in cols:
             cur.execute(f'ALTER TABLE matches ADD COLUMN {col} REAL')
 
@@ -238,10 +277,16 @@ def run(dry_run=False):
 
     # Backfill: any completed fixture still missing xG (e.g. games that aged out of
     # the rolling 'current' window before we captured them) is filled from the
-    # competition's full game history.
+    # competition's full game history. Fixtures missing only the NEWER stat
+    # columns (xGOT/SOT/corners/big chances) are re-processed too, but only
+    # within a 7-day window — a feed variant that simply doesn't publish those
+    # fields would otherwise be re-fetched forever.
     missing = {frozenset((N(h), N(a))) for h, a in cur.execute(
         "SELECT home_team, away_team FROM matches "
-        "WHERE status='Completed' AND (home_xg IS NULL OR away_xg IS NULL)").fetchall()}
+        "WHERE status='Completed' AND ("
+        "  home_xg IS NULL OR away_xg IS NULL"
+        "  OR (home_xgot IS NULL AND date >= date('now', '-7 day'))"
+        ")").fetchall()}
     if missing and comp_ids:
         log(f"{len(missing)} completed fixture(s) missing xG -> backfilling from competition history...")
         for bg in find_all_wc_finished_games(comp_ids):
@@ -256,7 +301,7 @@ def run(dry_run=False):
     matched = 0
     for gid in sorted(ids):
         try:
-            p = fetch_game_stats(gid)
+            p = fetch_game_stats(gid, discover=dry_run)
         except Exception as e:
             log(f"  game {gid} fetch failed: {e}")
             continue
@@ -274,19 +319,27 @@ def run(dry_run=False):
                 f"xG {p['home_xg']}-{p['away_xg']}  -> NO DB FIXTURE MATCH")
             continue
         mn, swapped = m
-        hx, ax = (p['away_xg'], p['home_xg']) if swapped else (p['home_xg'], p['away_xg'])
-        hp, ap = ((p['away_possession'], p['home_possession']) if swapped
-                  else (p['home_possession'], p['away_possession']))
-        hs, ss = ((p['away_shots'], p['home_shots']) if swapped
-                  else (p['home_shots'], p['away_shots']))
+
+        def sided(base):
+            h, a = p[f'home_{base}'], p[f'away_{base}']
+            return (a, h) if swapped else (h, a)
+
+        vals = {}
+        for base in ('xg', 'possession', 'shots', 'xgot', 'sot',
+                     'corners', 'big_chances'):
+            vals[f'home_{base}'], vals[f'away_{base}'] = sided(base)
         log(f"  [{tag}] match #{mn} {p['home_name']} vs {p['away_name']}"
-            f"{' (swapped)' if swapped else ''}  xG {hx}-{ax}  poss {hp}-{ap}  shots {hs}-{ss}")
+            f"{' (swapped)' if swapped else ''}  xG {vals['home_xg']}-{vals['away_xg']}"
+            f"  xGOT {vals['home_xgot']}-{vals['away_xgot']}"
+            f"  SOT {vals['home_sot']}-{vals['away_sot']}"
+            f"  poss {vals['home_possession']}-{vals['away_possession']}"
+            f"  shots {vals['home_shots']}-{vals['away_shots']}"
+            f"  corners {vals['home_corners']}-{vals['away_corners']}")
         matched += 1
         if not dry_run:
-            cur.execute(
-                "UPDATE matches SET home_xg=?, away_xg=?, home_possession=?, "
-                "away_possession=?, home_shots=?, away_shots=? WHERE match_num=?",
-                (hx, ax, hp, ap, hs, ss, mn))
+            setters = ', '.join(f'{c}=?' for c in STAT_COLS)
+            cur.execute(f"UPDATE matches SET {setters} WHERE match_num=?",
+                        tuple(vals[c] for c in STAT_COLS) + (mn,))
 
     log(f"matched {matched}/{len(ids)} game(s) to fixtures.")
 
