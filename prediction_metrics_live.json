@@ -1,11 +1,11 @@
 {
   "n": 88,
-  "generated_at": "2026-07-04 14:00:55",
+  "generated_at": "2026-07-04 16:00:54",
   "accuracy": 0.6477272727272727,
-  "rps": 0.14397024150147136,
+  "rps": 0.1439976559766428,
   "rps_uniform": 0.23042929292929315,
-  "brier": 0.4863523110386563,
-  "logloss": 0.8448808736906511,
+  "brier": 0.4864126835567549,
+  "logloss": 0.8450398271935659,
   "exact_score_acc": 0.1590909090909091,
   "gd_mae": 1.5454545454545454,
   "tg_mae": 1.4318181818181819,
@@ -13,27 +13,27 @@
     "30-40%": {
       "n": 6,
       "win_rate": 0.16666666666666666,
-      "avg_pred": 0.36127177227597107
+      "avg_pred": 0.35989409552771884
     },
     "40-50%": {
       "n": 21,
       "win_rate": 0.5238095238095238,
-      "avg_pred": 0.45343489052789354
+      "avg_pred": 0.4537313755007968
     },
     "50-60%": {
       "n": 17,
       "win_rate": 0.5294117647058824,
-      "avg_pred": 0.5528500860547291
+      "avg_pred": 0.552991632826438
     },
     "60-70%": {
       "n": 25,
       "win_rate": 0.88,
-      "avg_pred": 0.647148162148361
+      "avg_pred": 0.6476069096277521
     },
     "70-80%": {
       "n": 19,
       "win_rate": 0.7368421052631579,
-      "avg_pred": 0.7345253542296448
+      "avg_pred": 0.7347223770264448
     }
   },
   "acc_by_conf": {
@@ -388,9 +388,9 @@
       "home": "Australia",
       "away": "Türkiye",
       "probs": [
-        0.292,
+        0.29,
         0.306,
-        0.402
+        0.404
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -405,9 +405,9 @@
       "home": "USA",
       "away": "Australia",
       "probs": [
-        0.439,
-        0.286,
-        0.275
+        0.441,
+        0.285,
+        0.274
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -456,9 +456,9 @@
       "home": "Paraguay",
       "away": "Australia",
       "probs": [
-        0.261,
-        0.3,
-        0.439
+        0.262,
+        0.301,
+        0.438
       ],
       "pred_outcome": "away",
       "pred_score": "0-1",
@@ -677,9 +677,9 @@
       "home": "Belgium",
       "away": "Egypt",
       "probs": [
-        0.517,
+        0.515,
         0.266,
-        0.217
+        0.218
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -730,7 +730,7 @@
       "probs": [
         0.157,
         0.178,
-        0.665
+        0.666
       ],
       "pred_outcome": "away",
       "pred_score": "0-3",
@@ -738,16 +738,16 @@
       "actual_score": "1-3",
       "hit": true,
       "exact": false,
-      "reason": "✅ 命中:模型賽前看好客勝（Egypt 66%，高信心），結果如預期。"
+      "reason": "✅ 命中:模型賽前看好客勝（Egypt 67%，高信心），結果如預期。"
     },
     {
       "match_num": 41,
       "home": "Egypt",
       "away": "Iran",
       "probs": [
-        0.338,
+        0.339,
         0.312,
-        0.35
+        0.349
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -779,8 +779,8 @@
       "home": "Spain",
       "away": "Cape Verde",
       "probs": [
-        0.736,
-        0.128,
+        0.737,
+        0.127,
         0.136
       ],
       "pred_outcome": "home",
@@ -830,9 +830,9 @@
       "home": "Uruguay",
       "away": "Cape Verde",
       "probs": [
-        0.583,
-        0.235,
-        0.181
+        0.587,
+        0.233,
+        0.18
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -840,16 +840,16 @@
       "actual_score": "2-2",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Uruguay贏，最後雙方言和；模型其實也給了和局 24%。"
+      "reason": "❌ 模型看好Uruguay贏，最後雙方言和；模型其實也給了和局 23%。"
     },
     {
       "match_num": 47,
       "home": "Cape Verde",
       "away": "Saudi Arabia",
       "probs": [
-        0.367,
+        0.362,
         0.309,
-        0.324
+        0.328
       ],
       "pred_outcome": "home",
       "pred_score": "2-1",
@@ -857,7 +857,7 @@
       "actual_score": "0-0",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Cape Verde贏，最後雙方言和；模型其實也給了和局 31%；合理變異:三方接近(主37/和31/客32),模型信心本就低；兩隊實力接近(Elo 僅差 31)。"
+      "reason": "❌ 模型看好Cape Verde贏，最後雙方言和；模型其實也給了和局 31%；合理變異:三方接近(主36/和31/客33),模型信心本就低；兩隊實力接近(Elo 僅差 31)。"
     },
     {
       "match_num": 48,
@@ -983,9 +983,9 @@
       "home": "Argentina",
       "away": "Algeria",
       "probs": [
-        0.662,
-        0.181,
-        0.157
+        0.663,
+        0.18,
+        0.156
       ],
       "pred_outcome": "home",
       "pred_score": "3-0",
@@ -1017,9 +1017,9 @@
       "home": "Argentina",
       "away": "Austria",
       "probs": [
-        0.602,
-        0.212,
-        0.186
+        0.603,
+        0.211,
+        0.185
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -1103,8 +1103,8 @@
       "away": "Colombia",
       "probs": [
         0.143,
-        0.149,
-        0.708
+        0.148,
+        0.709
       ],
       "pred_outcome": "away",
       "pred_score": "0-4",
@@ -1136,9 +1136,9 @@
       "home": "Colombia",
       "away": "DR Congo",
       "probs": [
-        0.664,
-        0.185,
-        0.152
+        0.665,
+        0.183,
+        0.151
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -1146,16 +1146,16 @@
       "actual_score": "1-0",
       "hit": true,
       "exact": false,
-      "reason": "✅ 命中:模型賽前看好主勝（Colombia 66%，高信心），結果如預期。"
+      "reason": "✅ 命中:模型賽前看好主勝（Colombia 67%，高信心），結果如預期。"
     },
     {
       "match_num": 65,
       "home": "Colombia",
       "away": "Portugal",
       "probs": [
-        0.329,
+        0.332,
         0.299,
-        0.372
+        0.369
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -1204,9 +1204,9 @@
       "home": "Ghana",
       "away": "Panama",
       "probs": [
-        0.266,
-        0.297,
-        0.437
+        0.263,
+        0.296,
+        0.442
       ],
       "pred_outcome": "away",
       "pred_score": "1-2",
@@ -1214,16 +1214,16 @@
       "actual_score": "1-0",
       "hit": false,
       "exact": false,
-      "reason": "❌ 模型看好Panama（44%），最後由Ghana勝出；合理變異:三方接近(主27/和30/客44),模型信心本就低；兩隊實力接近(Elo 僅差 21)。"
+      "reason": "❌ 模型看好Panama（44%），最後由Ghana勝出；合理變異:三方接近(主26/和30/客44),模型信心本就低；兩隊實力接近(Elo 僅差 21)。"
     },
     {
       "match_num": 69,
       "home": "England",
       "away": "Ghana",
       "probs": [
-        0.718,
-        0.142,
-        0.14
+        0.719,
+        0.141,
+        0.139
       ],
       "pred_outcome": "home",
       "pred_score": "4-0",
@@ -1272,9 +1272,9 @@
       "home": "Croatia",
       "away": "Ghana",
       "probs": [
-        0.601,
-        0.218,
-        0.181
+        0.604,
+        0.216,
+        0.18
       ],
       "pred_outcome": "home",
       "pred_score": "2-0",
@@ -1510,9 +1510,9 @@
       "home": "Australia",
       "away": "Egypt",
       "probs": [
-        0.328,
+        0.325,
         0.352,
-        0.321
+        0.323
       ],
       "pred_outcome": "draw",
       "pred_score": "1-1",
@@ -1527,8 +1527,8 @@
       "home": "Argentina",
       "away": "Cape Verde",
       "probs": [
-        0.748,
-        0.142,
+        0.749,
+        0.141,
         0.11
       ],
       "pred_outcome": "home",
@@ -1544,9 +1544,9 @@
       "home": "Colombia",
       "away": "Ghana",
       "probs": [
-        0.695,
-        0.181,
-        0.124
+        0.698,
+        0.178,
+        0.123
       ],
       "pred_outcome": "home",
       "pred_score": "3-0",
