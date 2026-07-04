@@ -965,6 +965,16 @@ def parse_and_sync():
                 home_goals = int(m_score_parse.group(1))
                 away_goals = int(m_score_parse.group(2))
                 status = "Completed"
+                # 預測標的是「正賽 90 分鐘」的勝/平/負。淘汰賽會踢延長賽 ⟺ 90 分鐘
+                # 必為平局,而維基 footballbox 對這類場次顯示的是「延長賽後」總比分
+                # (如 3–2 (a.e.t.))。若直接沿用,模型會把 90 分鐘平局的比賽當勝負
+                # 去更新 Elo/Pi/Berrar 與準確度,污染所有評級。90 分鐘確切比分無法
+                # 從文字得知,但必為 X–X 且 X ≤ min(進球數),取 min 為最合理近似;
+                # 對模型最關鍵的「結果=和、淨勝=0」則是精確的。score 文字保留原樣
+                # 供顯示,只正規化進球數欄位。
+                if re.search(r'a\.?\s*e\.?\s*t|pen', score_txt, re.IGNORECASE):
+                    g90 = min(home_goals, away_goals)
+                    home_goals = away_goals = g90
             else:
                 status = "Completed" # Fallback
                 
