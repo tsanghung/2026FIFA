@@ -846,7 +846,65 @@ def reset_and_recalculate_all_elo_and_predictions():
     conn.close()
     log("資料庫中所有賽事的動態評級與集成預測重新計算完成！")
 
+def _snapshot_stat_cols(db_path):
+    """Advanced per-match stats (xG family, from 365Scores) and score-source
+    provenance live in `matches`, which force_recreate drops every sync. They
+    used to be refilled from the live feed each run — so one source hiccup
+    silently wiped every stored stat (observed: 0/88 completed games had xG).
+    Snapshot them before the rebuild and restore after, same idea as
+    manual_results for scores. Returns {match_num: {col: value}}."""
+    cols = ('home_xg', 'away_xg', 'home_possession', 'away_possession',
+            'home_shots', 'away_shots', 'home_xgot', 'away_xgot',
+            'home_sot', 'away_sot', 'home_corners', 'away_corners',
+            'home_big_chances', 'away_big_chances', 'score_source')
+    snap = {}
+    try:
+        con = sqlite3.connect(db_path)
+        have = {r[1] for r in con.execute('PRAGMA table_info(matches)')}
+        keep = [c for c in cols if c in have]
+        if keep:
+            for row in con.execute(
+                    f"SELECT match_num, {', '.join(keep)} FROM matches"):
+                vals = {c: v for c, v in zip(keep, row[1:]) if v is not None}
+                if vals:
+                    snap[row[0]] = vals
+        con.close()
+    except Exception as e:
+        log(f"統計快照失敗(略過,將由 365Scores 重填): {e}")
+    return snap
+
+
+def _restore_stat_cols(db_path, snap):
+    if not snap:
+        return
+    try:
+        con = sqlite3.connect(db_path)
+        cur = con.cursor()
+        have = {r[1] for r in cur.execute('PRAGMA table_info(matches)')}
+        for col in ('home_xg', 'away_xg', 'home_possession', 'away_possession',
+                    'home_shots', 'away_shots', 'home_xgot', 'away_xgot',
+                    'home_sot', 'away_sot', 'home_corners', 'away_corners',
+                    'home_big_chances', 'away_big_chances'):
+            if col not in have:
+                cur.execute(f'ALTER TABLE matches ADD COLUMN {col} REAL')
+        if 'score_source' not in have:
+            cur.execute('ALTER TABLE matches ADD COLUMN score_source TEXT')
+        n = 0
+        for mn, vals in snap.items():
+            sets = ', '.join(f'{c}=?' for c in vals)
+            cur.execute(f'UPDATE matches SET {sets} WHERE match_num=?',
+                        tuple(vals.values()) + (mn,))
+            n += cur.rowcount
+        con.commit()
+        con.close()
+        log(f"已還原 {len(snap)} 場的進階統計(跨重建持久化)。")
+    except Exception as e:
+        log(f"統計還原失敗: {e}")
+
+
 def parse_and_sync():
+    # Preserve advanced stats across the destructive rebuild below.
+    _stat_snapshot = _snapshot_stat_cols(DB_PATH)
     # Make sure advanced database is initialized
     init_db(force_recreate=True)
     
@@ -997,7 +1055,11 @@ def parse_and_sync():
     conn.close()
     
     log(f"成功爬取並寫入 {inserted_count} 場基礎賽事數據到資料庫。")
-    
+
+    # Restore the advanced stats snapshotted before the rebuild (365Scores then
+    # only needs to top up genuinely new games instead of refilling everything).
+    _restore_stat_cols(DB_PATH, _stat_snapshot)
+
     # 執行第二階段模型先驗與 Reddit 輿情同步；非即時 FBref/SofaScore/Opta 抓取。
     try:
         log("正在同步第二階段模型先驗與 Reddit 輿情...")
