@@ -184,6 +184,103 @@ def normalize_team_name(name):
     }
     return mapping.get(name, name)
 
+
+# Canonical set of the 48 real, confirmed national teams (post-normalization).
+# Anything else parsed as a home/away name is presumptively a Wikipedia bracket
+# placeholder for an undecided knockout slot ("Winner Match 101", "TBD", ...).
+_REAL_TEAM_NAMES = {normalize_team_name(t) for grp in GROUPS_DATA.values() for t in grp}
+
+# Schedule/result columns written by the Wikipedia parse loop below — kept as a
+# single list so the snapshot/restore safety net (see _snapshot_schedule /
+# _restore_corrupted_schedule) always matches exactly what that INSERT touches.
+SCHEDULE_COLS = ('group_or_stage', 'date', 'time', 'home_team', 'away_team',
+                  'stadium', 'city', 'score', 'home_goals', 'away_goals', 'status')
+
+
+def _is_placeholder_team(name):
+    """True when `name` isn't one of the 48 real teams — i.e. we don't yet know
+    who's actually playing (a still-undecided knockout bracket slot)."""
+    return name not in _REAL_TEAM_NAMES
+
+
+def _snapshot_schedule(db_path):
+    """{match_num: {col: value}} snapshot of every fixture's schedule/result
+    fields, taken right before force_recreate drops the table.
+
+    Why: Wikipedia's footballbox count/order occasionally shifts mid-tournament
+    (editors restructure the article as each round completes — e.g. moving
+    finished rounds' tables to a sub-article), which can make the position-based
+    box -> match_num mapping (INDEX_TO_MATCH_NUM) misfire for an undecided
+    future knockout slot. The one dynamic safety check the parser has (reading
+    a "Match N"/"Report N" number off the box itself) only fires once that box
+    has a score or report link — a box for a not-yet-played fixture (still
+    showing bracket placeholder team names) has neither, so a mapping slip is
+    invisible to that check. Observed in production: a run that found 89 boxes
+    instead of 104 stamped match #89 (Round of 16) with the Final's own
+    placeholder content ('Winner Match 101' vs 'Winner Match 102', dated the
+    day the Final is actually scheduled) — and, because the table is fully
+    dropped and rebuilt from only the boxes that WERE found, match_num 90-104
+    vanished from the database entirely rather than merely being wrong.
+
+    _restore_corrupted_schedule uses this snapshot to detect and undo exactly
+    that failure mode after the fresh parse, without touching legitimately
+    still-undecided slots (which have never had real teams to fall back to)."""
+    snap = {}
+    try:
+        con = sqlite3.connect(db_path)
+        con.row_factory = sqlite3.Row
+        cols = ', '.join(SCHEDULE_COLS)
+        for row in con.execute(f"SELECT match_num, {cols} FROM matches"):
+            snap[row['match_num']] = {c: row[c] for c in SCHEDULE_COLS}
+        con.close()
+    except Exception as e:
+        log(f"賽程快照失敗(略過,本次無安全網可用): {e}")
+    return snap
+
+
+def _restore_corrupted_schedule(db_path, snapshot, parsed_this_run):
+    """Restore the last confirmed-good row (from `snapshot`) for any match_num
+    that regressed in this run's fresh Wikipedia parse:
+      - Wikipedia produced NOTHING for it this run (its box vanished/shifted
+        out of reach entirely), or
+      - Wikipedia produced a PLACEHOLDER team name where we previously had BOTH
+        real teams on record — a genuine regression, not a slot that has simply
+        never had real teams yet (those correctly keep showing the fresh
+        placeholder parse: there's nothing better to fall back to).
+    Only touches the schedule/result columns (SCHEDULE_COLS); predictions and
+    advanced stats for the restored row are recomputed/refilled by the rest of
+    the pipeline as usual. Returns the number of fixtures restored."""
+    if not snapshot:
+        return 0
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    restored = 0
+    for mn, old in snapshot.items():
+        new = parsed_this_run.get(mn)
+        if new is None:
+            need_restore = True
+        else:
+            old_had_real_teams = (not _is_placeholder_team(old['home_team'])
+                                   and not _is_placeholder_team(old['away_team']))
+            new_is_placeholder = (_is_placeholder_team(new['home_team'])
+                                   or _is_placeholder_team(new['away_team']))
+            need_restore = old_had_real_teams and new_is_placeholder
+        if need_restore:
+            cols = ', '.join(SCHEDULE_COLS)
+            qs = ', '.join('?' * len(SCHEDULE_COLS))
+            cur.execute(
+                f"INSERT OR REPLACE INTO matches (match_num, {cols}) VALUES (?, {qs})",
+                (mn,) + tuple(old[c] for c in SCHEDULE_COLS))
+            restored += 1
+            log(f"  賽程安全網還原 #{mn}: {old['home_team']} vs {old['away_team']} "
+                f"({old['group_or_stage']}, {old['date']}) — 本次維基解析結果為遺失或退化為佔位文字。")
+    con.commit()
+    con.close()
+    if restored:
+        log(f"賽程安全網:共 {restored} 場從同步前快照還原。")
+    return restored
+
+
 def init_db(force_recreate=False):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -903,8 +1000,10 @@ def _restore_stat_cols(db_path, snap):
 
 
 def parse_and_sync():
-    # Preserve advanced stats across the destructive rebuild below.
+    # Preserve advanced stats and the confirmed schedule/bracket across the
+    # destructive rebuild below (see _snapshot_schedule for why the latter matters).
     _stat_snapshot = _snapshot_stat_cols(DB_PATH)
+    _schedule_snapshot = _snapshot_schedule(DB_PATH)
     # Make sure advanced database is initialized
     init_db(force_recreate=True)
     
@@ -929,7 +1028,8 @@ def parse_and_sync():
     cursor = conn.cursor()
     
     inserted_count = 0
-    
+    _parsed_this_run = {}  # match_num -> {'home_team', 'away_team'}, for the schedule safety net
+
     for i, box in enumerate(boxes):
         # Fallback mapping
         match_num = INDEX_TO_MATCH_NUM.get(i)
@@ -961,7 +1061,9 @@ def parse_and_sync():
         # Normalize names
         home_team = normalize_team_name(home_team)
         away_team = normalize_team_name(away_team)
-        
+        _parsed_this_run[match_num] = {'home_team': home_team, 'away_team': away_team}
+
+
         # Parse date and time
         date_el = box.find(class_='fdate')
         time_el = box.find(class_='ftime')
@@ -1055,6 +1157,10 @@ def parse_and_sync():
     conn.close()
     
     log(f"成功爬取並寫入 {inserted_count} 場基礎賽事數據到資料庫。")
+
+    # Undo any fixture that regressed to a missing row or placeholder bracket
+    # text this run (see _snapshot_schedule for why this can happen).
+    _restore_corrupted_schedule(DB_PATH, _schedule_snapshot, _parsed_this_run)
 
     # Restore the advanced stats snapshotted before the rebuild (365Scores then
     # only needs to top up genuinely new games instead of refilling everything).
