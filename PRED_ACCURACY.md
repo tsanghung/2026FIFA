@@ -1,6 +1,6 @@
 # 🎯 本屆世界盃「正式預測」即時準確度
 
-_更新:2026-07-10 04:01:08　已評估場次:92_
+_更新:2026-07-10 06:01:07　已評估場次:92_
 
 ## 總指標
 
@@ -32,7 +32,7 @@ _更新:2026-07-10 04:01:08　已評估場次:92_
 | 14 | Australia vs Egypt | 38/31/31 | 2-1 | 1-1 | ❌ | — |
 | 15 | Argentina vs Cape Verde | 74/13/14 | 6-0 | 2-2 | ❌ | — |
 | 16 | Colombia vs Ghana | 71/15/14 | 4-0 | 1-0 | ✅ | — |
-| 17 | Canada vs Morocco | 18/23/58 | 0-2 | 0-3 | ✅ | — |
+| 17 | Canada vs Morocco | 19/23/58 | 0-2 | 0-3 | ✅ | — |
 | 18 | Paraguay vs France | 14/17/69 | 0-3 | 0-1 | ✅ | — |
 | 19 | Brazil vs Norway | 40/30/30 | 2-1 | 1-2 | ❌ | — |
 | 20 | Mexico vs England | 30/30/40 | 1-2 | 2-3 | ✅ | — |
@@ -88,7 +88,7 @@ _更新:2026-07-10 04:01:08　已評估場次:92_
 | 73 | South Africa vs Canada | 19/28/53 | 0-2 | 0-1 | ✅ | — |
 | 74 | Brazil vs Japan | 41/31/28 | 2-1 | 2-1 | ✅ | ✅ |
 | 75 | Germany vs Paraguay | 46/31/22 | 2-0 | 1-1 | ❌ | — |
-| 76 | Netherlands vs Morocco | 36/32/31 | 2-1 | 1-1 | ❌ | — |
+| 76 | Netherlands vs Morocco | 37/32/31 | 2-1 | 1-1 | ❌ | — |
 | 77 | Ivory Coast vs Norway | 20/27/52 | 1-2 | 1-2 | ✅ | ✅ |
 | 78 | France vs Sweden | 76/14/10 | 4-0 | 3-0 | ✅ | — |
 | 79 | Mexico vs Ecuador | 44/32/24 | 2-1 | 2-0 | ✅ | — |
@@ -127,7 +127,7 @@ _更新:2026-07-10 04:01:08　已評估場次:92_
 - **#14 Australia vs Egypt**：❌ 模型看好Australia贏，最後雙方言和；模型其實也給了和局 31%；合理變異:三方接近(主38/和31/客31),模型信心本就低；兩隊實力接近(Elo 僅差 18)。
 - **#15 Argentina vs Cape Verde**：❌ 模型看好Argentina贏，最後雙方言和；模型其實也給了和局 13%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
 - **#16 Colombia vs Ghana**：✅ 命中:模型賽前看好主勝（Colombia 71%，高信心），結果如預期。
-- **#17 Canada vs Morocco**：✅ 命中:模型賽前看好客勝（Morocco 59%，中信心），結果如預期。
+- **#17 Canada vs Morocco**：✅ 命中:模型賽前看好客勝（Morocco 58%，中信心），結果如預期。
 - **#18 Paraguay vs France**：✅ 命中:模型賽前看好客勝（France 69%，高信心），結果如預期。
 - **#19 Brazil vs Norway**：❌ 模型看好Brazil（39%），最後由Norway勝出；合理變異:三方接近(主39/和31/客30),模型信心本就低；兩隊實力接近(Elo 僅差 5)。
 - **#20 Mexico vs England**：✅ 命中:模型賽前看好客勝（England 40%，低信心），結果如預期。
@@ -135,7 +135,7 @@ _更新:2026-07-10 04:01:08　已評估場次:92_
 - **#22 USA vs Belgium**：✅ 命中:模型賽前看好客勝（Belgium 43%，低信心），結果如預期。
 - **#23 Argentina vs Egypt**：✅ 命中:模型賽前看好主勝（Argentina 64%，高信心），結果如預期。
 - **#24 Switzerland vs Colombia**：❌ 模型看好Colombia贏，最後雙方言和；模型其實也給了和局 31%；合理變異:三方接近(主33/和31/客36),模型信心本就低；兩隊實力接近(Elo 僅差 18)。
-- **#25 France vs Morocco**：✅ 命中:模型賽前看好主勝（France 45%，低信心），結果如預期。
+- **#25 France vs Morocco**：✅ 命中:模型賽前看好主勝（France 45%，中信心），結果如預期。
 - **#29 Curaçao vs Ivory Coast**：✅ 命中:模型賽前看好客勝（Ivory Coast 69%，高信心），結果如預期。
 - **#30 Ecuador vs Germany**：❌ 模型看好Germany（49%），最後由Ecuador勝出。
 - **#31 Netherlands vs Japan**：❌ 模型看好Netherlands贏，最後雙方言和；模型其實也給了和局 29%；合理變異:三方接近(主45/和29/客27),模型信心本就低。
