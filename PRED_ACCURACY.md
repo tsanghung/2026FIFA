@@ -1,12 +1,12 @@
 # 🎯 本屆世界盃「正式預測」即時準確度
 
-_更新:2026-07-12 06:01:07　已評估場次:93_
+_更新:2026-07-12 08:01:25　已評估場次:93_
 
 ## 總指標
 
 - 1X2 命中率:**69%**（64/93）
 - RPS：**0.129**（越低越好;隨機基準 0.229）
-- Brier：0.458　Log-loss：0.803
+- Brier：0.459　Log-loss：0.803
 - 精確比分命中率：18%　進球差 MAE：1.43　總進球 MAE：1.30
 - 本屆和局率：**29%**（27/93） vs 歷史 22%
 
@@ -20,10 +20,10 @@ _更新:2026-07-12 06:01:07　已評估場次:93_
 | 2 | Brazil vs Japan | 43/29/28 | 2-1 | 2-1 | ✅ | ✅ |
 | 3 | Germany vs Paraguay | 53/26/21 | 2-0 | 1-1 | ❌ | — |
 | 4 | Netherlands vs Morocco | 35/30/35 | 2-1 | 1-1 | ❌ | — |
-| 5 | Ivory Coast vs Norway | 22/27/51 | 0-2 | 1-2 | ✅ | — |
+| 5 | Ivory Coast vs Norway | 22/27/50 | 0-2 | 1-2 | ✅ | — |
 | 6 | France vs Sweden | 66/18/16 | 3-0 | 3-0 | ✅ | ✅ |
 | 7 | Mexico vs Ecuador | 45/29/26 | 2-1 | 2-0 | ✅ | — |
-| 8 | England vs DR Congo | 68/16/15 | 3-0 | 2-1 | ✅ | — |
+| 8 | England vs DR Congo | 69/16/15 | 3-0 | 2-1 | ✅ | — |
 | 9 | Belgium vs Senegal | 48/28/24 | 2-1 | 2-2 | ❌ | — |
 | 10 | USA vs Bosnia-Herzegovina | 64/20/16 | 2-0 | 2-0 | ✅ | ✅ |
 | 11 | Spain vs Austria | 60/21/19 | 2-0 | 3-0 | ✅ | — |
@@ -90,7 +90,7 @@ _更新:2026-07-12 06:01:07　已評估場次:93_
 | 74 | Brazil vs Japan | 40/31/28 | 2-1 | 2-1 | ✅ | ✅ |
 | 75 | Germany vs Paraguay | 50/30/20 | 2-0 | 1-1 | ❌ | — |
 | 76 | Netherlands vs Morocco | 38/32/30 | 2-1 | 1-1 | ❌ | — |
-| 77 | Ivory Coast vs Norway | 18/26/55 | 1-2 | 1-2 | ✅ | ✅ |
+| 77 | Ivory Coast vs Norway | 19/26/55 | 1-2 | 1-2 | ✅ | ✅ |
 | 78 | France vs Sweden | 76/14/10 | 4-0 | 3-0 | ✅ | — |
 | 79 | Mexico vs Ecuador | 48/30/21 | 2-0 | 2-0 | ✅ | ✅ |
 | 80 | England vs DR Congo | 70/18/13 | 3-0 | 2-1 | ✅ | — |
