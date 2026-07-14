@@ -1,16 +1,16 @@
 # 🎯 本屆世界盃「正式預測」即時準確度
 
-_更新:2026-07-14 20:01:05　已評估場次:93_
+_更新:2026-07-14 22:01:15　已評估場次:94_
 
 ## 總指標
 
-- 1X2 命中率:**69%**（64/93）
-- RPS：**0.130**（越低越好;隨機基準 0.229）
-- Brier：0.460　Log-loss：0.806
-- 精確比分命中率：19%　進球差 MAE：1.42　總進球 MAE：1.31
-- 本屆和局率：**29%**（27/93） vs 歷史 22%
+- 1X2 命中率:**69%**（65/94）
+- RPS：**0.131**（越低越好;隨機基準 0.230）
+- Brier：0.463　Log-loss：0.809
+- 精確比分命中率：21%　進球差 MAE：1.38　總進球 MAE：1.28
+- 本屆和局率：**29%**（27/94） vs 歷史 22%
 
-> RPS 0.130 vs 隨機 0.229 → **優於隨機**。
+> RPS 0.131 vs 隨機 0.230 → **優於隨機**。
 
 ## 逐場
 
@@ -41,9 +41,10 @@ _更新:2026-07-14 20:01:05　已評估場次:93_
 | 23 | Argentina vs Egypt | 65/19/16 | 2-0 | 3-2 | ✅ | — |
 | 24 | Switzerland vs Colombia | 31/31/38 | 0-1 | 0-0 | ❌ | — |
 | 25 | France vs Morocco | 48/28/24 | 2-0 | 2-0 | ✅ | ✅ |
-| 26 | Spain vs Belgium | 52/27/22 | 2-1 | 2-1 | ✅ | ✅ |
+| 26 | Spain vs Belgium | 52/26/22 | 2-1 | 2-1 | ✅ | ✅ |
 | 27 | Norway vs England | 25/28/48 | 1-2 | 1-1 | ❌ | — |
-| 28 | Argentina vs Switzerland | 49/26/24 | 2-1 | 1-1 | ❌ | — |
+| 28 | Argentina vs Switzerland | 49/27/25 | 2-1 | 1-1 | ❌ | — |
+| 29 | France vs Spain | 34/32/34 | 0-1 | 0-2 | ✅ | — |
 | 31 | Netherlands vs Japan | 44/29/27 | 2-1 | 2-2 | ❌ | — |
 | 32 | Sweden vs Tunisia | 50/26/23 | 2-1 | 5-1 | ✅ | — |
 | 33 | Netherlands vs Sweden | 53/25/22 | 2-1 | 5-1 | ✅ | — |
@@ -56,17 +57,17 @@ _更新:2026-07-14 20:01:05　已評估場次:93_
 | 40 | New Zealand vs Egypt | 16/18/65 | 0-3 | 1-3 | ✅ | — |
 | 41 | Egypt vs Iran | 32/31/37 | 1-2 | 1-1 | ❌ | — |
 | 42 | New Zealand vs Belgium | 12/13/75 | 0-5 | 1-5 | ✅ | — |
-| 43 | Spain vs Cape Verde | 76/12/12 | 7-0 | 0-0 | ❌ | — |
+| 43 | Spain vs Cape Verde | 77/12/11 | 7-0 | 0-0 | ❌ | — |
 | 44 | Saudi Arabia vs Uruguay | 18/22/60 | 0-2 | 1-1 | ❌ | — |
-| 45 | Spain vs Saudi Arabia | 75/13/12 | 6-0 | 4-0 | ✅ | — |
-| 46 | Uruguay vs Cape Verde | 56/25/20 | 2-0 | 2-2 | ❌ | — |
+| 45 | Spain vs Saudi Arabia | 77/12/11 | 6-0 | 4-0 | ✅ | — |
+| 46 | Uruguay vs Cape Verde | 55/25/20 | 2-0 | 2-2 | ❌ | — |
 | 47 | Cape Verde vs Saudi Arabia | 39/30/30 | 2-1 | 0-0 | ❌ | — |
-| 48 | Uruguay vs Spain | 14/17/69 | 0-3 | 0-1 | ✅ | — |
-| 49 | France vs Senegal | 67/18/14 | 2-0 | 3-1 | ✅ | — |
+| 48 | Uruguay vs Spain | 12/16/72 | 0-3 | 0-1 | ✅ | — |
+| 49 | France vs Senegal | 64/20/16 | 2-0 | 3-1 | ✅ | — |
 | 50 | Iraq vs Norway | 14/15/72 | 0-4 | 1-4 | ✅ | — |
-| 51 | France vs Iraq | 79/11/10 | 7-0 | 3-0 | ✅ | — |
+| 51 | France vs Iraq | 78/12/11 | 6-0 | 3-0 | ✅ | — |
 | 52 | Norway vs Senegal | 54/26/20 | 2-0 | 3-2 | ✅ | — |
-| 53 | Norway vs France | 17/23/59 | 0-2 | 1-4 | ✅ | — |
+| 53 | Norway vs France | 20/25/55 | 0-2 | 1-4 | ✅ | — |
 | 54 | Senegal vs Iraq | 64/20/16 | 2-0 | 5-0 | ✅ | — |
 | 55 | Argentina vs Algeria | 69/17/14 | 3-0 | 3-0 | ✅ | ✅ |
 | 56 | Austria vs Jordan | 60/21/19 | 2-0 | 3-1 | ✅ | — |
@@ -87,26 +88,26 @@ _更新:2026-07-14 20:01:05　已評估場次:93_
 | 71 | Panama vs England | 12/13/75 | 0-4 | 0-2 | ✅ | — |
 | 72 | Croatia vs Ghana | 60/22/18 | 2-0 | 2-1 | ✅ | — |
 | 73 | South Africa vs Canada | 19/28/53 | 0-2 | 0-1 | ✅ | — |
-| 74 | Brazil vs Japan | 40/31/28 | 2-1 | 2-1 | ✅ | ✅ |
+| 74 | Brazil vs Japan | 40/32/28 | 2-1 | 2-1 | ✅ | ✅ |
 | 75 | Germany vs Paraguay | 50/30/20 | 2-0 | 1-1 | ❌ | — |
 | 76 | Netherlands vs Morocco | 38/32/30 | 2-1 | 1-1 | ❌ | — |
 | 77 | Ivory Coast vs Norway | 19/27/54 | 1-2 | 1-2 | ✅ | ✅ |
-| 78 | France vs Sweden | 76/14/10 | 4-0 | 3-0 | ✅ | — |
+| 78 | France vs Sweden | 74/16/10 | 3-0 | 3-0 | ✅ | ✅ |
 | 79 | Mexico vs Ecuador | 48/30/21 | 2-0 | 2-0 | ✅ | ✅ |
 | 80 | England vs DR Congo | 70/17/13 | 3-0 | 2-1 | ✅ | — |
-| 81 | Belgium vs Senegal | 47/30/24 | 2-1 | 2-2 | ❌ | — |
+| 81 | Belgium vs Senegal | 47/30/23 | 2-1 | 2-2 | ❌ | — |
 | 82 | USA vs Bosnia-Herzegovina | 63/22/16 | 2-0 | 2-0 | ✅ | ✅ |
-| 83 | Spain vs Austria | 68/19/12 | 2-0 | 3-0 | ✅ | — |
+| 83 | Spain vs Austria | 71/18/11 | 3-0 | 3-0 | ✅ | ✅ |
 | 84 | Portugal vs Croatia | 46/31/23 | 2-1 | 2-1 | ✅ | ✅ |
 | 85 | Switzerland vs Algeria | 59/26/16 | 2-0 | 2-0 | ✅ | ✅ |
 | 86 | Australia vs Egypt | 33/34/33 | 1-1 | 1-1 | ✅ | ✅ |
-| 87 | Argentina vs Cape Verde | 75/14/11 | 5-0 | 2-2 | ❌ | — |
+| 87 | Argentina vs Cape Verde | 74/14/11 | 5-0 | 2-2 | ❌ | — |
 | 88 | Colombia vs Ghana | 70/18/11 | 3-0 | 1-0 | ✅ | — |
 | 89 | Canada vs Morocco | 16/26/58 | 0-2 | 0-3 | ✅ | — |
-| 90 | Paraguay vs France | 10/14/76 | 0-4 | 0-1 | ✅ | — |
+| 90 | Paraguay vs France | 10/15/75 | 0-4 | 0-1 | ✅ | — |
 | 91 | Brazil vs Norway | 36/32/32 | 2-1 | 1-2 | ❌ | — |
 | 92 | Mexico vs England | 24/32/44 | 1-2 | 2-3 | ✅ | — |
-| 93 | Portugal vs Spain | 18/29/53 | 0-2 | 0-1 | ✅ | — |
+| 93 | Portugal vs Spain | 16/27/57 | 0-2 | 0-1 | ✅ | — |
 | 94 | USA vs Belgium | 23/31/46 | 1-2 | 1-4 | ✅ | — |
 | 95 | Argentina vs Egypt | 65/20/14 | 2-0 | 3-2 | ✅ | — |
 
@@ -140,6 +141,7 @@ _更新:2026-07-14 20:01:05　已評估場次:93_
 - **#26 Spain vs Belgium**：✅ 命中:模型賽前看好主勝（Spain 52%，中信心），結果如預期。
 - **#27 Norway vs England**：❌ 模型看好England贏，最後雙方言和；模型其實也給了和局 28%；兩隊實力接近(Elo 僅差 54)。
 - **#28 Argentina vs Switzerland**：❌ 模型看好Argentina贏，最後雙方言和；模型其實也給了和局 27%。
+- **#29 France vs Spain**：✅ 命中:模型賽前看好客勝（Spain 34%，低信心），結果如預期。
 - **#31 Netherlands vs Japan**：❌ 模型看好Netherlands贏，最後雙方言和；模型其實也給了和局 29%；合理變異:三方接近(主44/和29/客27),模型信心本就低。
 - **#32 Sweden vs Tunisia**：✅ 命中:模型賽前看好主勝（Sweden 50%，中信心），結果如預期。
 - **#33 Netherlands vs Sweden**：✅ 命中:模型賽前看好主勝（Netherlands 53%，中信心），結果如預期。
@@ -154,15 +156,15 @@ _更新:2026-07-14 20:01:05　已評估場次:93_
 - **#42 New Zealand vs Belgium**：✅ 命中:模型賽前看好客勝（Belgium 75%，高信心），結果如預期。
 - **#43 Spain vs Cape Verde**：❌ 模型看好Spain贏，最後雙方言和；模型其實也給了和局 12%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
 - **#44 Saudi Arabia vs Uruguay**：❌ 模型看好Uruguay贏，最後雙方言和；模型其實也給了和局 22%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
-- **#45 Spain vs Saudi Arabia**：✅ 命中:模型賽前看好主勝（Spain 75%，高信心），結果如預期。
+- **#45 Spain vs Saudi Arabia**：✅ 命中:模型賽前看好主勝（Spain 77%，高信心），結果如預期。
 - **#46 Uruguay vs Cape Verde**：❌ 模型看好Uruguay贏，最後雙方言和；模型其實也給了和局 25%。
 - **#47 Cape Verde vs Saudi Arabia**：❌ 模型看好Cape Verde贏，最後雙方言和；模型其實也給了和局 30%；合理變異:三方接近(主39/和30/客30),模型信心本就低。
-- **#48 Uruguay vs Spain**：✅ 命中:模型賽前看好客勝（Spain 69%，高信心），結果如預期。
-- **#49 France vs Senegal**：✅ 命中:模型賽前看好主勝（France 67%，高信心），結果如預期。
+- **#48 Uruguay vs Spain**：✅ 命中:模型賽前看好客勝（Spain 72%，高信心），結果如預期。
+- **#49 France vs Senegal**：✅ 命中:模型賽前看好主勝（France 64%，高信心），結果如預期。
 - **#50 Iraq vs Norway**：✅ 命中:模型賽前看好客勝（Norway 72%，高信心），結果如預期。
-- **#51 France vs Iraq**：✅ 命中:模型賽前看好主勝（France 79%，高信心），結果如預期。
+- **#51 France vs Iraq**：✅ 命中:模型賽前看好主勝（France 78%，高信心），結果如預期。
 - **#52 Norway vs Senegal**：✅ 命中:模型賽前看好主勝（Norway 54%，中信心），結果如預期。
-- **#53 Norway vs France**：✅ 命中:模型賽前看好客勝（France 59%，中信心），結果如預期。
+- **#53 Norway vs France**：✅ 命中:模型賽前看好客勝（France 55%，中信心），結果如預期。
 - **#54 Senegal vs Iraq**：✅ 命中:模型賽前看好主勝（Senegal 64%，高信心），結果如預期。
 - **#55 Argentina vs Algeria**：✅ 命中:模型賽前看好主勝（Argentina 69%，高信心），結果如預期。
 - **#56 Austria vs Jordan**：✅ 命中:模型賽前看好主勝（Austria 60%，中信心），結果如預期。
@@ -176,7 +178,7 @@ _更新:2026-07-14 20:01:05　已評估場次:93_
 - **#64 Colombia vs DR Congo**：✅ 命中:模型賽前看好主勝（Colombia 68%，高信心），結果如預期。
 - **#65 Colombia vs Portugal**：❌ 模型看好Colombia贏，最後雙方言和；模型其實也給了和局 31%；合理變異:三方接近(主36/和31/客33),模型信心本就低；兩隊實力接近(Elo 僅差 41)。
 - **#66 DR Congo vs Uzbekistan**：✅ 命中:模型賽前看好主勝（DR Congo 48%，中信心），結果如預期。
-- **#67 England vs Croatia**：✅ 命中:模型賽前看好主勝（England 57%，中信心），結果如預期。
+- **#67 England vs Croatia**：✅ 命中:模型賽前看好主勝（England 56%，中信心），結果如預期。
 - **#68 Ghana vs Panama**：❌ 模型看好Panama（45%），最後由Ghana勝出；兩隊實力接近(Elo 僅差 26)。
 - **#69 England vs Ghana**：❌ 模型看好England贏，最後雙方言和；模型其實也給了和局 13%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
 - **#70 Panama vs Croatia**：✅ 命中:模型賽前看好客勝（Croatia 60%，高信心），結果如預期。
@@ -187,22 +189,22 @@ _更新:2026-07-14 20:01:05　已評估場次:93_
 - **#75 Germany vs Paraguay**：❌ 模型看好Germany贏，最後雙方言和；模型其實也給了和局 30%。
 - **#76 Netherlands vs Morocco**：❌ 模型看好Netherlands贏，最後雙方言和；模型其實也給了和局 32%；合理變異:三方接近(主38/和32/客30),模型信心本就低；兩隊實力接近(Elo 僅差 19)。
 - **#77 Ivory Coast vs Norway**：✅ 命中:模型賽前看好客勝（Norway 54%，中信心），結果如預期。
-- **#78 France vs Sweden**：✅ 命中:模型賽前看好主勝（France 76%，高信心），結果如預期。
+- **#78 France vs Sweden**：✅ 命中:模型賽前看好主勝（France 74%，高信心），結果如預期。
 - **#79 Mexico vs Ecuador**：✅ 命中:模型賽前看好主勝（Mexico 49%，中信心），結果如預期。
 - **#80 England vs DR Congo**：✅ 命中:模型賽前看好主勝（England 70%，高信心），結果如預期。
 - **#81 Belgium vs Senegal**：❌ 模型看好Belgium贏，最後雙方言和；模型其實也給了和局 30%。
 - **#82 USA vs Bosnia-Herzegovina**：✅ 命中:模型賽前看好主勝（USA 63%，高信心），結果如預期。
-- **#83 Spain vs Austria**：✅ 命中:模型賽前看好主勝（Spain 69%，高信心），結果如預期。
+- **#83 Spain vs Austria**：✅ 命中:模型賽前看好主勝（Spain 71%，高信心），結果如預期。
 - **#84 Portugal vs Croatia**：✅ 命中:模型賽前看好主勝（Portugal 46%，中信心），結果如預期。
 - **#85 Switzerland vs Algeria**：✅ 命中:模型賽前看好主勝（Switzerland 59%，中信心），結果如預期。
 - **#86 Australia vs Egypt**：✅ 命中:模型賽前看好和局（和局 34%，低信心），結果如預期。
 - **#87 Argentina vs Cape Verde**：❌ 模型看好Argentina贏，最後雙方言和；模型其實也給了和局 14%；大冷門:模型高度看好仍翻盤,多為紅牌/定位球/門將神勇等臨場因素。
 - **#88 Colombia vs Ghana**：✅ 命中:模型賽前看好主勝（Colombia 70%，高信心），結果如預期。
 - **#89 Canada vs Morocco**：✅ 命中:模型賽前看好客勝（Morocco 58%，中信心），結果如預期。
-- **#90 Paraguay vs France**：✅ 命中:模型賽前看好客勝（France 76%，高信心），結果如預期。
-- **#91 Brazil vs Norway**：❌ 模型看好Brazil（36%），最後由Norway勝出；合理變異:三方接近(主36/和32/客32),模型信心本就低；兩隊實力接近(Elo 僅差 26)。
+- **#90 Paraguay vs France**：✅ 命中:模型賽前看好客勝（France 75%，高信心），結果如預期。
+- **#91 Brazil vs Norway**：❌ 模型看好Brazil（36%），最後由Norway勝出；合理變異:三方接近(主36/和32/客32),模型信心本就低；兩隊實力接近(Elo 僅差 20)。
 - **#92 Mexico vs England**：✅ 命中:模型賽前看好客勝（England 44%，低信心），結果如預期。
-- **#93 Portugal vs Spain**：✅ 命中:模型賽前看好客勝（Spain 53%，中信心），結果如預期。
+- **#93 Portugal vs Spain**：✅ 命中:模型賽前看好客勝（Spain 57%，中信心），結果如預期。
 - **#94 USA vs Belgium**：✅ 命中:模型賽前看好客勝（Belgium 46%，中信心），結果如預期。
 - **#95 Argentina vs Egypt**：✅ 命中:模型賽前看好主勝（Argentina 65%，高信心），結果如預期。
 
