@@ -999,6 +999,105 @@ def _restore_stat_cols(db_path, snap):
         log(f"統計還原失敗: {e}")
 
 
+WIKI_MAIN_URL = 'https://en.wikipedia.org/wiki/2026_FIFA_World_Cup'
+# Mid-tournament (2026-07-07) Wikipedia editors moved the round-by-round detail
+# off the main article into this sub-article, dropping the main page from 104
+# footballboxes to ~32 and silently breaking the position-based
+# INDEX_TO_MATCH_NUM mapping (knockout boxes were written into group-stage
+# match numbers). Both pages are therefore fetched, and every box is identified
+# by its CONTENT (explicit match/report number, then confirmed team pair, then
+# date+venue for undecided slots); the positional map survives only as a
+# bootstrap fallback for the original single-page 104-box layout.
+WIKI_KNOCKOUT_URL = 'https://en.wikipedia.org/wiki/2026_FIFA_World_Cup_knockout_stage'
+
+
+def _extract_box_fields(box):
+    """Pull the raw schedule/result fields out of one Wikipedia footballbox."""
+    score_el = box.find(class_='fscore')
+    score_txt = clean_text(score_el.get_text()) if score_el else ""
+    fgoals = box.find(class_='fgoals')
+    goals_txt = clean_text(fgoals.get_text()) if fgoals else ""
+
+    m_report = re.search(r'Report\s+(\d+)', goals_txt)
+    m_score = re.search(r'Match\s+(\d+)', score_txt)
+    dyn_num = int(m_report.group(1)) if m_report else (int(m_score.group(1)) if m_score else None)
+
+    home_el = box.find(class_='fhome')
+    away_el = box.find(class_='faway')
+    home_team = normalize_team_name(clean_text(home_el.get_text()) if home_el else "")
+    away_team = normalize_team_name(clean_text(away_el.get_text()) if away_el else "")
+
+    date_el = box.find(class_='fdate')
+    date_txt = clean_text(date_el.get_text()) if date_el else ""
+    m_date = re.search(r'\((\d{4}-\d{2}-\d{2})\)', date_txt)
+    match_date = m_date.group(1) if m_date else date_txt
+    time_el = box.find(class_='ftime')
+    match_time = clean_text(time_el.get_text()) if time_el else ""
+
+    location_div = box.find(class_='fright')
+    location_txt = clean_text(location_div.get_text()) if location_div else ""
+    if "," in location_txt:
+        parts = location_txt.split(",", 1)
+        stadium, city = parts[0].strip(), parts[1].strip()
+    else:
+        stadium, city = location_txt, ""
+
+    return {
+        'dyn_num': dyn_num,
+        'home_team': home_team, 'away_team': away_team,
+        'date': match_date, 'time': match_time,
+        'stadium': stadium, 'city': city,
+        'score_txt': score_txt,
+        'score_cleaned': score_txt.replace('–', '-').replace('−', '-').replace(' ', ''),
+    }
+
+
+def _build_pair_lookup(snapshot):
+    """{frozenset({home, away}): [match_num, ...]} for every fixture whose two
+    real teams are already confirmed. A list because knockout rematches of a
+    group-stage pairing are possible; date disambiguates on resolve."""
+    pair = {}
+    for mn, row in snapshot.items():
+        h = normalize_team_name(row['home_team'])
+        a = normalize_team_name(row['away_team'])
+        if not _is_placeholder_team(h) and not _is_placeholder_team(a):
+            pair.setdefault(frozenset((h, a)), []).append(mn)
+    return pair
+
+
+def _resolve_match_num(f, snapshot, pair_to_num):
+    """Content-first identification of the fixture a footballbox describes:
+    1. the explicit match/report number printed on the box itself;
+    2. the already-confirmed team pairing from the pre-sync snapshot
+       (date-disambiguated when the same two teams meet twice);
+    3. unique date+venue among still-undecided slots — how a newly decided
+       knockout round's real team names first enter the database.
+    Returns (match_num or None, how)."""
+    if f['dyn_num'] and 1 <= f['dyn_num'] <= 104:
+        return f['dyn_num'], 'explicit'
+    cands = pair_to_num.get(frozenset((f['home_team'], f['away_team']))) or []
+    if len(cands) == 1:
+        return cands[0], 'teams'
+    if len(cands) > 1:
+        dated = [mn for mn in cands if snapshot[mn]['date'] == f['date']]
+        if len(dated) == 1:
+            return dated[0], 'teams'
+    if f['date'] and f['stadium']:
+        undecided = []
+        for mn, row in snapshot.items():
+            if row['date'] != f['date']:
+                continue
+            if not row['stadium'] or row['stadium'].lower() != f['stadium'].lower():
+                continue
+            h = normalize_team_name(row['home_team'])
+            a = normalize_team_name(row['away_team'])
+            if _is_placeholder_team(h) or _is_placeholder_team(a):
+                undecided.append(mn)
+        if len(undecided) == 1:
+            return undecided[0], 'date+venue'
+    return None, None
+
+
 def parse_and_sync():
     # Preserve advanced stats and the confirmed schedule/bracket across the
     # destructive rebuild below (see _snapshot_schedule for why the latter matters).
@@ -1008,87 +1107,87 @@ def parse_and_sync():
     init_db(force_recreate=True)
     
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
-    url = 'https://en.wikipedia.org/wiki/2026_FIFA_World_Cup'
-    
+
     log("正在從維基百科獲取 2026 FIFA 世界盃最新賽程與比分...")
     try:
-        r = requests.get(url, headers=headers, timeout=15)
+        r = requests.get(WIKI_MAIN_URL, headers=headers, timeout=15)
         r.raise_for_status()
     except Exception as e:
         log(f"連線維基百科失敗: {e}")
         return
-        
+
     s = BeautifulSoup(r.text, 'html.parser')
-    boxes = s.find_all('div', class_='footballbox')
-    
-    if len(boxes) != 104:
-        log(f"警告: 預期有 104 場比賽，但網頁上解析到 {len(boxes)} 場。將會盡量解析。")
-        
+    main_boxes = s.find_all('div', class_='footballbox')
+
+    # Best-effort: the knockout sub-article carries the finished knockout
+    # results and newly decided bracket slots the main page no longer shows.
+    ko_boxes = []
+    try:
+        r_ko = requests.get(WIKI_KNOCKOUT_URL, headers=headers, timeout=15)
+        r_ko.raise_for_status()
+        ko_boxes = BeautifulSoup(r_ko.text, 'html.parser').find_all('div', class_='footballbox')
+    except Exception as e:
+        log(f"連線淘汰賽子頁面失敗(僅用主頁資料): {e}")
+
+    log(f"主頁解析到 {len(main_boxes)} 個 footballbox,淘汰賽子頁 {len(ko_boxes)} 個。")
+    if len(main_boxes) != 104:
+        log(f"主頁非原始 104-box 版面;停用位置映射,改以內容識別逐場比對。")
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
+
+    pair_to_num = _build_pair_lookup(_schedule_snapshot)
+
+    # Identify every box on both pages by content, then keep the best candidate
+    # per match (a finished score beats a placeholder; the knockout sub-article
+    # beats the main page's summary copy of the same game).
+    candidates = {}  # match_num -> (rank, fields)
+    for page, page_boxes in (('main', main_boxes), ('knockout', ko_boxes)):
+        for i, box in enumerate(page_boxes):
+            f = _extract_box_fields(box)
+            match_num, how = _resolve_match_num(f, _schedule_snapshot, pair_to_num)
+
+            # Bootstrap fallback: the position map is only meaningful for the
+            # original single-page layout it was built from.
+            if match_num is None and page == 'main' and len(main_boxes) == 104:
+                match_num = INDEX_TO_MATCH_NUM.get(i)
+
+            if not match_num:
+                log(f"無法識別 {page} 頁索引 {i} 的場次編號({f['home_team'] or '?'} vs {f['away_team'] or '?'}, {f['date']}),跳過此場。")
+                continue
+
+            # Never let a box overwrite a fixture whose two real teams are
+            # already confirmed with a DIFFERENT real pairing — that is the
+            # signature of positional/layout drift, not a legitimate edit.
+            old = _schedule_snapshot.get(match_num)
+            if old is not None:
+                old_h = normalize_team_name(old['home_team'])
+                old_a = normalize_team_name(old['away_team'])
+                if (not _is_placeholder_team(old_h) and not _is_placeholder_team(old_a)
+                        and not _is_placeholder_team(f['home_team'])
+                        and not _is_placeholder_team(f['away_team'])
+                        and {f['home_team'], f['away_team']} != {old_h, old_a}):
+                    log(f"  跳過 {page} 頁索引 {i}: 解析出 {f['home_team']} vs {f['away_team']},與已確認的 #{match_num} {old_h} vs {old_a} 衝突(疑似版面漂移)。")
+                    continue
+
+            has_score = bool(re.match(r'^\d+-\d+', f['score_cleaned']))
+            has_teams = (not _is_placeholder_team(f['home_team'])
+                         and not _is_placeholder_team(f['away_team']))
+            rank = (int(has_score), int(has_teams), 1 if page == 'knockout' else 0)
+            if match_num not in candidates or rank > candidates[match_num][0]:
+                candidates[match_num] = (rank, f)
+
     inserted_count = 0
     _parsed_this_run = {}  # match_num -> {'home_team', 'away_team'}, for the schedule safety net
 
-    for i, box in enumerate(boxes):
-        # Fallback mapping
-        match_num = INDEX_TO_MATCH_NUM.get(i)
-        
-        # Try dynamic parsing of match number as secondary validation
-        score_el = box.find(class_='fscore')
-        score_txt = clean_text(score_el.get_text()) if score_el else ""
-        
-        m_score = re.search(r'Match\s+(\d+)', score_txt)
-        fgoals = box.find(class_='fgoals')
-        goals_txt = clean_text(fgoals.get_text()) if fgoals else ""
-        m_report = re.search(r'Report\s+(\d+)', goals_txt)
-        
-        if m_report:
-            match_num = int(m_report.group(1))
-        elif m_score:
-            match_num = int(m_score.group(1))
-            
-        if not match_num:
-            log(f"無法識別索引 {i} 的場次編號，跳過此場。")
-            continue
-            
-        # Parse teams
-        home_el = box.find(class_='fhome')
-        away_el = box.find(class_='faway')
-        home_team = clean_text(home_el.get_text()) if home_el else ""
-        away_team = clean_text(away_el.get_text()) if away_el else ""
-        
-        # Normalize names
-        home_team = normalize_team_name(home_team)
-        away_team = normalize_team_name(away_team)
+    for match_num, (_rank, f) in sorted(candidates.items()):
+        home_team, away_team = f['home_team'], f['away_team']
         _parsed_this_run[match_num] = {'home_team': home_team, 'away_team': away_team}
+        score_txt = f['score_txt']
+        match_date, match_time = f['date'], f['time']
+        stadium, city = f['stadium'], f['city']
 
 
-        # Parse date and time
-        date_el = box.find(class_='fdate')
-        time_el = box.find(class_='ftime')
-        
-        # Clean date text
-        date_txt = clean_text(date_el.get_text()) if date_el else ""
-        m_date = re.search(r'\((\d{4}-\d{2}-\d{2})\)', date_txt)
-        if m_date:
-            match_date = m_date.group(1)
-        else:
-            match_date = date_txt
-            
-        match_time = clean_text(time_el.get_text()) if time_el else ""
-        
-        # Parse location (stadium and city)
-        location_div = box.find(class_='fright')
-        location_txt = clean_text(location_div.get_text()) if location_div else ""
-        stadium, city = "", ""
-        if "," in location_txt:
-            parts = location_txt.split(",", 1)
-            stadium = parts[0].strip()
-            city = parts[1].strip()
-        else:
-            stadium = location_txt
-            
         # Determine group or stage
         if match_num <= 72:
             group_letter = "Group"
