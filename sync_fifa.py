@@ -1067,14 +1067,20 @@ def _build_pair_lookup(snapshot):
 
 def _resolve_match_num(f, snapshot, pair_to_num):
     """Content-first identification of the fixture a footballbox describes:
-    1. the explicit match/report number printed on the box itself;
-    2. the already-confirmed team pairing from the pre-sync snapshot
+    1. the already-confirmed team pairing from the pre-sync snapshot
        (date-disambiguated when the same two teams meet twice);
-    3. unique date+venue among still-undecided slots — how a newly decided
-       knockout round's real team names first enter the database.
+    2. unique date+venue among still-undecided slots — how a newly decided
+       knockout round's real team names first enter the database;
+    3. LAST, the explicit match/report number printed on the box itself.
+    The number is deliberately the weakest signal: finished boxes carry stray
+    sequential digits in their goals/report area (footnote markers etc.) that
+    the 'Report N' regex happily swallows — observed live on 2026-07-18, where
+    every finished knockout box "identified" as its own page position + 1 and
+    only the drift guard kept the bad rows out. A real team pairing can never
+    be poisoned that way, so it always wins; the printed number is still
+    needed for not-yet-decided fixtures (placeholder team names, no pairing
+    to match), whose 'Match N' score text is exactly the reliable case.
     Returns (match_num or None, how)."""
-    if f['dyn_num'] and 1 <= f['dyn_num'] <= 104:
-        return f['dyn_num'], 'explicit'
     cands = pair_to_num.get(frozenset((f['home_team'], f['away_team']))) or []
     if len(cands) == 1:
         return cands[0], 'teams'
@@ -1095,6 +1101,8 @@ def _resolve_match_num(f, snapshot, pair_to_num):
                 undecided.append(mn)
         if len(undecided) == 1:
             return undecided[0], 'date+venue'
+    if f['dyn_num'] and 1 <= f['dyn_num'] <= 104:
+        return f['dyn_num'], 'explicit'
     return None, None
 
 
