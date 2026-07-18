@@ -1,1 +1,30 @@
-{}
+{
+  "100": {
+    "away_goals": 1,
+    "home_goals": 3
+  },
+  "101": {
+    "away_goals": 2,
+    "home_goals": 0
+  },
+  "102": {
+    "away_goals": 2,
+    "home_goals": 1
+  },
+  "96": {
+    "away_goals": 0,
+    "home_goals": 0
+  },
+  "97": {
+    "away_goals": 0,
+    "home_goals": 2
+  },
+  "98": {
+    "away_goals": 1,
+    "home_goals": 2
+  },
+  "99": {
+    "away_goals": 2,
+    "home_goals": 1
+  }
+}
