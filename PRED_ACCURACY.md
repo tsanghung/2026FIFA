@@ -1,6 +1,6 @@
 # 🎯 本屆世界盃「正式預測」即時準確度
 
-_更新:2026-07-19 20:01:25　已評估場次:103_
+_更新:2026-07-19 22:00:48　已評估場次:103_
 
 ## 總指標
 
@@ -36,7 +36,7 @@ _更新:2026-07-19 20:01:25　已評估場次:103_
 | 18 | Paraguay vs France | 16/20/64 | 0-2 | 0-1 | ✅ | — |
 | 19 | Brazil vs Norway | 41/30/28 | 2-1 | 1-2 | ❌ | — |
 | 20 | Mexico vs England | 30/30/40 | 1-2 | 2-3 | ✅ | — |
-| 21 | Portugal vs Spain | 22/25/54 | 0-2 | 0-1 | ✅ | — |
+| 21 | Portugal vs Spain | 21/25/54 | 0-2 | 0-1 | ✅ | — |
 | 22 | USA vs Belgium | 25/29/47 | 1-2 | 1-4 | ✅ | — |
 | 23 | Argentina vs Egypt | 66/18/16 | 3-0 | 3-2 | ✅ | — |
 | 24 | Switzerland vs Colombia | 36/30/34 | 2-1 | 0-0 | ❌ | — |
@@ -113,10 +113,10 @@ _更新:2026-07-19 20:01:25　已評估場次:103_
 | 95 | Argentina vs Egypt | 66/20/14 | 3-0 | 3-2 | ✅ | — |
 | 96 | Switzerland vs Colombia | 30/36/34 | 1-1 | 0-0 | ✅ | — |
 | 97 | France vs Morocco | 44/33/24 | 1-0 | 2-0 | ✅ | — |
-| 98 | Spain vs Belgium | 52/29/18 | 2-0 | 2-1 | ✅ | — |
+| 98 | Spain vs Belgium | 53/29/18 | 2-0 | 2-1 | ✅ | — |
 | 99 | Norway vs England | 21/28/52 | 1-2 | 1-1 | ❌ | — |
-| 100 | Argentina vs Switzerland | 44/30/26 | 2-1 | 1-1 | ❌ | — |
-| 101 | France vs Spain | 30/36/35 | 1-1 | 0-2 | ❌ | — |
+| 100 | Argentina vs Switzerland | 44/31/26 | 2-1 | 1-1 | ❌ | — |
+| 101 | France vs Spain | 29/36/35 | 1-1 | 0-2 | ❌ | — |
 | 102 | England vs Argentina | 32/32/36 | 1-2 | 1-2 | ✅ | ✅ |
 | 103 | France vs England | 40/33/27 | 2-1 | 4-6 | ❌ | — |
 
@@ -219,9 +219,9 @@ _更新:2026-07-19 20:01:25　已評估場次:103_
 - **#95 Argentina vs Egypt**：✅ 命中:模型賽前看好主勝（Argentina 66%，高信心），結果如預期。
 - **#96 Switzerland vs Colombia**：✅ 命中:模型賽前看好和局（和局 36%，低信心），結果如預期。
 - **#97 France vs Morocco**：✅ 命中:模型賽前看好主勝（France 43%，低信心），結果如預期。
-- **#98 Spain vs Belgium**：✅ 命中:模型賽前看好主勝（Spain 52%，中信心），結果如預期。
+- **#98 Spain vs Belgium**：✅ 命中:模型賽前看好主勝（Spain 53%，中信心），結果如預期。
 - **#99 Norway vs England**：❌ 模型看好England贏，最後雙方言和；模型其實也給了和局 27%。
-- **#100 Argentina vs Switzerland**：❌ 模型看好Argentina贏，最後雙方言和；模型其實也給了和局 30%；合理變異:三方接近(主44/和30/客26),模型信心本就低。
+- **#100 Argentina vs Switzerland**：❌ 模型看好Argentina贏，最後雙方言和；模型其實也給了和局 31%；合理變異:三方接近(主44/和31/客26),模型信心本就低。
 - **#101 France vs Spain**：❌ 模型看好和局（36%），最後由Spain勝出；合理變異:三方接近(主29/和36/客35),模型信心本就低；兩隊實力接近(Elo 僅差 35)。
 - **#102 England vs Argentina**：✅ 命中:模型賽前看好客勝（Argentina 36%，低信心），結果如預期。
 - **#103 France vs England**：❌ 模型看好France（40%），最後由England勝出；合理變異:三方接近(主40/和33/客27),模型信心本就低；兩隊實力接近(Elo 僅差 43)。
