@@ -579,23 +579,28 @@ def build_tournament_recap(matches, metrics, standings):
     # 模型表現回顧
     lv = (metrics or {}).get('live') or {}
     fin = next((m for m in matches if (m.get('group_or_stage') or '') == 'Final'), None)
-    bits = []
+    bits = []  # (li_class, html)
     if lv.get('n'):
         hits = lv.get('hits', round(lv['accuracy'] * lv['n']))
-        bits.append(f'全 {lv["n"]} 場勝負預測命中率 <b>{lv["accuracy"]*100:.1f}%</b>'
-                    f'（{hits}/{lv["n"]}）、RPS <b>{lv.get("rps",0):.3f}</b>（越低越好，職業級約 0.17）。')
+        bits.append(('ok', f'全 {lv["n"]} 場勝負預測命中率 <b>{lv["accuracy"]*100:.1f}%</b>'
+                     f'（{hits}/{lv["n"]}）、RPS <b>{lv.get("rps",0):.3f}</b>（越低越好，職業級約 0.17）。'))
     if champ:
-        bits.append(f'模型全程將 <b>{name(champ)}</b> 列為奪冠機率第一,最終奪冠——方向正確。')
-    if fin and fin.get('pred_score') and fin.get('score'):
-        pred = flip_score(fin['pred_score'])
-        act = flip_score(fin['score'])
-        if pred and act and pred.split()[0] == act.split()[0].split('(')[0].strip():
-            bits.append(f'決賽預測比分 <b>{esc(fin["pred_score"])}</b>，實際 '
-                        f'<b>{esc((fin["score"] or "").split("(")[0].strip())}</b>——命中。')
+        bits.append(('ok', f'模型全程將 <b>{name(champ)}</b> 列為奪冠機率第一,最終奪冠'
+                     '——<b>奪冠</b>預測方向正確。'))
+    # 決賽誠實揭露:模型預測「90 分鐘勝負」,延長賽才分勝負的比賽在站內一律計為和局。
+    if fin and fin.get('home_goals') is not None and fin.get('away_goals') is not None:
+        hg, ag = fin['home_goals'], fin['away_goals']
+        sc = fin.get('score') or ''
+        if 'a.e.t' in sc.lower() or 'p)' in sc:
+            bits.append(('miss',
+                f'決賽 90 分鐘 {hg}–{ag} 平手,{name(champ)}於<b>延長賽</b>才分出勝負奪冠。'
+                '模型預測標的是「90 分鐘勝負」,依站內對所有延長賽場一致的口徑,此戰計為'
+                '<b>和局</b>,故模型的「主勝」預測<b>未計入命中</b>——延長賽奪冠不等於'
+                '90 分鐘預測命中。'))
     if bits:
         p.append('<div class="recap-model"><h3>🤖 模型表現回顧</h3><ul class="reasons">')
-        for b in bits:
-            p.append(f'<li class="ok">{b}</li>')
+        for cls, b in bits:
+            p.append(f'<li class="{cls}">{b}</li>')
         p.append('</ul></div>')
     p.append('<p class="muted">完整名次見下方「最終排名」；方法論見 '
              f'<a href="{site.SITE_URL}/about.html">關於頁</a>。'
