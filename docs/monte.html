@@ -27,30 +27,7 @@
   <a href="https://sfiimfoan.simonsynapse.net/#accuracy">準確度</a><a href="https://sfiimfoan.simonsynapse.net/#live-accuracy">即時準確度</a>
   <a href="https://sfiimfoan.simonsynapse.net/about.html">關於</a></nav>
 </header>
-<main><section><h1>🎲 蒙地卡羅對戰模擬器</h1><p class="muted">選一場未開賽對決，瀏覽器即時跑 10 萬次隨機抽樣（卜瓦松進球模型），估算獨贏、大小分、雙方皆進球與精確比分分佈。</p><select id="m" class="filter"><option value="104">#104 阿根廷 (Argentina) vs 西班牙 (Spain)</option></select> <button id="run" class="btn">🚀 啟動 100,000 次模擬</button><p id="xg" class="muted"></p><div id="out" class="cards"></div><div id="scores"></div></section><div class="ad"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-7384783799477371" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle=window.adsbygoogle||[]).push({});</script></div><script>const SIM=[{"n": 104, "a": "阿根廷 (Argentina)", "h": "西班牙 (Spain)", "lh": 1.5661, "la": 0.8506}];</script><script>
-function pois(l){var L=Math.exp(-l),k=0,p=1;do{k++;p*=Math.random();}while(p>L);return k-1;}
-function run(){
- var n=+document.getElementById('m').value, s=SIM.find(x=>x.n==n);
- document.getElementById('xg').innerHTML='進球期望 xG — '+s.a+': <b>'+s.la.toFixed(2)+'</b> ｜ '+s.h+': <b>'+s.lh.toFixed(2)+'</b>';
- var N=100000,hw=0,dr=0,aw=0,ov=0,bt=0,sc={};
- for(var i=0;i<N;i++){var hg=pois(s.lh),ag=pois(s.la);
-  if(hg>ag)hw++;else if(hg==ag)dr++;else aw++;
-  if(hg+ag>2.5)ov++; if(hg>0&&ag>0)bt++;
-  var k=hg+'-'+ag; sc[k]=(sc[k]||0)+1;}
- var pf=x=>(x/N*100).toFixed(2)+'%';
- var seh=Math.sqrt((hw/N)*(1-hw/N)/N)*100;
- document.getElementById('out').innerHTML=
-  card('👑 獨贏 Moneyline','主勝 '+s.h+'：<b>'+pf(hw)+'</b> (±'+seh.toFixed(3)+'%)<br>和局：'+pf(dr)+'<br>客勝 '+s.a+'：'+pf(aw))
- +card('⚽ 大小分 2.5','大球：<b>'+pf(ov)+'</b><br>小球：'+pf(N-ov))
- +card('🔥 雙方皆進球','是：<b>'+pf(bt)+'</b><br>否：'+pf(N-bt));
- var top=Object.entries(sc).sort((a,b)=>b[1]-a[1]).slice(0,6);
- var html='<h2>最可能比分 (客-主)</h2><div class="tablewrap"><table><thead><tr><th>比分</th><th>機率</th><th></th></tr></thead><tbody>';
- top.forEach(e=>{var pc=e[1]/N*100;html+='<tr><td>'+e[0]+'</td><td>'+pc.toFixed(2)+'%</td><td style="width:50%"><div class="track"><i class="h" style="width:'+Math.min(100,pc*4)+'%"></i></div></td></tr>';});
- document.getElementById('scores').innerHTML=html+'</tbody></table></div>';
-}
-function card(t,b){return '<div class="card" style="min-width:240px"><span>'+t+'</span><div>'+b+'</div></div>';}
-document.getElementById('run').onclick=run; run();
-</script></main>
+<main><section><h1>🎲 蒙地卡羅對戰模擬器</h1><p class="muted">選一場未開賽對決，瀏覽器即時跑 10 萬次隨機抽樣（卜瓦松進球模型），估算獨贏、大小分、雙方皆進球與精確比分分佈。</p><p>目前沒有未開賽的賽程可供模擬。</p></section></main>
 <footer class="site-foot">
   <p>資料每日更新・模型經 ~5 萬場歷史回測校準。本站僅提供研究與數據分析，不提供任何投注服務；賠率僅作價值研究參考，並標示 API、手動、模擬或未標示來源。</p>
   <p>進階互動工具（蒙地卡羅模擬器等）：<a href="https://2026fifa.streamlit.app/" rel="nofollow">開啟 App</a>
