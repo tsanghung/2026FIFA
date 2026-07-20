@@ -30,6 +30,7 @@ from datetime import datetime, timezone, timedelta
 from display_utils import get_team_display_name, convert_to_taiwan_time
 import external_predictions
 import bet_tracker
+import final_standings
 import site_config as site
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -195,12 +196,12 @@ def head(title, desc, canonical, og_extra=""):
 <body>
 <header class="site-head">
   <a class="brand" href="{site.SITE_URL}/">⚽ {esc(site.SITE_TITLE)}</a>
-  <nav><a href="{site.SITE_URL}/#schedule">賽程</a><a href="{site.SITE_URL}/#title">奪冠</a>
-  <a href="{site.SITE_URL}/#power">戰力評比</a><a href="{site.SITE_URL}/teams.html">逐場分析</a>
-  <a href="{site.SITE_URL}/#sources">來源</a>
+  <nav><a href="{site.SITE_URL}/#recap">總結</a><a href="{site.SITE_URL}/#standings">最終排名</a>
+  <a href="{site.SITE_URL}/#schedule">賽程</a><a href="{site.SITE_URL}/#title">奪冠</a>
+  <a href="{site.SITE_URL}/teams.html">逐場分析</a>
   <a href="{site.SITE_URL}/#ratings">評級</a><a href="{site.SITE_URL}/monte.html">模擬器</a>
   <a href="{site.SITE_URL}/bets.html">投注實測</a>
-  <a href="{site.SITE_URL}/#accuracy">準確度</a><a href="{site.SITE_URL}/#live-accuracy">即時準確度</a>
+  <a href="{site.SITE_URL}/#accuracy">準確度</a>
   <a href="{site.SITE_URL}/about.html">關於</a></nav>
 </header>
 <main>'''
@@ -503,6 +504,136 @@ def build_power_ranking(matches, teams):
     return ''.join(out)
 
 
+# Chinese labels for the final-standings stage + confederation columns.
+STANDING_ZH = {
+    'Champion': '冠軍', 'Runner-up': '亞軍', 'Third place': '季軍',
+    'Fourth place': '殿軍', 'Quarter-finals': '八強',
+    'Round of 16': '十六強', 'Round of 32': '三十二強', 'Group stage': '小組賽',
+}
+CONF_ZH = {'UEFA': '歐洲', 'CONMEBOL': '南美', 'CAF': '非洲', 'AFC': '亞洲',
+           'Concacaf': '中北美', 'OFC': '大洋洲'}
+_BUCKET_CLS = {'FINAL4': 'fs-top', 'QF': 'fs-qf', 'R16': 'fs-r16',
+               'R32': 'fs-r32', 'GRP': 'fs-grp'}
+
+
+def _load_standings(matches):
+    """Compute the 48-team final standings for a completed tournament (or [])."""
+    con = sqlite3.connect(DB_PATH)
+    try:
+        confeds = final_standings.load_confederations(con)
+    finally:
+        con.close()
+    return final_standings.compute_final_standings(matches, confeds)
+
+
+def build_tournament_recap(matches, metrics, standings):
+    """🎉 賽事總結 — 冠軍頒獎台、關鍵數據與模型表現回顧。賽事未完成時回傳 ''。"""
+    if not standings:
+        return ''
+    name = lambda t: esc(get_team_display_name(t))
+    podium = {s['stage_reached']: s['team'] for s in standings[:4]}
+    champ = podium.get('Champion')
+
+    # 賽事關鍵數據(以真實比分計:延長賽比分計入,點球場取延長賽結束比分)。
+    completed = [m for m in matches if m.get('status') == 'Completed']
+    total_goals, biggest, highest = 0, None, None
+    for m in completed:
+        r = final_standings.real_scoreline(m.get('score'))
+        if not r:
+            continue
+        hg, ag, _ = r
+        total_goals += hg + ag
+        if biggest is None or abs(hg - ag) > biggest[0]:
+            biggest = (abs(hg - ag), m, hg, ag)
+        if highest is None or (hg + ag) > highest[0]:
+            highest = (hg + ag, m, hg, ag)
+    ng = len(completed) or 1
+
+    def _scoreline(entry):
+        _, m, hg, ag = entry
+        return (f'{name(m["home_team"])} {hg}–{ag} {name(m["away_team"])}')
+
+    p = ['<section id="recap"><h2>🎉 賽事總結（Tournament Recap）</h2>',
+         '<div class="podium">']
+    tiers = [('Champion', '🏆 冠軍', 'p1'), ('Runner-up', '🥈 亞軍', 'p2'),
+             ('Third place', '🥉 季軍', 'p3'), ('Fourth place', '殿軍', 'p4')]
+    for key, label, cls in tiers:
+        t = podium.get(key)
+        if t:
+            p.append(f'<div class="pod {cls}"><span>{label}</span>'
+                     f'<b>{name(t)}</b></div>')
+    p.append('</div>')
+
+    # Key stats cards
+    p.append('<div class="cards" style="margin-top:14px">')
+    p.append(f'<div class="card"><span>總進球數</span><b>{total_goals}</b>'
+             f'<span>場均 {total_goals/ng:.2f} 球・{ng} 場</span></div>')
+    if highest:
+        p.append(f'<div class="card"><span>最高進球場</span><b>{highest[0]} 球</b>'
+                 f'<span>{_scoreline(highest)}</span></div>')
+    if biggest:
+        p.append(f'<div class="card"><span>最大分差</span><b>+{biggest[0]}</b>'
+                 f'<span>{_scoreline(biggest)}</span></div>')
+    p.append('</div>')
+
+    # 模型表現回顧
+    lv = (metrics or {}).get('live') or {}
+    fin = next((m for m in matches if (m.get('group_or_stage') or '') == 'Final'), None)
+    bits = []
+    if lv.get('n'):
+        hits = lv.get('hits', round(lv['accuracy'] * lv['n']))
+        bits.append(f'全 {lv["n"]} 場勝負預測命中率 <b>{lv["accuracy"]*100:.1f}%</b>'
+                    f'（{hits}/{lv["n"]}）、RPS <b>{lv.get("rps",0):.3f}</b>（越低越好，職業級約 0.17）。')
+    if champ:
+        bits.append(f'模型全程將 <b>{name(champ)}</b> 列為奪冠機率第一,最終奪冠——方向正確。')
+    if fin and fin.get('pred_score') and fin.get('score'):
+        pred = flip_score(fin['pred_score'])
+        act = flip_score(fin['score'])
+        if pred and act and pred.split()[0] == act.split()[0].split('(')[0].strip():
+            bits.append(f'決賽預測比分 <b>{esc(fin["pred_score"])}</b>，實際 '
+                        f'<b>{esc((fin["score"] or "").split("(")[0].strip())}</b>——命中。')
+    if bits:
+        p.append('<div class="recap-model"><h3>🤖 模型表現回顧</h3><ul class="reasons">')
+        for b in bits:
+            p.append(f'<li class="ok">{b}</li>')
+        p.append('</ul></div>')
+    p.append('<p class="muted">完整名次見下方「最終排名」；方法論見 '
+             f'<a href="{site.SITE_URL}/about.html">關於頁</a>。'
+             '本站僅提供研究與數據分析,不提供任何投注服務。</p>')
+    p.append('</section>')
+    return ''.join(p)
+
+
+def build_final_standings(standings):
+    """🏆 最終排名 — 48 隊 FIFA 官方口徑最終名次表。賽事未完成時回傳 ''。"""
+    if not standings:
+        return ''
+    medal = {1: '🥇', 2: '🥈', 3: '🥉'}
+    out = ['<section id="standings"><h2>🏆 最終排名（Final Standings）</h2>',
+           '<p class="muted">48 強完整名次。主序＝到達的最終輪次;同輪淘汰者以'
+           '全賽事積分→淨勝球→進球數排序。淘汰賽經延長賽分勝負者計勝/負、點球決勝計和'
+           '（FIFA 官方排名法,故積分與站內其他「90 分鐘結果」統計略有差異）。</p>',
+           '<div class="tablewrap"><table class="standings"><thead><tr>'
+           '<th>#</th><th>隊伍</th><th>洲</th><th>最終成績</th>'
+           '<th>場</th><th>勝</th><th>和</th><th>負</th><th>進</th><th>失</th><th>淨</th><th>積分</th>'
+           '</tr></thead><tbody>']
+    for s in standings:
+        cls = _BUCKET_CLS.get(s['stage_bucket'], '')
+        pfx = medal.get(s['position'], '')
+        gd = ('+' if s['gd'] > 0 else '') + str(s['gd'])
+        conf = CONF_ZH.get(s['confederation'], s['confederation'] or '—')
+        out.append(
+            f'<tr class="{cls}"><td class="pos">{pfx}{s["position"]}</td>'
+            f'<td class="team">{esc(get_team_display_name(s["team"]))}</td>'
+            f'<td class="muted">{esc(conf)}</td>'
+            f'<td>{esc(STANDING_ZH.get(s["stage_reached"], s["stage_reached"]))}</td>'
+            f'<td>{s["played"]}</td><td>{s["won"]}</td><td>{s["drawn"]}</td>'
+            f'<td>{s["lost"]}</td><td>{s["gf"]}</td><td>{s["ga"]}</td>'
+            f'<td>{gd}</td><td><b>{s["points"]}</b></td></tr>')
+    out.append('</tbody></table></div></section>')
+    return ''.join(out)
+
+
 def _current_round_teams(matches, team_set):
     """(中文輪次名, 存活隊伍列表) for the earliest knockout phase that still has
     unplayed fixtures between real teams. None when knockouts are over/not set."""
@@ -660,9 +791,15 @@ Dixon-Coles 的<strong>集成模型</strong>＋蒙地卡羅模擬，並以約 5 
 　<a href="{site.SITE_URL}/about.html">📖 預測方法論與資料來源</a></p></section>''')
     parts.append(ad_unit())
 
-    # Champion race
+    # 賽事結束後,最終排名與總結接替(仍在進行中的戰力評比會自動退場)。
+    standings = _load_standings(matches)
+    parts.append(build_tournament_recap(matches, metrics, standings))
+    parts.append(build_final_standings(standings))
+
+    # Champion race (賽後轉為預測回顧)。
     if champs:
-        parts.append('<section id="title"><h2>🏆 奪冠機率 Top 12</h2><div class="cards">')
+        title_suffix = '（賽前／賽中預測回顧）' if standings else ''
+        parts.append(f'<section id="title"><h2>🏆 奪冠機率 Top 12{title_suffix}</h2><div class="cards">')
         for c in champs:
             parts.append(f'<div class="card"><span>{esc(get_team_display_name(c["team"]))}</span>'
                          f'<b>{c["blended_ewma"]*100:.1f}%</b></div>')
@@ -1228,6 +1365,21 @@ tr.hit td{background:rgba(46,204,113,.30)}tr.hit:hover td{background:rgba(46,204
 #power tr.pw2 td:first-child{box-shadow:inset 4px 0 0 #cbd5e1}
 #power tr.pw3 td:first-child{box-shadow:inset 4px 0 0 #cd7f32}
 #power tr.pw4 td:first-child{box-shadow:inset 4px 0 0 var(--line)}
+.podium{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.pod{background:linear-gradient(180deg,#131d36,#0d1426);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+.pod span{display:block;color:var(--mut);font-size:13px;margin-bottom:4px}.pod b{font-size:20px}
+.pod.p1{border-color:#f1c40f;box-shadow:0 0 0 1px #f1c40f inset,0 6px 22px rgba(241,196,66,.15)}.pod.p1 b{color:#f1c40f}
+.pod.p2{border-color:#cbd5e1}.pod.p2 b{color:#e5edf7}.pod.p3{border-color:#cd7f32}.pod.p3 b{color:#e0a878}
+.recap-model h3{font-size:16px;margin:18px 0 6px}
+table.standings td.pos{font-weight:800;color:var(--mut);white-space:nowrap}table.standings td.team{color:var(--txt);font-weight:600}
+table.standings tr.fs-top td.pos{color:var(--txt)}
+table.standings tr.fs-top td:first-child{box-shadow:inset 4px 0 0 #f1c40f}
+table.standings tr.fs-qf td:first-child{box-shadow:inset 4px 0 0 #3aa0ff}
+table.standings tr.fs-r16 td:first-child{box-shadow:inset 4px 0 0 #21d07a}
+table.standings tr.fs-r32 td:first-child{box-shadow:inset 4px 0 0 #8aa0c8}
+table.standings tr.fs-grp td:first-child{box-shadow:inset 4px 0 0 var(--line)}
+table.standings tr.fs-top td{background:rgba(241,196,66,.06)}
+@media(max-width:560px){.podium{grid-template-columns:repeat(2,1fr)}}
 .btn{display:inline-block;background:var(--acc);color:#04240f;font-weight:700;padding:10px 16px;border-radius:8px;cursor:pointer;border:0}
 .match h1{font-size:26px}.match .vs{color:var(--mut);font-size:18px}
 .probs{margin:18px 0}.prob{display:grid;grid-template-columns:160px 1fr 56px;align-items:center;gap:10px;margin:8px 0}
@@ -1327,6 +1479,17 @@ def write(path, content):
 
 def main():
     matches, teams, champs, metrics, external_sources, external_consensus = load_data()
+    # 賽事全部完成時,把 48 強最終排名寫入 DB(供前端、Supabase 與後續分析使用)。
+    try:
+        con = sqlite3.connect(DB_PATH)
+        st = final_standings.compute_final_standings(
+            matches, final_standings.load_confederations(con))
+        if st:
+            final_standings.persist(con, st)
+            print(f"已更新 final_standings 表({len(st)} 隊)。")
+        con.close()
+    except Exception as e:
+        print(f"final_standings 更新略過:{e}")
     os.makedirs(os.path.join(OUT, 'match'), exist_ok=True)
     os.makedirs(os.path.join(OUT, 'assets'), exist_ok=True)
 
