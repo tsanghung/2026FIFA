@@ -1,14 +1,12 @@
 name: 🏆 2026 FIFA Daily Data Sync
 
 on:
-  schedule:
-    # The frequent (every-2h) score sync is now triggered PUNCTUALLY by a Cloudflare
-    # Worker cron hitting workflow_dispatch (see worker/), because GitHub's own cron
-    # is best-effort and was lagging by hours. GitHub keeps just one daily schedule:
-    # the 07:00 UTC run that runs calibration AND acts as a safety net if the Worker
-    # ever stops. (Cloudflare Pages free tier ~500 builds/month; 2h cadence stays
-    # well under it.)
-    - cron: '0 7 * * *'    # 15:00 Taiwan: daily calibration + safety-net sync
+  # 賽事已於 2026-07-19 結束、專案結案(見 PROJECT_SUMMARY.md)。所有 104 場皆完賽,
+  # 不再有新賽果,故停用「排程觸發」以停止無意義的每日/每 2 小時自動同步。
+  # 若日後要復用本系統於其他賽事,取消下方註解即可還原排程。
+  # 提醒:若另以 Cloudflare Worker cron 觸發 workflow_dispatch,請一併於 CF 後台停用。
+  # schedule:
+  #   - cron: '0 7 * * *'    # 15:00 Taiwan: daily calibration + safety-net sync（賽事結束後停用）
   push:
     # Any push to main also refreshes data immediately. The sync's own commit is
     # pushed with GITHUB_TOKEN, which by design does NOT trigger another workflow
