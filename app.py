@@ -522,8 +522,10 @@ else:
     st.sidebar.caption("尚無同步日誌")
 
 # Tabs
-tab_overview, tab_title, tab_sources, tab_val, tab_sched, tab_monte, tab_teams, tab_ai, tab_acc = st.tabs([
+(tab_overview, tab_standings, tab_title, tab_sources, tab_val, tab_sched,
+ tab_monte, tab_teams, tab_ai, tab_acc) = st.tabs([
     "MISSION CONTROL",
+    "FINAL STANDINGS",
     "TITLE RACE",
     "SOURCE BOARD",
     "EV+ VALUE",
@@ -533,6 +535,42 @@ tab_overview, tab_title, tab_sources, tab_val, tab_sched, tab_monte, tab_teams, 
     "AI DEEP LEARNING",
     "MODEL ACCURACY"
 ])
+
+# ================= TAB: Final Standings (48 強最終排名) =================
+with tab_standings:
+    st.header("🏆 2026 世界盃最終排名 (Final Standings)")
+    st.caption("48 強完整名次。主序＝到達的最終輪次;同輪淘汰者以全賽事積分→淨勝球→進球數排序。"
+               "淘汰賽經延長賽分勝負者計勝/負、點球決勝計和(FIFA 官方排名法)。")
+    _conn = get_db_connection()
+    try:
+        _df_fs = pd.read_sql_query(
+            "SELECT position, team, confederation, stage_reached, played, won, drawn, "
+            "lost, gf, ga, gd, points FROM final_standings ORDER BY position", _conn)
+    except Exception:
+        _df_fs = pd.DataFrame()
+    _conn.close()
+    if _df_fs.empty:
+        st.info("最終排名將於賽事全部完成後產生(執行 `python final_standings.py` 或每日建置)。")
+    else:
+        _STAGE_ZH = {'Champion': '🥇 冠軍', 'Runner-up': '🥈 亞軍', 'Third place': '🥉 季軍',
+                     'Fourth place': '殿軍', 'Quarter-finals': '八強', 'Round of 16': '十六強',
+                     'Round of 32': '三十二強', 'Group stage': '小組賽'}
+        _CONF_ZH = {'UEFA': '歐洲', 'CONMEBOL': '南美', 'CAF': '非洲', 'AFC': '亞洲',
+                    'Concacaf': '中北美', 'OFC': '大洋洲'}
+        _top = _df_fs.iloc[:4]['team'].apply(get_team_display_name).tolist()
+        if len(_top) >= 4:
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("🏆 冠軍", _top[0]); c2.metric("🥈 亞軍", _top[1])
+            c3.metric("🥉 季軍", _top[2]); c4.metric("殿軍", _top[3])
+        _disp = _df_fs.copy()
+        _disp['team'] = _disp['team'].apply(get_team_display_name)
+        _disp['stage_reached'] = _disp['stage_reached'].map(lambda s: _STAGE_ZH.get(s, s))
+        _disp['confederation'] = _disp['confederation'].map(lambda s: _CONF_ZH.get(s, s))
+        _disp = _disp.rename(columns={
+            'position': '名次', 'team': '隊伍', 'confederation': '洲際',
+            'stage_reached': '最終成績', 'played': '場', 'won': '勝', 'drawn': '和',
+            'lost': '負', 'gf': '進', 'ga': '失', 'gd': '淨勝', 'points': '積分'})
+        st.dataframe(_disp, use_container_width=True, hide_index=True)
 
 # ================= TAB 0: Mission Control Overview =================
 with tab_overview:

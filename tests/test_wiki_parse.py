@@ -77,15 +77,33 @@ class ResolveMatchNumTest(unittest.TestCase):
         f = sync_fifa._extract_box_fields(box)
         return sync_fifa._resolve_match_num(f, self.snapshot, self.pairs)
 
-    def test_explicit_number_wins(self):
+    def test_undecided_slot_prefers_date_venue_over_number(self):
         box = make_box('Winner Match 101', 'Winner Match 102', 'Match 104',
                        '2026-07-19', 'MetLife Stadium, East Rutherford')
+        self.assertEqual(self.resolve(box), (104, 'date+venue'))
+
+    def test_explicit_number_is_last_resort(self):
+        # Placeholder box whose venue doesn't match the snapshot (editors
+        # renamed the stadium): only the printed match number remains.
+        box = make_box('Winner Match 101', 'Winner Match 102', 'Match 104',
+                       '2026-07-19', 'New York New Jersey Stadium, East Rutherford')
         self.assertEqual(self.resolve(box), (104, 'explicit'))
 
     def test_confirmed_team_pair(self):
         box = make_box('Spain', 'Belgium', '2–1', '2026-07-10',
                        'AT&amp;T Stadium, Arlington')
         self.assertEqual(self.resolve(box), (98, 'teams'))
+
+    def test_stray_report_number_cannot_poison_a_finished_box(self):
+        # Live regression (2026-07-18): finished boxes carried sequential
+        # digits after "Report" in the goals area, so every box "identified"
+        # as its page position + 1. The confirmed pairing must win over the
+        # printed number.
+        box = make_box('Spain', 'Belgium', '2–1', '2026-07-10',
+                       'AT&amp;T Stadium, Arlington', goals='Report 1')
+        f = sync_fifa._extract_box_fields(box)
+        self.assertEqual(f['dyn_num'], 1)  # the poison is real...
+        self.assertEqual(self.resolve(box), (98, 'teams'))  # ...and ignored
 
     def test_team_pair_matches_either_orientation(self):
         box = make_box('Belgium', 'Spain', '1–2', '2026-07-10',
